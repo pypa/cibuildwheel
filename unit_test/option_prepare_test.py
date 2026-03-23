@@ -3,7 +3,7 @@ import subprocess
 import sys
 import typing
 from contextlib import contextmanager
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from unittest import mock
 
 import pytest
@@ -18,19 +18,19 @@ ALL_IDS = DEFAULT_IDS | {"cp313t", "pp38", "pp39", "pp310", "pp311", "gp311_242"
 
 
 @pytest.fixture
-def mock_build_container(monkeypatch):
-    def fail_on_call(*args, **kwargs):
+def mock_build_container(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_on_call(*args: object, **kwargs: object) -> None:
         msg = "This should never be called"
         raise RuntimeError(msg)
 
-    def ignore_call(*args, **kwargs):
+    def ignore_call(*args: object, **kwargs: object) -> None:
         pass
 
     @contextmanager
-    def nullcontext(enter_result=None):
+    def nullcontext(enter_result: object = None) -> typing.Generator[object, None, None]:
         yield enter_result
 
-    def ignore_context_call(*args, **kwargs):
+    def ignore_context_call(*args: object, **kwargs: object) -> typing.ContextManager[object]:
         return nullcontext(kwargs)
 
     monkeypatch.setenv("CIBW_PLATFORM", "linux")
@@ -49,7 +49,7 @@ def mock_build_container(monkeypatch):
 
 
 @pytest.mark.usefixtures("mock_build_container", "fake_package_dir")
-def test_build_default_launches(monkeypatch):
+def test_build_default_launches(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--platform=linux"])
     monkeypatch.setenv("CIBW_ARCHS", "auto64 auto32")
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
@@ -95,7 +95,7 @@ def test_build_default_launches(monkeypatch):
 
 
 @pytest.mark.usefixtures("mock_build_container")
-def test_build_with_override_launches(monkeypatch, tmp_path):
+def test_build_with_override_launches(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     pkg_dir = tmp_path / "cibw_package"
     pkg_dir.mkdir()
 

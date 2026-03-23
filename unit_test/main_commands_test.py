@@ -1,6 +1,7 @@
 import errno
 import shutil
 import sys
+from pathlib import Path
 
 import pytest
 
@@ -8,7 +9,9 @@ import cibuildwheel.__main__ as main_module
 from cibuildwheel.__main__ import main
 
 
-def test_clean_cache_when_cache_exists(tmp_path, monkeypatch, capfd):
+def test_clean_cache_when_cache_exists(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capfd: pytest.CaptureFixture[str]
+) -> None:
     fake_cache_dir = (tmp_path / "cibw_cache").resolve()
     monkeypatch.setattr(main_module, "CIBW_CACHE_PATH", fake_cache_dir)
 
@@ -40,7 +43,9 @@ def test_clean_cache_when_cache_exists(tmp_path, monkeypatch, capfd):
     assert not fake_cache_dir.exists()
 
 
-def test_clean_cache_when_cache_does_not_exist(tmp_path, monkeypatch, capfd):
+def test_clean_cache_when_cache_does_not_exist(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capfd: pytest.CaptureFixture[str]
+) -> None:
     fake_cache_dir = (tmp_path / "nonexistent_cache").resolve()
     monkeypatch.setattr(main_module, "CIBW_CACHE_PATH", fake_cache_dir)
 
@@ -55,7 +60,9 @@ def test_clean_cache_when_cache_does_not_exist(tmp_path, monkeypatch, capfd):
     assert f"Cache directory does not exist: {fake_cache_dir}" in out
 
 
-def test_clean_cache_with_error(tmp_path, monkeypatch, capfd):
+def test_clean_cache_with_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capfd: pytest.CaptureFixture[str]
+) -> None:
     fake_cache_dir = (tmp_path / "cibw_cache").resolve()
     monkeypatch.setattr(main_module, "CIBW_CACHE_PATH", fake_cache_dir)
 
@@ -73,7 +80,7 @@ def test_clean_cache_with_error(tmp_path, monkeypatch, capfd):
 
     monkeypatch.setattr(sys, "argv", ["cibuildwheel", "--clean-cache"])
 
-    def fake_rmtree(path):  # noqa: ARG001
+    def fake_rmtree(path: Path) -> None:  # noqa: ARG001
         raise OSError(errno.EACCES, "Permission denied")
 
     monkeypatch.setattr(shutil, "rmtree", fake_rmtree)
@@ -88,7 +95,9 @@ def test_clean_cache_with_error(tmp_path, monkeypatch, capfd):
     assert "Error clearing cache:" in err
 
 
-def test_clean_cache_without_sentinel(tmp_path, monkeypatch, capfd):
+def test_clean_cache_without_sentinel(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capfd: pytest.CaptureFixture[str]
+) -> None:
     fake_cache_dir = (tmp_path / "not_a_cache").resolve()
     monkeypatch.setattr(main_module, "CIBW_CACHE_PATH", fake_cache_dir)
 
@@ -106,7 +115,9 @@ def test_clean_cache_without_sentinel(tmp_path, monkeypatch, capfd):
     assert fake_cache_dir.exists()
 
 
-def test_clean_cache_with_invalid_signature(tmp_path, monkeypatch, capfd):
+def test_clean_cache_with_invalid_signature(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capfd: pytest.CaptureFixture[str]
+) -> None:
     fake_cache_dir = (tmp_path / "fake_cache").resolve()
     monkeypatch.setattr(main_module, "CIBW_CACHE_PATH", fake_cache_dir)
 

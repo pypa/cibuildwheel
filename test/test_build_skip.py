@@ -1,4 +1,5 @@
 import textwrap
+from pathlib import Path
 
 from . import test_projects, utils
 
@@ -15,7 +16,7 @@ project_with_skip_asserts = test_projects.new_c_project(
 )
 
 
-def test(tmp_path):
+def test(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     project_with_skip_asserts.generate(project_dir)
 

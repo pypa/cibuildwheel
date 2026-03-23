@@ -6,8 +6,10 @@ import subprocess
 import sys
 import textwrap
 import time
+from collections.abc import Iterator
 from contextlib import nullcontext
 from pathlib import Path, PurePath, PurePosixPath
+from typing import Any
 
 import pytest
 import tomli_w
@@ -34,7 +36,7 @@ PODMAN = OCIContainerEngineConfig(name="podman")
 
 
 @pytest.fixture(params=["docker", "podman"], scope="module")
-def container_engine(request):
+def container_engine(request: pytest.FixtureRequest) -> Iterator[OCIContainerEngineConfig]:
     if request.param == "docker" and not request.config.getoption("--run-docker"):
         pytest.skip("need --run-docker option to run")
     if request.param == "podman" and not request.config.getoption("--run-podman"):
@@ -63,21 +65,21 @@ def container_engine(request):
 # Tests
 
 
-def test_simple(container_engine):
+def test_simple(container_engine: OCIContainerEngineConfig) -> None:
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
         assert container.call(["echo", "hello"], capture_output=True) == "hello\n"
 
 
-def test_no_lf(container_engine):
+def test_no_lf(container_engine: OCIContainerEngineConfig) -> None:
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
         assert container.call(["printf", "hello"], capture_output=True) == "hello"
 
 
-def test_debug_info(container_engine):
+def test_debug_info(container_engine: OCIContainerEngineConfig) -> None:
     container = OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     )
@@ -86,7 +88,7 @@ def test_debug_info(container_engine):
         pass
 
 
-def test_environment(container_engine):
+def test_environment(container_engine: OCIContainerEngineConfig) -> None:
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
@@ -98,7 +100,9 @@ def test_environment(container_engine):
         )
 
 
-def test_environment_pass(container_engine, monkeypatch):
+def test_environment_pass(
+    container_engine: OCIContainerEngineConfig, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBUILDWHEEL", "1")
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "1489957071")
     with OCIContainer(
@@ -111,7 +115,7 @@ def test_environment_pass(container_engine, monkeypatch):
         )
 
 
-def test_cwd(container_engine):
+def test_cwd(container_engine: OCIContainerEngineConfig) -> None:
     with OCIContainer(
         engine=container_engine,
         image=DEFAULT_IMAGE,
@@ -122,7 +126,7 @@ def test_cwd(container_engine):
         assert container.call(["pwd"], capture_output=True, cwd="/opt") == "/opt\n"
 
 
-def test_container_removed(container_engine):
+def test_container_removed(container_engine: OCIContainerEngineConfig) -> None:
     # test is flaky on some platforms, implement retry for 5 second
     timeout = 50  # * 100 ms = 5s
     with OCIContainer(
@@ -157,7 +161,7 @@ def test_container_removed(container_engine):
     assert container_name not in docker_containers_listing
 
 
-def test_large_environment(container_engine):
+def test_large_environment(container_engine: OCIContainerEngineConfig) -> None:
     # max environment variable size is 128kB
     long_env_var_length = 127 * 1024
     large_environment = {
@@ -177,7 +181,7 @@ def test_large_environment(container_engine):
         )
 
 
-def test_binary_output(container_engine):
+def test_binary_output(container_engine: OCIContainerEngineConfig) -> None:
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
@@ -472,7 +476,9 @@ def test_create_args_volume(tmp_path: Path, container_engine: OCIContainerEngine
         ),
     ],
 )
-def test_parse_engine_config(config, name, create_args, capsys):
+def test_parse_engine_config(
+    config: str, name: str, create_args: tuple[str, ...], capsys: pytest.CaptureFixture[str]
+) -> None:
     engine_config = OCIContainerEngineConfig.from_config_string(config)
     assert engine_config.name == name
     assert engine_config.create_args == create_args
@@ -485,7 +491,7 @@ def test_parse_engine_config(config, name, create_args, capsys):
 
 
 @pytest.mark.skipif(DEFAULT_OCI_PLATFORM != OCIPlatform.AMD64, reason="Only runs on x86_64")
-def test_enforce_32_bit(container_engine):
+def test_enforce_32_bit(container_engine: OCIContainerEngineConfig) -> None:
     with OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=OCIPlatform.i386
     ) as container:
@@ -567,7 +573,7 @@ def test_local_image(
 
 
 @pytest.mark.parametrize("platform", list(OCIPlatform))
-def test_multiarch_image(container_engine, platform):
+def test_multiarch_image(container_engine: OCIContainerEngineConfig, platform: OCIPlatform) -> None:
     if detect_ci_provider() == CIProvider.travis_ci and DEFAULT_OCI_PLATFORM not in {
         OCIPlatform.AMD64,
         platform,
@@ -657,8 +663,10 @@ def test_multiarch_image(container_engine, platform):
         ("podman", '{"Client":{"Version":"2.1.0~rc1"}}', pytest.raises(OCIEngineTooOldError)),
     ],
 )
-def test_engine_version(engine_name, version, context, monkeypatch):
-    def mockcall(*args, **kwargs):
+def test_engine_version(
+    engine_name: str, version: str | None, context: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def mockcall(*args: object, **kwargs: object) -> str:
         if version is None:
             raise subprocess.CalledProcessError(1, " ".join(str(arg) for arg in args))
         return version

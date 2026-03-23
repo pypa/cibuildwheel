@@ -1,12 +1,13 @@
 import platform
 import subprocess
+from pathlib import Path
 
 import pytest
 
 from . import test_projects, utils
 
 
-def test_python_exist(tmp_path, capfd):
+def test_python_exist(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
     machine = platform.machine()

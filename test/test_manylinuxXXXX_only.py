@@ -1,5 +1,6 @@
 import platform
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -61,7 +62,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
     ],
 )
 @pytest.mark.usefixtures("docker_cleanup")
-def test(manylinux_image, tmp_path):
+def test(manylinux_image: str, tmp_path: Path) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the container image test is only relevant to the linux build")
 

@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from . import test_projects, utils
@@ -5,7 +7,7 @@ from . import test_projects, utils
 basic_project = test_projects.new_c_project()
 
 
-def test_wheel_tag_is_correct_when_using_macosx_deployment_target(tmp_path):
+def test_wheel_tag_is_correct_when_using_macosx_deployment_target(tmp_path: Path) -> None:
     if utils.get_platform() != "macos":
         pytest.skip("This test is only relevant to MACOSX_DEPLOYMENT_TARGET")
 
