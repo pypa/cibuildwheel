@@ -290,13 +290,13 @@ def setup_python(
         use_uv=use_uv,
     )
 
+    # update env with results from CIBW_ENVIRONMENT
+    env = environment.as_dictionary(prev_environment=env)
+
     # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-
-    # update env with results from CIBW_ENVIRONMENT
-    env = environment.as_dictionary(prev_environment=env)
 
     # check what Python version we're on
     where_python = call("where", "python", env=env, capture_stdout=True).splitlines()[0].strip()

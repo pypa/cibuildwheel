@@ -253,6 +253,9 @@ def setup_python(
     # https://github.com/pypa/virtualenv/issues/620
     # Also see https://github.com/python/cpython/pull/9516
     env.pop("__PYVENV_LAUNCHER__", None)
+    # uv uses this over the current environment's python, so remove it to avoid confusion
+    env.pop("PYTHON_VERSION", None)
+    env.pop("PYTHON_ARCH", None)
 
     # we version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
