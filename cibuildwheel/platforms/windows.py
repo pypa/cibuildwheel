@@ -297,6 +297,7 @@ def setup_python(
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    env.pop("UV_PYTHON", None)
 
     # check what Python version we're on
     where_python = call("where", "python", env=env, capture_stdout=True).splitlines()[0].strip()

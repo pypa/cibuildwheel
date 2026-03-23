@@ -256,6 +256,7 @@ def setup_python(
     # uv uses this over the current environment's python, so remove it to avoid confusion
     env.pop("PYTHON_VERSION", None)
     env.pop("PYTHON_ARCH", None)
+    env.pop("UV_PYTHON", None)
 
     # we version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
