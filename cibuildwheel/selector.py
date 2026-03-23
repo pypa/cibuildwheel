@@ -113,7 +113,7 @@ class BuildSelector:
 
         return should_build and not should_skip
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> dict[str, str | list[str]]:
         return {
             "build_config": self.build_config,
             "skip_config": self.skip_config,
@@ -134,5 +134,5 @@ class TestSelector:
         should_skip = selector_matches(self.skip_config, build_id)
         return not should_skip
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> dict[str, str]:
         return {"skip_config": self.skip_config}

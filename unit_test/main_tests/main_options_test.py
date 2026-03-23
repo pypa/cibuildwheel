@@ -3,7 +3,7 @@ import tomllib
 from collections.abc import Mapping
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -14,6 +14,9 @@ from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
+
+if TYPE_CHECKING:
+    from .conftest import ArgsInterceptor
 
 # CIBW_PLATFORM is tested in main_platform_test.py
 
@@ -33,7 +36,9 @@ def test_old_free_threaded(
 
 
 @pytest.mark.usefixtures("platform")
-def test_output_dir(intercepted_build_args: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_output_dir(
+    intercepted_build_args: "ArgsInterceptor", monkeypatch: pytest.MonkeyPatch
+) -> None:
     OUTPUT_DIR = Path("some_output_dir")
 
     monkeypatch.setenv("CIBW_OUTPUT_DIR", str(OUTPUT_DIR))
@@ -44,7 +49,7 @@ def test_output_dir(intercepted_build_args: Any, monkeypatch: pytest.MonkeyPatch
 
 
 @pytest.mark.usefixtures("platform")
-def test_output_dir_default(intercepted_build_args: Any) -> None:
+def test_output_dir_default(intercepted_build_args: "ArgsInterceptor") -> None:
     main()
 
     assert intercepted_build_args.args[0].globals.output_dir == Path("wheelhouse").resolve()
@@ -53,7 +58,9 @@ def test_output_dir_default(intercepted_build_args: Any) -> None:
 @pytest.mark.usefixtures("platform")
 @pytest.mark.parametrize("also_set_environment", [False, True])
 def test_output_dir_argument(
-    also_set_environment: bool, intercepted_build_args: Any, monkeypatch: pytest.MonkeyPatch
+    also_set_environment: bool,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     OUTPUT_DIR = Path("some_output_dir")
 
@@ -67,7 +74,9 @@ def test_output_dir_argument(
 
 
 @pytest.mark.usefixtures("platform", "allow_empty")
-def test_build_selector(intercepted_build_args: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_build_selector(
+    intercepted_build_args: "ArgsInterceptor", monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_BUILD", "cp313-*")
     monkeypatch.setenv("CIBW_SKIP", "cp39-*")
 
@@ -182,7 +191,7 @@ def test_manylinux_images(
     image: str | None,
     full_image: str,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     if image is not None:
@@ -219,7 +228,7 @@ def test_repair_command(
     repair_command: str | None,
     platform_specific: bool,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     if repair_command is not None:
@@ -246,7 +255,7 @@ def test_environment(
     environment: Mapping[str, str],
     platform_specific: bool,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     env_string = " ".join(f"{k}={v}" for k, v in environment.items())
@@ -271,7 +280,7 @@ def test_test_requires(
     test_requires: str | None,
     platform_specific: bool,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     if test_requires is not None:
@@ -294,7 +303,7 @@ def test_test_extras(
     test_extras: str | None,
     platform_specific: bool,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     if test_extras is not None:
@@ -317,7 +326,7 @@ def test_test_command(
     test_command: str | None,
     platform_specific: bool,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     if test_command is not None:
@@ -340,7 +349,7 @@ def test_before_build(
     before_build: str | None,
     platform_specific: bool,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     if before_build is not None:
@@ -362,7 +371,7 @@ def test_build_verbosity(
     build_verbosity: int | None,
     platform_specific: bool,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     if build_verbosity is not None:
@@ -383,7 +392,7 @@ def test_build_verbosity(
 def test_config_settings(
     platform_specific: bool,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     config_settings = (
@@ -461,7 +470,7 @@ def test_before_all(
     before_all: str | None,
     platform_specific: bool,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     if before_all is not None:
@@ -487,7 +496,7 @@ def test_dependency_versions(
     dependency_versions: str | None,
     platform_specific: bool,
     platform: str,
-    intercepted_build_args: Any,
+    intercepted_build_args: "ArgsInterceptor",
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -546,7 +555,9 @@ def test_debug_traceback(
 
 
 @pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
-def test_enable(method: str, intercepted_build_args: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_enable(
+    method: str, intercepted_build_args: "ArgsInterceptor", monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     if method == "command_line":
@@ -564,7 +575,9 @@ def test_enable(method: str, intercepted_build_args: Any, monkeypatch: pytest.Mo
         assert enable_groups == frozenset([EnableGroup.PyPy, EnableGroup.GraalPy])
 
 
-def test_enable_all(intercepted_build_args: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_enable_all(
+    intercepted_build_args: "ArgsInterceptor", monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "all"])
 
     main()
@@ -573,7 +586,9 @@ def test_enable_all(intercepted_build_args: Any, monkeypatch: pytest.MonkeyPatch
     assert enable_groups == EnableGroup.all_groups()
 
 
-def test_enable_arg_inherits(intercepted_build_args: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_enable_arg_inherits(
+    intercepted_build_args: "ArgsInterceptor", monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_ENABLE", "pypy graalpy")
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "cpython-prerelease"])
 
@@ -599,7 +614,7 @@ def test_enable_arg_error_message(
     assert "Valid group names are:" in err
 
 
-def test_defaults(platform: str, intercepted_build_args: Any) -> None:
+def test_defaults(platform: str, intercepted_build_args: "ArgsInterceptor") -> None:
     main()
 
     build_options: BuildOptions = intercepted_build_args.args[0].build_options(identifier=None)

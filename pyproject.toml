@@ -191,6 +191,7 @@ extend-select = [
   "B",           # flake8-bugbear
   "I",           # isort
   "ARG",         # flake8-unused-arguments
+  "ANN",         # flake8-annotations
   "C4",          # flake8-comprehensions
   "EM",          # flake8-errmsg
   "ICN",         # flake8-import-conventions
@@ -231,6 +232,8 @@ ignore = [
 ]
 flake8-unused-arguments.ignore-variadic-names = true
 flake8-tidy-imports.ban-relative-imports = "all"
+flake8-annotations.allow-star-arg-any = true
+flake8-annotations.mypy-init-return = true
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "typing.Mapping".msg = "Use collections.abc.Mapping instead."

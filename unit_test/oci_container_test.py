@@ -1,3 +1,4 @@
+import contextlib
 import json
 import os
 import random
@@ -9,7 +10,6 @@ import time
 from collections.abc import Iterator
 from contextlib import nullcontext
 from pathlib import Path, PurePath, PurePosixPath
-from typing import Any
 
 import pytest
 import tomli_w
@@ -664,7 +664,10 @@ def test_multiarch_image(container_engine: OCIContainerEngineConfig, platform: O
     ],
 )
 def test_engine_version(
-    engine_name: str, version: str | None, context: Any, monkeypatch: pytest.MonkeyPatch
+    engine_name: str,
+    version: str | None,
+    context: contextlib.AbstractContextManager[None],
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     def mockcall(*args: object, **kwargs: object) -> str:
         if version is None:
