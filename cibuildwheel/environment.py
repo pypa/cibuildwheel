@@ -5,7 +5,7 @@ from typing import Any, Protocol
 import bashlex
 import bashlex.errors
 
-from . import bashlex_eval
+from cibuildwheel import bashlex_eval
 
 
 class EnvironmentParseError(Exception):

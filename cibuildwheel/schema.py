@@ -1,7 +1,7 @@
 import json
 from typing import Any
 
-from .util import resources
+from cibuildwheel.util import resources
 
 
 def get_schema(tool_name: str = "cibuildwheel") -> dict[str, Any]:

@@ -9,8 +9,7 @@ from enum import StrEnum, auto
 from typing import Final, Literal
 
 from cibuildwheel import errors
-
-from .typing import PlatformName
+from cibuildwheel.typing import PlatformName
 
 PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "linux": "Linux",
