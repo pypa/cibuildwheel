@@ -72,6 +72,9 @@ Commit this file, enable building of your repo on Azure Pipelines, and push.
 
 Wheels will be stored for you and available through the Pipelines interface. For more info on this file, check out the [docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
 
+!!! tip "OpenAstronomy Azure Pipelines Templates"
+    If you use Azure Pipelines for a scientific Python project, the [OpenAstronomy Azure Pipelines Templates](https://openastronomy-azure-pipelines.readthedocs.io/en/latest/) provide a higher-level template that integrates cibuildwheel with PyPI publishing in a few lines of configuration.
+
 ### CircleCI [linux/mac] {: #circleci}
 
 To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
