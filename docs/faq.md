@@ -130,6 +130,9 @@ uses: pypa/cibuildwheel@v3.4.0
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
 
+!!! note "Minor version tags"
+    Unlike some GitHub Actions, cibuildwheel does **not** provide a floating `@v3` major-version tag, since our minor version change can add/remove wheels. You can, however, pin to a minor version such as `@v3.4` to automatically receive patch releases within that minor version. Dependabot (shown below) is the recommended way to stay up to date.
+
 Then, your `.github/dependabot.yml` file could look like this:
 
 ```yaml
