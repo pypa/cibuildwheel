@@ -173,6 +173,7 @@ def expected_wheels(
     musllinux_versions: list[str] | None = None,
     macosx_deployment_target: str | None = None,
     iphoneos_deployment_target: str | None = None,
+    android_api_level: int | None = None,
     machine_arch: str | None = None,
     platform: str | None = None,
     python_abi_tags: list[str] | None = None,
@@ -196,6 +197,9 @@ def expected_wheels(
 
     if iphoneos_deployment_target is None:
         iphoneos_deployment_target = os.environ.get("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
+
+    if android_api_level is None:
+        android_api_level = int(os.environ.get("ANDROID_API_LEVEL", "24"))
 
     architectures = [machine_arch]
     if not single_arch:
@@ -222,6 +226,7 @@ def expected_wheels(
             musllinux_versions=musllinux_versions,
             macosx_deployment_target=macosx_deployment_target,
             iphoneos_deployment_target=iphoneos_deployment_target,
+            android_api_level=android_api_level,
             platform=platform,
             python_abi_tags=python_abi_tags,
             include_universal2=include_universal2,
@@ -238,6 +243,7 @@ def _expected_wheels(
     musllinux_versions: list[str] | None,
     macosx_deployment_target: str,
     iphoneos_deployment_target: str,
+    android_api_level: int,
     platform: str,
     python_abi_tags: list[str] | None,
     include_universal2: bool,
@@ -392,11 +398,7 @@ def _expected_wheels(
                 platform_tags.append(f"macosx_{min_macosx.replace('.', '_')}_universal2")
 
         elif platform == "android":
-            api_level = {
-                "cp313-cp313": 21,
-                "cp314-cp314": 24,
-            }[python_abi_tag]
-            platform_tags = [f"android_{api_level}_{machine_arch}"]
+            platform_tags = [f"android_{android_api_level}_{machine_arch}"]
 
         elif platform == "ios":
             if machine_arch == "x86_64":
