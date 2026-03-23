@@ -226,11 +226,11 @@ extend-select = [
   "TC",          # flake8-type-checking
 ]
 ignore = [
-  "PLR",     # Design related pylint codes
+  "PLR09",   # Design related pylint codes
+  "PLR2004", # Magic value in comparison
   "RET504", "RET505", "RET508",  # else after control flow
   "PT007",   # Lists of tuples in Pytest
   "PYI025",  # Set as AbstractSet
-  "ISC001",  # Conflicts with formatter
   "PTH123",  # open -> Path.open
 ]
 flake8-unused-arguments.ignore-variadic-names = true

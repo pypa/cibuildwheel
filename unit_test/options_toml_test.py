@@ -339,13 +339,12 @@ def test_resolve_cascade_merge_list(ignore_empty, rule):
 
     if not ignore_empty:
         assert answer == "b1 b2"
-    else:
-        if rule == InheritRule.PREPEND:
-            assert answer == "b1 b2 a1 a2"
-        elif rule == InheritRule.NONE:
-            assert answer == "b1 b2"
-        elif rule == InheritRule.APPEND:
-            assert answer == "a1 a2 b1 b2"
+    elif rule == InheritRule.PREPEND:
+        assert answer == "b1 b2 a1 a2"
+    elif rule == InheritRule.NONE:
+        assert answer == "b1 b2"
+    elif rule == InheritRule.APPEND:
+        assert answer == "a1 a2 b1 b2"
 
 
 @pytest.mark.parametrize("rule", [InheritRule.PREPEND, InheritRule.NONE, InheritRule.APPEND])
