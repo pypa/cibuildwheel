@@ -2,7 +2,7 @@ import os
 import re
 from enum import Enum
 
-from .util.helpers import strtobool
+from cibuildwheel.util.helpers import strtobool
 
 ANSI_CODE_REGEX = re.compile(r"(\033\[[0-9;]*m)")
 

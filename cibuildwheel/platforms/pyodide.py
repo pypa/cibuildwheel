@@ -14,16 +14,16 @@ from typing import Final, TypedDict
 
 from filelock import FileLock
 
-from .. import errors
-from ..architecture import Architecture
-from ..environment import ParsedEnvironment
-from ..frontend import get_build_frontend_extra_flags
-from ..logger import log
-from ..options import Options
-from ..selector import BuildSelector
-from ..util import resources
-from ..util.cmd import call, shell
-from ..util.file import (
+from cibuildwheel import errors
+from cibuildwheel.architecture import Architecture
+from cibuildwheel.environment import ParsedEnvironment
+from cibuildwheel.frontend import get_build_frontend_extra_flags
+from cibuildwheel.logger import log
+from cibuildwheel.options import Options
+from cibuildwheel.selector import BuildSelector
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call, shell
+from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
     download,
@@ -31,13 +31,13 @@ from ..util.file import (
     extract_zip,
     move_file,
 )
-from ..util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
-from ..util.packaging import find_compatible_wheel, get_pip_version
-from ..util.python_build_standalone import (
+from cibuildwheel.util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
+from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
+from cibuildwheel.util.python_build_standalone import (
     PythonBuildStandaloneError,
     create_python_build_standalone_environment,
 )
-from ..venv import constraint_flags, virtualenv
+from cibuildwheel.venv import constraint_flags, virtualenv
 
 IS_WIN: Final[bool] = sys.platform.startswith("win")
 

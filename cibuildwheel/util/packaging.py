@@ -6,9 +6,9 @@ from typing import Any, Literal, Self, TypeVar
 
 from packaging.utils import parse_wheel_filename
 
-from . import resources
-from .cmd import call
-from .helpers import parse_key_value_string, unwrap
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call
+from cibuildwheel.util.helpers import parse_key_value_string, unwrap
 
 
 @dataclass(kw_only=True)

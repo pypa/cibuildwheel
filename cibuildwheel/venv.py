@@ -12,9 +12,9 @@ from filelock import FileLock
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import Version
 
-from .util import resources
-from .util.cmd import call
-from .util.file import CIBW_CACHE_PATH, download
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call
+from cibuildwheel.util.file import CIBW_CACHE_PATH, download
 
 _IS_WIN: Final[bool] = sys.platform.startswith("win")
 

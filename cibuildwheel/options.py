@@ -14,18 +14,18 @@ from typing import Any, Final, Literal, Self, assert_never
 
 from packaging.specifiers import SpecifierSet
 
-from . import errors
-from .architecture import Architecture
-from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
-from .frontend import BuildFrontendConfig
-from .logger import log
-from .oci_container import OCIContainerEngineConfig
-from .projectfiles import get_requires_python_str, resolve_dependency_groups
-from .selector import BuildSelector, EnableGroup, TestSelector, selector_matches
-from .typing import PLATFORMS, PlatformName
-from .util import resources
-from .util.helpers import format_safe, parse_key_value_string, strtobool, unwrap
-from .util.packaging import DependencyConstraints
+from cibuildwheel import errors
+from cibuildwheel.architecture import Architecture
+from cibuildwheel.environment import EnvironmentParseError, ParsedEnvironment, parse_environment
+from cibuildwheel.frontend import BuildFrontendConfig
+from cibuildwheel.logger import log
+from cibuildwheel.oci_container import OCIContainerEngineConfig
+from cibuildwheel.projectfiles import get_requires_python_str, resolve_dependency_groups
+from cibuildwheel.selector import BuildSelector, EnableGroup, TestSelector, selector_matches
+from cibuildwheel.typing import PLATFORMS, PlatformName
+from cibuildwheel.util import resources
+from cibuildwheel.util.helpers import format_safe, parse_key_value_string, strtobool, unwrap
+from cibuildwheel.util.packaging import DependencyConstraints
 
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",

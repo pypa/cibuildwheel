@@ -15,10 +15,10 @@ from typing import IO, TYPE_CHECKING, AnyStr, Final, Literal
 
 import humanize
 
-from .ci import CIProvider, detect_ci_provider, filter_ansi_codes
+from cibuildwheel.ci import CIProvider, detect_ci_provider, filter_ansi_codes
 
 if TYPE_CHECKING:
-    from .options import Options
+    from cibuildwheel.options import Options
 
 FoldPattern = tuple[str, str]
 DEFAULT_FOLD_PATTERN: Final[FoldPattern] = ("{name}", "")
