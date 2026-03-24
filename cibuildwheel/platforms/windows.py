@@ -335,6 +335,8 @@ def setup_python(
                 uv_path,
                 "pip",
                 "install",
+                "--python",
+                where_python,
                 "--upgrade",
                 "build[virtualenv]",
                 *constraint_flags(dependency_constraint),
