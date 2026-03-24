@@ -1,3 +1,21 @@
+__lazy_modules__ = [
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "collections",
+    "collections.abc",
+    "contextlib",
+    "filelock",
+    "os",
+    "packaging",
+    "packaging.requirements",
+    "packaging.version",
+    "pathlib",
+    "shutil",
+    "tomllib",
+    "typing",
+]
+
 import contextlib
 import functools
 import os

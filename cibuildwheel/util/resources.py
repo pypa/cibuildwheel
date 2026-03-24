@@ -1,3 +1,5 @@
+__lazy_modules__ = ["cibuildwheel.typing", "tomllib", "typing"]
+
 import functools
 import tomllib
 from pathlib import Path

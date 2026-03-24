@@ -1,6 +1,8 @@
 # This module is copied into the site-packages directory of an Android build environment, and
 # activated via a .pth file when we want the environment to simulate Android.
 
+__lazy_modules__ = ["os", "pathlib", "platform", "re", "sys", "sysconfig", "typing"]
+
 import os
 import platform
 import re

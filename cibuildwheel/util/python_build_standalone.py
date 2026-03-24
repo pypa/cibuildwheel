@@ -1,3 +1,13 @@
+__lazy_modules__ = [
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.resources",
+    "filelock",
+    "fnmatch",
+    "json",
+    "pathlib",
+    "platform",
+]
+
 import fnmatch
 import functools
 import json

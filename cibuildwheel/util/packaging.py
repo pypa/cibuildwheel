@@ -1,3 +1,13 @@
+__lazy_modules__ = [
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.helpers",
+    "collections",
+    "collections.abc",
+    "packaging",
+    "packaging.utils",
+    "shlex",
+]
+
 import shlex
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field

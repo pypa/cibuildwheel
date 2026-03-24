@@ -1,3 +1,5 @@
+__lazy_modules__ = ["configparser", "contextlib", "dependency_groups", "pathlib", "typing"]
+
 import ast
 import configparser
 import contextlib

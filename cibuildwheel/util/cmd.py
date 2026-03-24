@@ -1,3 +1,14 @@
+__lazy_modules__ = [
+    "cibuildwheel.errors",
+    "cibuildwheel.typing",
+    "collections",
+    "collections.abc",
+    "os",
+    "shlex",
+    "shutil",
+    "subprocess",
+]
+
 import os
 import shlex
 import shutil

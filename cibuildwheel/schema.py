@@ -1,3 +1,5 @@
+__lazy_modules__ = ["cibuildwheel.util", "json", "typing"]
+
 import json
 from typing import Any
 

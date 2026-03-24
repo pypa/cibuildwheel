@@ -1,3 +1,14 @@
+__lazy_modules__ = [
+    "cibuildwheel.typing",
+    "collections",
+    "collections.abc",
+    "platform",
+    "re",
+    "shutil",
+    "subprocess",
+    "sys",
+]
+
 import platform as platform_module
 import re
 import shutil

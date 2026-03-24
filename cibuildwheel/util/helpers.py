@@ -1,3 +1,14 @@
+__lazy_modules__ = [
+    "cibuildwheel.typing",
+    "collections",
+    "collections.abc",
+    "itertools",
+    "os",
+    "re",
+    "shlex",
+    "textwrap",
+]
+
 import dataclasses
 import itertools
 import os
