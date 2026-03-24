@@ -2,6 +2,17 @@
 These are utilities for the `/bin` scripts, not for the `cibuildwheel` program.
 """
 
+__lazy_modules__ = [
+    "collections",
+    "collections.abc",
+    "io",
+    "json",
+    "time",
+    "urllib",
+    "urllib.error",
+    "urllib.request",
+]
+
 import json
 import time
 import typing

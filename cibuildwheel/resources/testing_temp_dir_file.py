@@ -1,6 +1,8 @@
 # this file is copied to the testing cwd, to raise the below error message if
 # pytest/unittest is run from there.
 
+__lazy_modules__ = ["sys", "typing"]
+
 import sys
 import unittest
 from typing import NoReturn

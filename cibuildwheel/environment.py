@@ -1,3 +1,5 @@
+__lazy_modules__ = ["bashlex", "bashlex.errors", "collections", "collections.abc"]
+
 import dataclasses
 from collections.abc import Mapping, Sequence
 from typing import Any, Protocol

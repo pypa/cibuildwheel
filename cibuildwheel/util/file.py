@@ -1,3 +1,18 @@
+__lazy_modules__ = [
+    "certifi",
+    "cibuildwheel.errors",
+    "collections",
+    "collections.abc",
+    "shutil",
+    "ssl",
+    "tarfile",
+    "time",
+    "typing",
+    "urllib",
+    "urllib.request",
+    "zipfile",
+]
+
 import os
 import shutil
 import ssl

@@ -1,3 +1,29 @@
+__lazy_modules__ = [
+    "cibuildwheel.architecture",
+    "cibuildwheel.environment",
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.options",
+    "cibuildwheel.selector",
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "cibuildwheel.util.python_build_standalone",
+    "cibuildwheel.venv",
+    "collections",
+    "collections.abc",
+    "filelock",
+    "json",
+    "os",
+    "pathlib",
+    "shutil",
+    "subprocess",
+    "tempfile",
+    "tomllib",
+]
+
 import dataclasses
 import functools
 import json

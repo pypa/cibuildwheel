@@ -4,6 +4,8 @@ a different return code, by defining them all here, we can ensure that they're
 semantically clear and unique.
 """
 
+__lazy_modules__ = ["textwrap"]
+
 import textwrap
 
 

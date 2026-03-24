@@ -1,3 +1,11 @@
+__lazy_modules__ = [
+    "cibuildwheel.logger",
+    "cibuildwheel.util.helpers",
+    "collections",
+    "collections.abc",
+    "shlex",
+]
+
 import dataclasses
 import shlex
 import typing
