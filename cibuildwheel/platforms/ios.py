@@ -284,6 +284,7 @@ def setup_python(
     build_frontend: BuildFrontendName,
     xbuild_tools: Sequence[str] | None,
 ) -> tuple[Path, dict[str, str]]:
+    # Not using set because mypy can't narrow it
     if build_frontend == "build[uv]" or build_frontend == "uv":  # noqa: PLR1714
         msg = "uv doesn't support iOS"
         raise errors.FatalError(msg)
@@ -441,6 +442,7 @@ def build(options: Options, tmp_path: Path) -> None:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
             # uv doesn't support iOS
+            # Not using set because mypy can't narrow it
             if build_frontend.name == "build[uv]" or build_frontend.name == "uv":  # noqa: PLR1714
                 msg = "uv doesn't support iOS"
                 raise errors.FatalError(msg)
