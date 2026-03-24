@@ -156,8 +156,6 @@ jobs:
 
     - name: Set CIBW_ENABLE
       shell: bash
-      env:
-        GITHUB_REF_NAME: ${{ github.ref_name }}
       run: |
         if [[ "$GITHUB_REF_NAME" == "main" ]]; then
           CIBW_ENABLE=all

@@ -60,7 +60,7 @@ runs:
             def post_setup(self, context):
                 super().post_setup(context)
                 self.bin_path = Path(context.env_exe).parent
-                install_spec = os.environ["ACTION_PATH"]
+                install_spec = os.environ["GITHUB_ACTION_PATH"]
                 if EXTRAS:
                     install_spec += f"[{','.join(sorted(EXTRAS))}]"
                 run([sys.executable, "-m", "pip", "--python", context.env_exe, "install", install_spec], check=True)
@@ -120,8 +120,6 @@ runs:
       shell: bash
       env:
         PYTHON: ${{ steps.python.outputs.python-path }}
-        ACTION_PATH: ${{ github.action_path }}
-        RUNNER_TEMP: ${{ runner.temp }}
         INPUT_PACKAGE_DIR: ${{ inputs.package-dir }}
         INPUT_OUTPUT_DIR: ${{ inputs.output-dir }}
         INPUT_CONFIG_FILE: ${{ inputs.config-file }}
