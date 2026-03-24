@@ -1,3 +1,5 @@
+__lazy_modules__ = ["bashlex", "subprocess"]
+
 import dataclasses
 import subprocess
 from collections.abc import (

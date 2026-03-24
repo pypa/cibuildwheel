@@ -1,3 +1,31 @@
+__lazy_modules__ = [
+    "argparse",
+    "cibuildwheel.architecture",
+    "cibuildwheel.ci",
+    "cibuildwheel.logger",
+    "cibuildwheel.options",
+    "cibuildwheel.platforms",
+    "cibuildwheel.selector",
+    "cibuildwheel.typing",
+    "cibuildwheel.util",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.resources",
+    "collections",
+    "collections.abc",
+    "contextlib",
+    "functools",
+    "os",
+    "pathlib",
+    "shutil",
+    "sys",
+    "tarfile",
+    "tempfile",
+    "textwrap",
+    "traceback",
+    "typing",
+]
+
 import argparse
 import contextlib
 import dataclasses

@@ -1,3 +1,5 @@
+__lazy_modules__ = ["cibuildwheel.util.helpers", "os"]
+
 import os
 import re
 from enum import Enum

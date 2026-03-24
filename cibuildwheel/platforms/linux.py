@@ -1,3 +1,21 @@
+__lazy_modules__ = [
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.options",
+    "cibuildwheel.selector",
+    "cibuildwheel.util",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "collections",
+    "collections.abc",
+    "contextlib",
+    "pathlib",
+    "subprocess",
+    "sys",
+    "textwrap",
+]
+
 import contextlib
 import dataclasses
 import subprocess

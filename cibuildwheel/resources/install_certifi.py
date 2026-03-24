@@ -6,6 +6,8 @@
 # for the ssl module.  Uses the certificates provided by the certifi package:
 #       https://pypi.org/project/certifi/
 
+__lazy_modules__ = ["contextlib", "os", "os.path", "ssl", "subprocess", "sys"]
+
 import contextlib
 import os
 import os.path

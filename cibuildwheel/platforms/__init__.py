@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = ["sys"]
+
 import sys
 from typing import TYPE_CHECKING, Final, Protocol
 

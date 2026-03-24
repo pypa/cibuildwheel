@@ -1,3 +1,13 @@
+__lazy_modules__ = [
+    "bracex",
+    "fnmatch",
+    "itertools",
+    "packaging",
+    "packaging.specifiers",
+    "packaging.version",
+    "typing",
+]
+
 import dataclasses
 import itertools
 from enum import StrEnum

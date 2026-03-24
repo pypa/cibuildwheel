@@ -1,3 +1,28 @@
+__lazy_modules__ = [
+    "cibuildwheel.architecture",
+    "cibuildwheel.environment",
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.oci_container",
+    "cibuildwheel.projectfiles",
+    "cibuildwheel.selector",
+    "cibuildwheel.typing",
+    "cibuildwheel.util",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "collections",
+    "configparser",
+    "contextlib",
+    "difflib",
+    "packaging",
+    "packaging.specifiers",
+    "pathlib",
+    "shlex",
+    "textwrap",
+    "tomllib",
+    "typing",
+]
+
 import collections
 import configparser
 import contextlib

@@ -1,3 +1,26 @@
+__lazy_modules__ = [
+    "cibuildwheel.ci",
+    "cibuildwheel.errors",
+    "cibuildwheel.logger",
+    "cibuildwheel.typing",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.helpers",
+    "collections",
+    "collections.abc",
+    "io",
+    "json",
+    "os",
+    "pathlib",
+    "platform",
+    "shlex",
+    "shutil",
+    "subprocess",
+    "sys",
+    "textwrap",
+    "types",
+    "uuid",
+]
+
 import dataclasses
 import io
 import json

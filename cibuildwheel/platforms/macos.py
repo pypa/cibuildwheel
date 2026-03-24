@@ -1,3 +1,33 @@
+__lazy_modules__ = [
+    "cibuildwheel.architecture",
+    "cibuildwheel.ci",
+    "cibuildwheel.environment",
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.options",
+    "cibuildwheel.selector",
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "cibuildwheel.venv",
+    "collections",
+    "collections.abc",
+    "filelock",
+    "inspect",
+    "os",
+    "packaging",
+    "packaging.version",
+    "pathlib",
+    "platform",
+    "re",
+    "shutil",
+    "subprocess",
+    "sys",
+    "typing",
+]
+
 import dataclasses
 import functools
 import inspect

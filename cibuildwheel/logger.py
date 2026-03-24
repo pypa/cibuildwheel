@@ -1,3 +1,21 @@
+__lazy_modules__ = [
+    "cibuildwheel.ci",
+    "codecs",
+    "collections",
+    "collections.abc",
+    "contextlib",
+    "functools",
+    "hashlib",
+    "humanize",
+    "io",
+    "os",
+    "pathlib",
+    "re",
+    "sys",
+    "textwrap",
+    "time",
+]
+
 import codecs
 import contextlib
 import dataclasses
