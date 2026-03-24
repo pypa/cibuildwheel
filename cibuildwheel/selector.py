@@ -2,7 +2,7 @@ import dataclasses
 import itertools
 from enum import StrEnum
 from fnmatch import fnmatch
-from typing import Any
+from typing import Any, Self
 
 import bracex
 from packaging.specifiers import SpecifierSet
@@ -37,11 +37,11 @@ class EnableGroup(StrEnum):
     PyodidePrerelease = "pyodide-prerelease"
 
     @classmethod
-    def all_groups(cls) -> frozenset["EnableGroup"]:
+    def all_groups(cls) -> frozenset[Self]:
         return frozenset(cls)
 
     @classmethod
-    def parse_option_value(cls, value: str) -> frozenset["EnableGroup"]:
+    def parse_option_value(cls, value: str) -> frozenset[Self]:
         """
         Parses a string of space-separated values into a set of EnableGroup
         members. The string may contain group names or "all".
