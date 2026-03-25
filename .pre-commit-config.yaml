@@ -19,7 +19,7 @@ repos:
   rev: 4924b0e01e032fea073ad04a1c5cfa7e4add0afb  # frozen: v0.15.6
   hooks:
   - id: ruff-check
-    args: ["--fix", "--show-fixes"]
+    args: ["--fix"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
@@ -91,8 +91,7 @@ repos:
     - id: check-github-actions
     - id: check-github-workflows
     - id: check-gitlab-ci
-    # Disabled due to schema issue for now:
-    # - id: check-readthedocs
+    - id: check-readthedocs
     - id: check-travis
     - id: check-jsonschema
       name: Check projects

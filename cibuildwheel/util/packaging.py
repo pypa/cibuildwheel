@@ -169,10 +169,9 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
             elif platform.startswith("pyodide"):
                 # each Pyodide version has its own platform tag
                 continue
-            else:
-                # Windows should exactly match
-                if tag.platform != platform:
-                    continue
+            # Windows should exactly match
+            elif tag.platform != platform:
+                continue
 
             # If all the filters above pass, then the wheel is a previously built compatible wheel.
             return wheel

@@ -539,11 +539,10 @@ def test_disable_host_mount(
 def test_local_image(
     container_engine: OCIContainerEngineConfig, platform: OCIPlatform, tmp_path: Path
 ) -> None:
-    if (
-        detect_ci_provider() == CIProvider.travis_ci
-        and DEFAULT_OCI_PLATFORM != OCIPlatform.AMD64
-        and platform != DEFAULT_OCI_PLATFORM
-    ):
+    if detect_ci_provider() == CIProvider.travis_ci and DEFAULT_OCI_PLATFORM not in {
+        OCIPlatform.AMD64,
+        platform,
+    }:
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
     if container_engine.name == "podman" and platform == OCIPlatform.ARMV7:
         # both GHA & local macOS arm64 podman desktop are failing
@@ -569,11 +568,10 @@ def test_local_image(
 
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine, platform):
-    if (
-        detect_ci_provider() == CIProvider.travis_ci
-        and DEFAULT_OCI_PLATFORM != OCIPlatform.AMD64
-        and platform != DEFAULT_OCI_PLATFORM
-    ):
+    if detect_ci_provider() == CIProvider.travis_ci and DEFAULT_OCI_PLATFORM not in {
+        OCIPlatform.AMD64,
+        platform,
+    }:
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
     if container_engine.name == "podman" and platform == OCIPlatform.ARMV7:
         # both GHA & local macOS arm64 podman desktop are failing
