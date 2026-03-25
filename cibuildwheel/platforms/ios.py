@@ -245,6 +245,13 @@ def cross_virtualenv(
             print(f"{tool!r} will be included in the cross-build environment (using {original})")
             (xbuild_tools_path / tool).symlink_to(original)
 
+    # build[uv] runs `python -m build --installer=uv`, and build resolves `uv`
+    # from PATH. Ensure uv is available within the isolated tool path.
+    if use_uv:
+        uv_binary = find_uv()
+        if uv_binary is not None:
+            (xbuild_tools_path / "uv").symlink_to(uv_binary.resolve())
+
     env["PATH"] = os.pathsep.join(
         [
             # The target python's binary directory
