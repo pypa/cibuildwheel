@@ -2,6 +2,7 @@ import dataclasses
 import functools
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -140,7 +141,7 @@ def apply_emscripten_patches(emcc_path: Path, pyodide_root: str) -> None:
         log.step("Applying Pyodide-specific patches to Emscripten installation...")
         try:
             subprocess.run(
-                f"cat {patches_dir}/*.patch | patch -p1 --verbose",
+                f"cat {shlex.quote(str(patches_dir))}/*.patch | patch -p1 --verbose",
                 check=True,
                 shell=True,
                 cwd=emscripten_root,
