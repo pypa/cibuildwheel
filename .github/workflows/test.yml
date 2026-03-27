@@ -157,7 +157,7 @@ jobs:
     - name: Set CIBW_ENABLE
       shell: bash
       run: |
-        if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+        if [[ "$GITHUB_REF_NAME" == "main" ]]; then
           CIBW_ENABLE=all
         else
           # get the default CIBW_ENABLE value from the test module
@@ -288,9 +288,9 @@ jobs:
       uses: docker/setup-qemu-action@ce360397dd3f832beb865e1373c09c0e9f86d70a # v4.0.0
 
     - name: Run the emulation tests
-      run: uv run --no-sync pytest --run-emulation ${MATRIX_ARCH} test/test_emulation.py
       env:
         MATRIX_ARCH: ${{ matrix.arch }}
+      run: uv run --no-sync pytest --run-emulation "$MATRIX_ARCH" test/test_emulation.py
 
   test-pyodide:
     name: Test pyodide
