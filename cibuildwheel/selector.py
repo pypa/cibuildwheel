@@ -2,7 +2,7 @@ import dataclasses
 import itertools
 from enum import StrEnum
 from fnmatch import fnmatch
-from typing import Any, Self
+from typing import Self
 
 import bracex
 from packaging.specifiers import SpecifierSet
