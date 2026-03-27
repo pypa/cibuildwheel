@@ -293,6 +293,7 @@ def setup_python(
     # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
+    env.pop("UV_PYTHON", None)
     if not use_uv:
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
