@@ -37,7 +37,7 @@ class OCIPlatform(Enum):
     S390X = "linux/s390x"
 
     @classmethod
-    def native(cls) -> "OCIPlatform":
+    def native(cls) -> Self:
         """Return the current OCI platform, or raise ValueError if unknown."""
         arch = platform.machine().lower()
         mapping = {
