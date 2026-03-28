@@ -1,3 +1,4 @@
+import os
 import sys
 import tomllib
 from fnmatch import fnmatch
@@ -139,6 +140,70 @@ def test_empty_selector(monkeypatch):
         main()
 
     assert e.value.code == 3
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_cp313t_warning1(monkeypatch, capsys):
+    monkeypatch.setenv("CIBW_ENABLE", "cpython-freethreading")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-freethreading' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_cp313t_warning2(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
+    )
+    monkeypatch.setenv("CIBW_ENABLE", "cpython-freethreading")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-freethreading' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_cp313t_warning3(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
+    )
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-freethreading' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_cp313t_warning4(monkeypatch, capsys, tmp_path):
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
+    )
+    monkeypatch.setenv("CIBW_ENABLE", "all")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-freethreading' enable is deprecated" in err
 
 
 @pytest.mark.parametrize(
@@ -491,6 +556,7 @@ def test_enable(method, intercepted_build_args, monkeypatch):
 
 def test_enable_all(intercepted_build_args, monkeypatch):
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "all"])
+    monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     main()
 
