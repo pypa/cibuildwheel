@@ -8,6 +8,7 @@ from cibuildwheel.typing import PlatformName
 PATH: Final[Path] = Path(__file__).parent.parent / "resources"
 INSTALL_CERTIFI_SCRIPT: Final[Path] = PATH / "install_certifi.py"
 FREE_THREAD_ENABLE_314: Final[Path] = PATH / "free-threaded-enable-314.xml"
+FREE_THREAD_ENABLE_315: Final[Path] = PATH / "free-threaded-enable-315.xml"
 NODEJS: Final[Path] = PATH / "nodejs.toml"
 DEFAULTS: Final[Path] = PATH / "defaults.toml"
 PINNED_DOCKER_IMAGES: Final[Path] = PATH / "pinned_docker_images.cfg"

@@ -157,6 +157,8 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
             args = []
             if version.startswith("3.14"):
                 args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_314.resolve())]
+            elif version.startswith("3.15"):
+                args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_315.resolve())]
             call("sudo", "installer", "-pkg", pkg_path, *args, "-target", "/")
             pkg_path.unlink()
             env = os.environ.copy()
