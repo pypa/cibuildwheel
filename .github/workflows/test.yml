@@ -46,7 +46,7 @@ jobs:
       id: python
       with:
         python-version: "3.x"
-    - uses: j178/prek-action@0bb87d7f00b0c99306c8bcb8b8beba1eb581c037 # v1.1.1
+    - uses: j178/prek-action@79f765515bd648eb4d6bb1b17277b7cb22cb6468 # v2.0.0
     - name: PyLint checks
       run: pipx run --python "${STEPS_PYTHON_OUTPUTS_PYTHON_PATH}" nox -s pylint -- --output-format=github
       env:
