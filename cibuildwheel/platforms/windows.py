@@ -293,7 +293,9 @@ def setup_python(
     # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
-    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    env.pop("UV_PYTHON", None)
+    if not use_uv:
+        env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
     # update env with results from CIBW_ENVIRONMENT
     env = environment.as_dictionary(prev_environment=env)
@@ -334,6 +336,8 @@ def setup_python(
                 uv_path,
                 "pip",
                 "install",
+                "--python",
+                where_python,
                 "--upgrade",
                 "build[virtualenv]",
                 *constraint_flags(dependency_constraint),
