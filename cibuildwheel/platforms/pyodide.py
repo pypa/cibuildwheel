@@ -2,6 +2,7 @@ import dataclasses
 import functools
 import json
 import os
+import shlex
 import shutil
 import subprocess
 import sys
@@ -110,6 +111,50 @@ def install_emscripten(tmp: Path, version: str) -> Path:
         call(emsdk_path, "activate", version)
 
     return emcc_path
+
+
+def apply_emscripten_patches(emcc_path: Path, pyodide_root: str) -> None:
+    """Apply Pyodide-specific patches to the Emscripten installation.
+
+    Pyodide maintains patches against Emscripten in the xbuildenv at
+    ``{pyodide_root}/emsdk/patches/*.patch``. These are applied to the
+    ``upstream/emscripten`` directory of the emsdk installation so that
+    cibuildwheel uses the same patched Emscripten as pyodide-build.
+    """
+    patches_dir = Path(pyodide_root) / "emsdk" / "patches"
+    if not patches_dir.exists():
+        return
+
+    patches = sorted(patches_dir.glob("*.patch"))
+    if not patches:
+        return
+
+    emscripten_root = emcc_path.parent
+    # installation_path is two levels up: emsdk-{ver}/emsdk-{ver}/upstream/emscripten
+    installation_path = emscripten_root.parent.parent.parent
+    marker = installation_path / ".cibw_emscripten_patches_applied"
+
+    with FileLock(f"{installation_path}.lock"):
+        if marker.exists():
+            return
+
+        log.step("Applying Pyodide-specific patches to Emscripten installation...")
+        try:
+            subprocess.run(
+                f"cat {shlex.quote(str(patches_dir))}/*.patch | patch -p1 --verbose",
+                check=True,
+                shell=True,
+                cwd=emscripten_root,
+            )
+        except subprocess.CalledProcessError as e:
+            msg = (
+                f"Failed to apply Emscripten patches from {patches_dir}. "
+                "This may occur if the Emscripten version does not match "
+                "the version for which the patches were generated."
+            )
+            raise errors.FatalError(msg) from e
+
+        marker.touch()
 
 
 def get_all_xbuildenv_version_info(env: dict[str, str]) -> list[PyodideXBuildEnvInfo]:
@@ -311,6 +356,8 @@ def setup_python(
 
     log.step(f"Installing Pyodide xbuildenv version: {pyodide_version} ...")
     env["PYODIDE_ROOT"] = install_xbuildenv(env, pyodide_build_version, pyodide_version)
+
+    apply_emscripten_patches(emcc_path, env["PYODIDE_ROOT"])
 
     return env
 
