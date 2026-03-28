@@ -1,4 +1,5 @@
 import platform
+from pathlib import Path
 
 import pytest
 
@@ -19,7 +20,7 @@ ALL_MACOS_WHEELS = {
 DEPLOYMENT_TARGET_TOO_LOW_WARNING = "Bumping MACOSX_DEPLOYMENT_TARGET"
 
 
-def test_cross_compiled_build(tmp_path):
+def test_cross_compiled_build(tmp_path: Path) -> None:
     if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
     if utils.get_xcode_version() < (12, 2):
@@ -51,7 +52,12 @@ def test_cross_compiled_build(tmp_path):
         },
     ],
 )
-def test_cross_compiled_test(tmp_path, capfd, build_universal2, test_config):
+def test_cross_compiled_test(
+    tmp_path: Path,
+    capfd: pytest.CaptureFixture[str],
+    build_universal2: bool,
+    test_config: dict[str, str],
+) -> None:
     if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
     if utils.get_xcode_version() < (12, 2):
@@ -110,7 +116,9 @@ def test_cross_compiled_test(tmp_path, capfd, build_universal2, test_config):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_deployment_target_warning_is_firing(tmp_path, capfd):
+def test_deployment_target_warning_is_firing(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
     # force the warning to check that we can detect it if it happens
     if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
@@ -133,7 +141,9 @@ def test_deployment_target_warning_is_firing(tmp_path, capfd):
 
 
 @pytest.mark.parametrize("skip_arm64_test", [False, True])
-def test_universal2_testing_on_x86_64(tmp_path, capfd, skip_arm64_test):
+def test_universal2_testing_on_x86_64(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str], skip_arm64_test: bool
+) -> None:
     if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
     if utils.get_xcode_version() < (12, 2):
@@ -172,7 +182,9 @@ def test_universal2_testing_on_x86_64(tmp_path, capfd, skip_arm64_test):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_universal2_testing_on_arm64(build_frontend_env, tmp_path, capfd):
+def test_universal2_testing_on_arm64(
+    build_frontend_env: dict[str, str], tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
     # cibuildwheel should test the universal2 wheel on both x86_64 and arm64, when run on arm64
     if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
@@ -203,7 +215,9 @@ def test_universal2_testing_on_arm64(build_frontend_env, tmp_path, capfd):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_cp38_arm64_testing(tmp_path, capfd, request):
+def test_cp38_arm64_testing(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str], request: pytest.FixtureRequest
+) -> None:
     if utils.get_platform() != "macos":
         pytest.skip("this test is only relevant to macos")
     if utils.get_xcode_version() < (12, 2):
@@ -238,7 +252,9 @@ def test_cp38_arm64_testing(tmp_path, capfd, request):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_cp38_arm64_testing_universal2_installer(tmp_path, capfd, request):
+def test_cp38_arm64_testing_universal2_installer(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str], request: pytest.FixtureRequest
+) -> None:
     if not request.config.getoption("--run-cp38-universal2"):
         pytest.skip("needs --run-cp38-universal2 option to run")
 

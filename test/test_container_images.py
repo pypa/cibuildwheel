@@ -1,5 +1,6 @@
 import platform
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -22,7 +23,7 @@ dockcross_only_project = test_projects.new_c_project(
 
 
 @pytest.mark.usefixtures("docker_cleanup")
-def test(tmp_path):
+def test(tmp_path: Path) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
     if platform.machine() not in ["x86_64", "i686"]:

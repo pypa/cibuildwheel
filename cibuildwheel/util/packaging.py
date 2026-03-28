@@ -2,7 +2,7 @@ import shlex
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
-from typing import Any, Literal, Self, TypeVar
+from typing import Literal, Self, TypeVar
 
 from packaging.utils import parse_wheel_filename
 
@@ -102,7 +102,7 @@ class DependencyConstraints:
 
         return None
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> str | dict[str, str]:
         if self == DependencyConstraints.pinned():
             return "pinned"
         elif self.packages:

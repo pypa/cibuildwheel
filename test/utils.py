@@ -11,7 +11,7 @@ import sys
 from collections.abc import Generator, Mapping, Sequence
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Final
+from typing import Final
 
 import pytest
 
@@ -458,7 +458,7 @@ def get_xcode_version() -> tuple[int, int]:
     return (int(version_parts[0]), int(version_parts[1]))
 
 
-def skip_if_pyodide(reason: str) -> Any:
+def skip_if_pyodide(reason: str) -> pytest.MarkDecorator:
     return pytest.mark.skipif(get_platform() == "pyodide", reason=reason)
 
 

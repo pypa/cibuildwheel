@@ -1,5 +1,6 @@
 import shlex
-from typing import TYPE_CHECKING
+from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -12,9 +13,7 @@ from cibuildwheel.options import (
     ShlexTableFormat,
     _resolve_cascade,
 )
-
-if TYPE_CHECKING:
-    from pathlib import Path
+from cibuildwheel.typing import PlatformName
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -39,12 +38,12 @@ test-requires = ["other", "many"]
 
 
 @pytest.fixture(params=["linux", "macos", "windows"])
-def platform(request):
-    return request.param
+def platform(request: pytest.FixtureRequest) -> PlatformName:
+    return cast("PlatformName", request.param)
 
 
 @pytest.mark.parametrize("fname", ["pyproject.toml", "cibuildwheel.toml"])
-def test_simple_settings(tmp_path, platform, fname):
+def test_simple_settings(tmp_path: Path, platform: PlatformName, fname: str) -> None:
     config_file_path: Path = tmp_path / fname
     config_file_path.write_text(PYPROJECT_1)
 
@@ -83,7 +82,7 @@ def test_simple_settings(tmp_path, platform, fname):
         options_reader.get("test-extras", option_format=ShlexTableFormat())
 
 
-def test_envvar_override(tmp_path, platform):
+def test_envvar_override(tmp_path: Path, platform: PlatformName) -> None:
     config_file_path: Path = tmp_path / "pyproject.toml"
     config_file_path.write_text(PYPROJECT_1)
 
@@ -128,7 +127,7 @@ def test_envvar_override(tmp_path, platform):
     assert options_reader.get("test-command") == "mytest"
 
 
-def test_project_global_override_default_platform(tmp_path, platform):
+def test_project_global_override_default_platform(tmp_path: Path, platform: PlatformName) -> None:
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """
@@ -140,14 +139,14 @@ repair-wheel-command = "repair-project-global"
     assert options_reader.get("repair-wheel-command") == "repair-project-global"
 
 
-def test_env_global_override_default_platform(platform):
+def test_env_global_override_default_platform(platform: PlatformName) -> None:
     options_reader = OptionsReader(
         platform=platform, env={"CIBW_REPAIR_WHEEL_COMMAND": "repair-env-global"}
     )
     assert options_reader.get("repair-wheel-command") == "repair-env-global"
 
 
-def test_env_global_override_project_platform(tmp_path, platform):
+def test_env_global_override_project_platform(tmp_path: Path, platform: PlatformName) -> None:
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """
@@ -161,7 +160,7 @@ repair-wheel-command = "repair-project-macos"
     )
     options_reader = OptionsReader(
         pyproject_toml,
-        platform=platform,
+        platform=cast("Any", platform),
         env={
             "CIBW_REPAIR_WHEEL_COMMAND": "repair-env-global",
         },
@@ -169,7 +168,7 @@ repair-wheel-command = "repair-project-macos"
     assert options_reader.get("repair-wheel-command") == "repair-env-global"
 
 
-def test_global_platform_order(tmp_path, platform):
+def test_global_platform_order(tmp_path: Path, platform: str) -> None:
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """
@@ -183,11 +182,11 @@ repair-wheel-command = "repair-project-macos"
 repair-wheel-command = "repair-project-global"
 """
     )
-    options_reader = OptionsReader(pyproject_toml, platform=platform, env={})
+    options_reader = OptionsReader(pyproject_toml, platform=cast("Any", platform), env={})
     assert options_reader.get("repair-wheel-command") == f"repair-project-{platform}"
 
 
-def test_unexpected_key(tmp_path):
+def test_unexpected_key(tmp_path: Path) -> None:
     # Note that platform contents are only checked when running
     # for that platform.
     pyproject_toml = tmp_path / "pyproject.toml"
@@ -204,7 +203,7 @@ repairs-wheel-command = "repair-project-linux"
     assert "repair-wheel-command" in str(excinfo.value)
 
 
-def test_underscores_in_key(tmp_path):
+def test_underscores_in_key(tmp_path: Path) -> None:
     # Note that platform contents are only checked when running
     # for that platform.
     pyproject_toml = tmp_path / "pyproject.toml"
@@ -221,7 +220,7 @@ repair_wheel_command = "repair-project-linux"
     assert "repair-wheel-command" in str(excinfo.value)
 
 
-def test_unexpected_table(tmp_path):
+def test_unexpected_table(tmp_path: Path) -> None:
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """
@@ -233,7 +232,7 @@ repair-wheel-command = "repair-project-linux"
         OptionsReader(pyproject_toml, platform="linux", env={})
 
 
-def test_unsupported_join(tmp_path):
+def test_unsupported_join(tmp_path: Path) -> None:
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """
@@ -248,7 +247,7 @@ build = ["1", "2"]
         options_reader.get("build")
 
 
-def test_disallowed_a(tmp_path):
+def test_disallowed_a(tmp_path: Path) -> None:
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """
@@ -262,7 +261,7 @@ manylinux-x86_64-image = "manylinux1"
         OptionsReader(pyproject_toml, platform="windows", disallow=disallow, env={})
 
 
-def test_environment_override_empty(tmp_path):
+def test_environment_override_empty(tmp_path: Path) -> None:
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """
@@ -296,7 +295,7 @@ manylinux-x86_64-image = ""
 
 
 @pytest.mark.parametrize("ignore_empty", [True, False], ids=["ignore_empty", "no_ignore_empty"])
-def test_resolve_cascade(ignore_empty):
+def test_resolve_cascade(ignore_empty: bool) -> None:
     answer = _resolve_cascade(
         ("not", InheritRule.NONE),
         (None, InheritRule.NONE),
@@ -327,7 +326,7 @@ def test_resolve_cascade(ignore_empty):
 
 @pytest.mark.parametrize("ignore_empty", [True, False], ids=["ignore_empty", "no_ignore_empty"])
 @pytest.mark.parametrize("rule", [InheritRule.PREPEND, InheritRule.NONE, InheritRule.APPEND])
-def test_resolve_cascade_merge_list(ignore_empty, rule):
+def test_resolve_cascade_merge_list(ignore_empty: bool, rule: InheritRule) -> None:
     answer = _resolve_cascade(
         (["a1", "a2"], InheritRule.NONE),
         ([], InheritRule.NONE),
@@ -348,7 +347,7 @@ def test_resolve_cascade_merge_list(ignore_empty, rule):
 
 
 @pytest.mark.parametrize("rule", [InheritRule.PREPEND, InheritRule.NONE, InheritRule.APPEND])
-def test_resolve_cascade_merge_dict(rule):
+def test_resolve_cascade_merge_dict(rule: InheritRule) -> None:
     answer = _resolve_cascade(
         ({"value": "a1", "base": "b1"}, InheritRule.NONE),
         (None, InheritRule.NONE),
@@ -365,7 +364,7 @@ def test_resolve_cascade_merge_dict(rule):
         assert answer == "value=override base=b1"
 
 
-def test_resolve_cascade_merge_strings():
+def test_resolve_cascade_merge_strings() -> None:
     answer = _resolve_cascade(
         ("value=a1 base=b1", InheritRule.NONE),
         ("value=override", InheritRule.APPEND),
@@ -374,7 +373,7 @@ def test_resolve_cascade_merge_strings():
     assert answer == "value=override base=b1"
 
 
-def test_resolve_cascade_merge_different_types():
+def test_resolve_cascade_merge_different_types() -> None:
     answer = _resolve_cascade(
         ("value=a1 base=b1", InheritRule.NONE),
         ({"value": "override"}, InheritRule.APPEND),
@@ -420,11 +419,13 @@ test-command = ["extra-prepend"]
 """
 
 
-def test_pyproject_2(tmp_path, platform):
+def test_pyproject_2(tmp_path: Path, platform: str) -> None:
     pyproject_toml: Path = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(PYPROJECT_2)
 
-    options_reader = OptionsReader(config_file_path=pyproject_toml, platform=platform, env={})
+    options_reader = OptionsReader(
+        config_file_path=pyproject_toml, platform=cast("Any", platform), env={}
+    )
     assert options_reader.get("test-command", option_format=ListFormat(" && ")) == "pyproject"
 
     with options_reader.identifier("random"):
@@ -451,7 +452,7 @@ def test_pyproject_2(tmp_path, platform):
         )
 
 
-def test_overrides_not_a_list(tmp_path, platform):
+def test_overrides_not_a_list(tmp_path: Path, platform: str) -> None:
     pyproject_toml: Path = tmp_path / "pyproject.toml"
 
     pyproject_toml.write_text(
@@ -465,10 +466,10 @@ test-command = "pyproject-override"
     )
 
     with pytest.raises(OptionsReaderError):
-        OptionsReader(config_file_path=pyproject_toml, platform=platform, env={})
+        OptionsReader(config_file_path=pyproject_toml, platform=cast("Any", platform), env={})
 
 
-def test_config_settings(tmp_path):
+def test_config_settings(tmp_path: Path) -> None:
     pyproject_toml: Path = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """\
@@ -485,7 +486,7 @@ other = ["two", "three"]
     )
 
 
-def test_pip_config_settings(tmp_path):
+def test_pip_config_settings(tmp_path: Path) -> None:
     pyproject_toml: Path = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """\
@@ -501,7 +502,7 @@ def test_pip_config_settings(tmp_path):
     )
 
 
-def test_overrides_inherit(tmp_path):
+def test_overrides_inherit(tmp_path: Path) -> None:
     pyproject_toml: Path = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
         """\

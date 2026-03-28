@@ -1,4 +1,5 @@
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -9,7 +10,12 @@ SO_FILE_WARNING = "NOTE: Shared object (.so) files found in this project."
 
 
 @pytest.mark.parametrize("project_contains_so_files", [False, True])
-def test_failed_build_with_so_files(tmp_path, capfd, build_frontend_env, project_contains_so_files):
+def test_failed_build_with_so_files(
+    tmp_path: Path,
+    capfd: pytest.CaptureFixture[str],
+    build_frontend_env: dict[str, str],
+    project_contains_so_files: bool,
+) -> None:
     project = TestProject()
     project.files["setup.py"] = "raise Exception('this build will fail')\n"
     if project_contains_so_files:
@@ -35,7 +41,11 @@ def test_failed_build_with_so_files(tmp_path, capfd, build_frontend_env, project
 
 
 @pytest.mark.parametrize("project_contains_so_files", [False, True])
-def test_failed_repair_with_so_files(tmp_path, capfd, project_contains_so_files):
+def test_failed_repair_with_so_files(
+    tmp_path: Path,
+    capfd: pytest.CaptureFixture[str],
+    project_contains_so_files: bool,
+) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("this test is only relevant to the linux build")
 

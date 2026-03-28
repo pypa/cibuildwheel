@@ -1,4 +1,7 @@
 import textwrap
+from pathlib import Path
+
+import pytest
 
 from . import test_projects, utils
 
@@ -31,7 +34,7 @@ limited_api_project = test_projects.new_c_project(
 limited_api_project.files["pyproject.toml"] = pyproject_toml
 
 
-def test_abi3(tmp_path):
+def test_abi3(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     limited_api_project.generate(project_dir)
 
@@ -178,7 +181,7 @@ ctypes_project.files["test/add_test.py"] = textwrap.dedent(
 ctypes_project.files["pyproject.toml"] = pyproject_toml
 
 
-def test_abi_none(tmp_path, capfd):
+def test_abi_none(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     project_dir = tmp_path / "project"
     ctypes_project.generate(project_dir)
 

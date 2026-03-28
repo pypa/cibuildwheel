@@ -1,6 +1,7 @@
 import subprocess
 import textwrap
 from contextlib import nullcontext as does_not_raise
+from pathlib import Path
 
 import pytest
 
@@ -30,7 +31,7 @@ shutil.copy(wheel, dest)
 """
 
 
-def test(tmp_path, capfd):
+def test(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     # this test checks that a generated wheel name shall be unique in a given cibuildwheel run
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
@@ -68,7 +69,7 @@ def test(tmp_path, capfd):
     ],
     ids=["no-placeholder", "package-placeholder", "project-placeholder"],
 )
-def test_repair_wheel_command_structure(tmp_path, repair_command):
+def test_repair_wheel_command_structure(tmp_path: Path, repair_command: str) -> None:
     project_dir = tmp_path / "project"
     project = test_projects.new_c_project()
     project.files["repair.py"] = textwrap.dedent("""

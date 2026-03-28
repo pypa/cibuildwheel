@@ -1,4 +1,5 @@
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -23,7 +24,7 @@ def a_function():
 """
 
 
-def test(tmp_path, capfd):
+def test(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     # this test checks that if a pure wheel is generated, the build should
     # fail.
     project_dir = tmp_path / "project"

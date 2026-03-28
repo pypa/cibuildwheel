@@ -6,7 +6,7 @@ import pytest
 MOCK_PACKAGE_DIR = Path("some_package_dir")
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     parser.addoption("--run-docker", action="store_true", default=False, help="run docker tests")
     parser.addoption("--run-podman", action="store_true", default=False, help="run podman tests")
     parser.addoption(
@@ -18,13 +18,13 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture
-def fake_package_dir(tmp_path, monkeypatch):
+def fake_package_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> list[str]:
     """
     Monkey-patch enough for the main() function to run
     """
     real_path_exists = Path.exists
 
-    def mock_path_exists(path):
+    def mock_path_exists(path: Path) -> bool:
         if str(path).endswith(str(MOCK_PACKAGE_DIR / "setup.py")):
             return True
         else:

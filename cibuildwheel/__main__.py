@@ -52,7 +52,7 @@ class Unbuffered:
         self.stream.writelines(data)
         self.stream.flush()
 
-    def __getattr__(self, attr: str) -> Any:
+    def __getattr__(self, attr: str) -> Any:  # noqa: ANN401
         return getattr(self.stream, attr)
 
 

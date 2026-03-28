@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import jinja2
+import pytest
 
 from . import utils
 from .test_projects import TestProject
@@ -31,7 +32,7 @@ print('before_build.py executed!')
 """
 
 
-def test(capfd, tmp_path):
+def test(capfd: pytest.CaptureFixture[str], tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     subdir_package_project.generate(project_dir)
 
