@@ -1,5 +1,7 @@
 SPAM_C_TEMPLATE = r"""
+#define PY_SSIZE_T_CLEAN
 #include <Python.h>
+#include <string.h>
 
 {{ spam_c_top_level_add }}
 
