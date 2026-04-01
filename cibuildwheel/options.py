@@ -90,6 +90,7 @@ class GlobalOptions:
     test_selector: TestSelector
     architectures: set[Architecture]
     allow_empty: bool
+    audit_command: str
 
 
 @dataclasses.dataclass(frozen=True)
@@ -695,6 +696,8 @@ class Options:
         )
         test_selector = TestSelector(skip_config=test_skip)
 
+        audit_command = self.reader.get("audit", option_format=ListFormat(sep=" && "))
+
         return GlobalOptions(
             package_dir=package_dir,
             output_dir=output_dir,
@@ -702,6 +705,7 @@ class Options:
             test_selector=test_selector,
             architectures=architectures,
             allow_empty=allow_empty,
+            audit_command=audit_command,
         )
 
     def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:

@@ -5,6 +5,7 @@ test-skip = ""
 enable = []
 
 archs = ["auto"]
+audit = ""
 build-frontend = "default"
 config-settings = {}
 dependency-versions = "pinned"
