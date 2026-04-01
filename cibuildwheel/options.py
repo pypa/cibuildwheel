@@ -987,8 +987,8 @@ class Options:
     def option_summary(
         self,
         option_name: str,
-        option_value: Any,
-        default_value: Any,
+        option_value: Any,  # noqa: ANN401
+        default_value: Any,  # noqa: ANN401
         overrides: Mapping[str, Any] | None = None,
         skip_unset: bool = False,
     ) -> str | None:
@@ -1040,7 +1040,7 @@ class Options:
             return value
 
     @staticmethod
-    def option_summary_value(option_value: Any) -> str:
+    def option_summary_value(option_value: Any) -> str:  # noqa: ANN401
         if hasattr(option_value, "options_summary"):
             option_value = option_value.options_summary()
 

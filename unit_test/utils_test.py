@@ -1,5 +1,5 @@
 import textwrap
-from pathlib import PurePath
+from pathlib import Path, PurePath
 from unittest.mock import Mock, call
 
 import pytest
@@ -18,7 +18,7 @@ from cibuildwheel.util.helpers import (
 from cibuildwheel.util.packaging import find_compatible_wheel
 
 
-def test_format_safe():
+def test_format_safe() -> None:
     assert format_safe("{wheel}", wheel="filename.whl") == "filename.whl"
     assert format_safe("command #{wheel}", wheel="filename.whl") == "command {wheel}"
     assert format_safe("{command #{wheel}}", wheel="filename.whl") == "{command {wheel}}"
@@ -37,7 +37,7 @@ def test_format_safe():
     assert format_safe("#{not_a_param} {param}", param="1") == "#{not_a_param} 1"
 
 
-def test_prepare_command():
+def test_prepare_command() -> None:
     assert prepare_command("python -m {project}", project="project") == "python -m project"
     assert prepare_command("python -m {something}", project="project") == "python -m {something}"
     assert (
@@ -103,7 +103,7 @@ def test_find_compatible_wheel_not_found(wheel: str, identifier: str) -> None:
     assert find_compatible_wheel([PurePath(wheel)], identifier) is None
 
 
-def test_fix_ansi_codes_for_github_actions():
+def test_fix_ansi_codes_for_github_actions() -> None:
     input = textwrap.dedent(
         """
         This line is normal
@@ -131,7 +131,7 @@ def test_fix_ansi_codes_for_github_actions():
     assert output == expected
 
 
-def test_parse_key_value_string():
+def test_parse_key_value_string() -> None:
     assert parse_key_value_string("bar", positional_arg_names=["foo"]) == {"foo": ["bar"]}
     assert parse_key_value_string("foo:bar", kw_arg_names=["foo"]) == {"foo": ["bar"]}
     with pytest.raises(ValueError, match="Too many positional arguments"):
@@ -212,7 +212,7 @@ def test_parse_key_value_string():
     }
 
 
-def test_flexible_version_comparisons():
+def test_flexible_version_comparisons() -> None:
     assert FlexibleVersion("2.0") == FlexibleVersion("2")
     assert FlexibleVersion("2.0") < FlexibleVersion("2.1")
     assert FlexibleVersion("2.1") > FlexibleVersion("2")
@@ -227,7 +227,7 @@ def test_flexible_version_comparisons():
 
 
 @pytest.fixture
-def sample_project(tmp_path):
+def sample_project(tmp_path: Path) -> Path:
     """Create a directory structure that contains a range of files."""
     project_path = tmp_path / "project"
 
@@ -324,7 +324,13 @@ def sample_project(tmp_path):
         ),
     ],
 )
-def test_copy_test_sources(tmp_path, sample_project, test_sources, expected, not_expected):
+def test_copy_test_sources(
+    tmp_path: Path,
+    sample_project: Path,
+    test_sources: list[str],
+    expected: list[str],
+    not_expected: list[str],
+) -> None:
     """Test sources can be copied into the test directory."""
     target = tmp_path / "somewhere/test_cwd"
     copy_test_sources(test_sources, sample_project, target)
@@ -336,7 +342,7 @@ def test_copy_test_sources(tmp_path, sample_project, test_sources, expected, not
         assert not (tmp_path / "somewhere/test_cwd" / path).exists()
 
 
-def test_copy_test_sources_missing_file(tmp_path, sample_project):
+def test_copy_test_sources_missing_file(tmp_path: Path, sample_project: Path) -> None:
     """If test_sources references a folder that doesn't exist, an error is raised."""
 
     with pytest.raises(
@@ -350,7 +356,7 @@ def test_copy_test_sources_missing_file(tmp_path, sample_project):
         )
 
 
-def test_copy_test_sources_alternate_copy_into(sample_project):
+def test_copy_test_sources_alternate_copy_into(sample_project: Path) -> None:
     """If an alternate copy_into method is provided, it is used."""
 
     target = PurePath("/container/test_cwd")
@@ -367,7 +373,7 @@ def test_copy_test_sources_alternate_copy_into(sample_project):
     )
 
 
-def test_unwrap():
+def test_unwrap() -> None:
     assert (
         unwrap("""
             This is a
@@ -378,7 +384,7 @@ def test_unwrap():
     )
 
 
-def test_unwrap_preserving_paragraphs():
+def test_unwrap_preserving_paragraphs() -> None:
     assert (
         unwrap("""
             This is a

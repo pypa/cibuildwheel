@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import packaging.utils
 
 from . import test_projects, utils
@@ -5,7 +7,7 @@ from . import test_projects, utils
 meson_project = test_projects.new_meson_project()
 
 
-def test_meson_python_basic(tmp_path, build_frontend_env):
+def test_meson_python_basic(tmp_path: Path, build_frontend_env: dict[str, str]) -> None:
     """Test that cibuildwheel can build a project with meson-python backend."""
     project_dir = tmp_path / "project"
 
