@@ -165,12 +165,14 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 |  | [`test-skip`](https://cibuildwheel.pypa.io/en/stable/options/#test-skip) | Skip running tests on some builds |
 |  | [`test-environment`](https://cibuildwheel.pypa.io/en/stable/options/#test-environment) | Set environment variables for the test environment |
 |  | [`test-runtime`](https://cibuildwheel.pypa.io/en/stable/options/#test-runtime) | Controls how the tests will be executed. |
+| **Auditing** | [`audit-requires`](https://cibuildwheel.pypa.io/en/stable/options/#audit-requires) | Install Python dependencies for the audit step |
+|  | [`audit-command`](https://cibuildwheel.pypa.io/en/stable/options/#audit-command) | Use a tool to check wheels before the end of the run |
 | **Debugging** | [`debug-keep-container`](https://cibuildwheel.pypa.io/en/stable/options/#debug-keep-container) | Keep the container after running for debugging. |
 |  | [`debug-traceback`](https://cibuildwheel.pypa.io/en/stable/options/#debug-traceback) | Print full traceback when errors occur. |
 |  | [`build-verbosity`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity) | Increase/decrease the output of the build |
 
 
-<!--[[[end]]] (sum: dbfwOkj/k/) -->
+<!--[[[end]]] (sum: SPz1xR4eJ3) -->
 
 These options can be specified in a pyproject.toml file, or as environment variables, see [configuration docs](https://cibuildwheel.pypa.io/en/latest/configuration/).
 
