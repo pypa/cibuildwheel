@@ -5,7 +5,8 @@ test-skip = ""
 enable = []
 
 archs = ["auto"]
-audit = ""
+audit-requires = ["abi3audit"]
+audit-command = "abi3audit --strict --report {abi3wheel}"
 build-frontend = "default"
 config-settings = {}
 dependency-versions = "pinned"
