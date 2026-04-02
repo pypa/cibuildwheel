@@ -99,7 +99,7 @@ jobs:
       - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==3.4.0
+        run: python -m pip install cibuildwheel==3.4.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -235,6 +235,16 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v3.4.1
+
+_2 April 2026_
+
+- ⚠️ Building for the experimental CPython 3.13 free-threading variant is now deprecated. That functionality will be removed in the next minor release. The [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) option `cpython-freethreading` is therefore also deprecated. Builds specifying `enable = "all"` no longer select `cpython-freethreading`. CPython 3.14 free-threading support remains available without the `enable` flag. (#2787)
+- 🐛 iOS builds will no longer skip `repair-wheel-command` if it's defined in config (#2761)
+- 🐛 Fix bug causing `uv` to fail when environments define PYTHON_VERSION or UV_PYTHON, conflicting with our venvs (#2795)
+- ✨ cibuildwheel prints the selected build identifiers at the start of the build. (#2785)
+- 🔐 The GitHub Action now references other actions with a full SHA (#2744)
+
 ### v3.4.0
 
 _5 March 2026_
@@ -274,18 +284,7 @@ _12 October 2025_
 - 🐛 Fix the default MACOSX_DEPLOYMENT_TARGET on Python 3.14 (#2613)
 - 📚 Docs improvements (#2617)
 
-### v3.2.0
-
-_22 September 2025_
-
-- ✨ Adds GraalPy v25 (Python 3.12) support (#2597)
-- 🛠 Update to CPython 3.14.0rc3 (#2602)
-- 🛠 Adds CPython 3.14.0 prerelease support for Android, and a number of improvements to Android builds (#2568, #2591)
-- 🛠 Improvements to testing on Android, passing environment markers when installing the venv, and providing more debug output when build-verbosity is set (#2575)
-- ⚠️ PyPy 3.10 was moved to `pypy-eol` in the `enable` option, as it is now end-of-life. (#2521)
-- 📚 Docs improvements (#2574, #2601, #2598)
-
-<!-- [[[end]]] (sum: aO1wNWSgKa) -->
+<!-- [[[end]]] (sum: NOLMd9iLDC) -->
 
 ---
 

@@ -4,6 +4,16 @@ title: Changelog
 
 # Changelog
 
+### v3.4.1
+
+_2 April 2026_
+
+- ⚠️ Building for the experimental CPython 3.13 free-threading variant is now deprecated. That functionality will be removed in the next minor release. The [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) option `cpython-freethreading` is therefore also deprecated. Builds specifying `enable = "all"` no longer select `cpython-freethreading`. CPython 3.14 free-threading support remains available without the `enable` flag. (#2787)
+- 🐛 iOS builds will no longer skip `repair-wheel-command` if it's defined in config (#2761)
+- 🐛 Fix bug causing `uv` to fail when environments define PYTHON_VERSION or UV_PYTHON, conflicting with our venvs (#2795)
+- ✨ cibuildwheel prints the selected build identifiers at the start of the build. (#2785)
+- 🔐 The GitHub Action now references other actions with a full SHA (#2744)
+
 ### v3.4.0
 
 _5 March 2026_
