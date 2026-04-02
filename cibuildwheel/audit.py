@@ -1,10 +1,3 @@
-"""
-Audit step for wheels built by cibuildwheel.
-
-This module provides functionality to run audit commands (like abi3audit)
-on built wheels after all platform builds are complete.
-"""
-
 import subprocess
 import sys
 from pathlib import Path

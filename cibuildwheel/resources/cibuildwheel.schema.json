@@ -27,7 +27,7 @@
   "description": "cibuildwheel's settings.",
   "type": "object",
   "properties": {
-    "audit": {
+    "audit-command": {
       "description": "Execute a shell command to audit each wheel after all builds complete. Use {wheel} for each wheel path, or {abi3_wheel} to only audit abi3 wheels.",
       "oneOf": [
         {
@@ -40,7 +40,22 @@
           }
         }
       ],
-      "title": "CIBW_AUDIT"
+      "title": "CIBW_AUDIT_COMMAND"
+    },
+    "audit-requires": {
+      "description": "Install Python dependencies for the audit step.",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      ],
+      "title": "CIBW_AUDIT_REQUIRES"
     },
     "archs": {
       "description": "Change the architectures built on your machine by default.",
@@ -650,6 +665,12 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
+              "audit-command": {
+                "$ref": "#/$defs/inherit"
+              },
+              "audit-requires": {
+                "$ref": "#/$defs/inherit"
+              },
               "before-all": {
                 "$ref": "#/$defs/inherit"
               },
@@ -696,6 +717,12 @@
                 "$ref": "#/$defs/inherit"
               }
             }
+          },
+          "audit-command": {
+            "$ref": "#/properties/audit-command"
+          },
+          "audit-requires": {
+            "$ref": "#/properties/audit-requires"
           },
           "before-all": {
             "$ref": "#/properties/before-all"
@@ -815,6 +842,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "audit-command": {
+          "$ref": "#/properties/audit-command"
+        },
+        "audit-requires": {
+          "$ref": "#/properties/audit-requires"
+        },
         "archs": {
           "$ref": "#/properties/archs"
         },
@@ -945,6 +978,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "audit-command": {
+          "$ref": "#/properties/audit-command"
+        },
+        "audit-requires": {
+          "$ref": "#/properties/audit-requires"
+        },
         "archs": {
           "$ref": "#/properties/archs"
         },
@@ -1008,6 +1047,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "audit-command": {
+          "$ref": "#/properties/audit-command"
+        },
+        "audit-requires": {
+          "$ref": "#/properties/audit-requires"
+        },
         "archs": {
           "$ref": "#/properties/archs"
         },
@@ -1084,6 +1129,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "audit-command": {
+          "$ref": "#/properties/audit-command"
+        },
+        "audit-requires": {
+          "$ref": "#/properties/audit-requires"
+        },
         "archs": {
           "$ref": "#/properties/archs"
         },
@@ -1147,6 +1198,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "audit-command": {
+          "$ref": "#/properties/audit-command"
+        },
+        "audit-requires": {
+          "$ref": "#/properties/audit-requires"
+        },
         "archs": {
           "$ref": "#/properties/archs"
         },
@@ -1210,6 +1267,12 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "audit-command": {
+          "$ref": "#/properties/audit-command"
+        },
+        "audit-requires": {
+          "$ref": "#/properties/audit-requires"
+        },
         "archs": {
           "$ref": "#/properties/archs"
         },
