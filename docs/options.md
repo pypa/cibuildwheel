@@ -1308,6 +1308,103 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
     ```
 
 
+## Auditing
+
+### `audit-requires` {: #audit-requires toml env-var }
+
+> Install Python dependencies for the audit step
+
+Default: `abi3audit`
+
+Space-separated list of package dependencies required for the audit command.
+These are installed into an isolated environment before running the
+[`audit-command`](#audit-command).
+
+If no audit command is specified, or no audit is required (i.e. your project builds non-abi3 wheels and the command refers only to abi3 wheels), then the audit environment won't be created and this option is ignored.
+
+If you leave this as the default, the versions of abit3audit and libraries are pinned according to [`dependency-versions`](#dependency-versions), even on Linux.
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    # Install twine for wheel metadata checks
+    [tool.cibuildwheel]
+    audit-requires = "twine"
+
+    # Install specific versions of audit dependencies
+    [tool.cibuildwheel]
+    audit-requires = ["twine==6.1.0", "abi3audit==0.0.17"]
+    ```
+
+    In configuration files, you can use an array, and the items will be joined with a space.
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Install twine for wheel metadata checks
+    CIBW_AUDIT_REQUIRES: twine
+
+    # Install specific versions of audit dependencies
+    CIBW_AUDIT_REQUIRES: twine==6.1.0 abi3audit==0.0.17
+    ```
+
+### `audit-command` {: #audit-command toml env-var }
+
+> Use a tool to check wheels before the end of the run
+
+Default: `abi3audit --strict --report {abi3wheel}`
+
+Run shell commands to verify your wheels once they are built. Multiple commands can be passed, they should be separated with ` && `. In each command, you must use one of the following placeholders:
+
+- `{abi3wheel}`: if your build produces an [ABI3 wheel](https://docs.python.org/3/c-api/stable.html#limited-c-api), as determined by the presence of an ABI3 tag in the filename, the command is run and this placeholder is substituted for the wheel path.
+- `{wheel}`: inserts the wheel path for all wheels that were built.
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    # Run a custom audit tool on all wheels
+    [tool.cibuildwheel]
+    audit-command = "my-audit-tool --check {wheel}"
+
+    # Run multiple audit commands
+    [tool.cibuildwheel]
+    audit-command = [
+      # this command will only run on abi3 wheels
+      "./my-audit-tool --check-abi3 {abi3wheel}",
+      # this command will run on all wheels
+      "./my-audit-tool --check {wheel}",
+    ]
+
+    # Use twine check to validate wheel metadata
+    [tool.cibuildwheel]
+    audit-requires = ["twine"]
+    audit-command = "twine check {wheel}"
+
+    # Add an additional audit command using overrides, keeping the default
+    # abi3audit check
+    inherit.audit-command = "append"
+    audit-command = "twine check {wheel}"
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Run a custom audit tool on all wheels
+    CIBW_AUDIT_COMMAND: "my-audit-tool --check {wheel}"
+
+    # Run multiple audit commands
+    CIBW_AUDIT_COMMAND: "./my-audit-tool --check-abi3 {abi3wheel} && ./my-audit-tool --check {wheel}"
+
+    # Use twine check to validate wheel metadata
+    CIBW_AUDIT_REQUIRES: "twine"
+    CIBW_AUDIT_COMMAND: "twine check {wheel}"
+    ```
+
+
 ## Testing
 
 ### `test-command` {: #test-command env-var toml}
@@ -1698,102 +1795,6 @@ Platform-specific environment variables are also available:<br/>
 
     # Run the Android tests on the minimum supported Android version.
     CIBW_TEST_RUNTIME_ANDROID: "args: --managed minVersion"
-    ```
-
-## Auditing
-
-### `audit-requires` {: #audit-requires toml env-var }
-
-> Install Python dependencies for the audit step
-
-Default: `abi3audit`
-
-Space-separated list of package dependencies required for the audit command.
-These are installed into an isolated environment before running the
-[`audit-command`](#audit-command).
-
-If no audit command is specified, or no audit is required (i.e. your project builds non-abi3 wheels and the command refers only to abi3 wheels), then the audit environment won't be created and this option is ignored.
-
-If you leave this as the default, the versions of abit3audit and libraries are pinned according to [`dependency-versions`](#dependency-versions), even on Linux.
-
-#### Examples
-
-!!! tab examples "pyproject.toml"
-
-    ```toml
-    # Install twine for wheel metadata checks
-    [tool.cibuildwheel]
-    audit-requires = "twine"
-
-    # Install specific versions of audit dependencies
-    [tool.cibuildwheel]
-    audit-requires = ["twine==6.1.0", "abi3audit==0.0.17"]
-    ```
-
-    In configuration files, you can use an array, and the items will be joined with a space.
-
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Install twine for wheel metadata checks
-    CIBW_AUDIT_REQUIRES: twine
-
-    # Install specific versions of audit dependencies
-    CIBW_AUDIT_REQUIRES: twine==6.1.0 abi3audit==0.0.17
-    ```
-
-### `audit-command` {: #audit-command toml env-var }
-
-> Use a tool to check wheels before the end of the run
-
-Default: `abi3audit --strict --report {abi3wheel}`
-
-Run shell commands to verify your wheels once they are built. Multiple commands can be passed, they should be separated with ` && `. In each command, you must use one of the following placeholders:
-
-- `{abi3wheel}`: if your build produces an [ABI3 wheel](https://docs.python.org/3/c-api/stable.html#limited-c-api), as determined by the presence of an ABI3 tag in the filename, the command is run and this placeholder is substituted for the wheel path.
-- `{wheel}`: inserts the wheel path for all wheels that were built.
-
-#### Examples
-
-!!! tab examples "pyproject.toml"
-
-    ```toml
-    # Run a custom audit tool on all wheels
-    [tool.cibuildwheel]
-    audit-command = "my-audit-tool --check {wheel}"
-
-    # Run multiple audit commands
-    [tool.cibuildwheel]
-    audit-command = [
-      # this command will only run on abi3 wheels
-      "./my-audit-tool --check-abi3 {abi3wheel}",
-      # this command will run on all wheels
-      "./my-audit-tool --check {wheel}",
-    ]
-
-    # Use twine check to validate wheel metadata
-    [tool.cibuildwheel]
-    audit-requires = ["twine"]
-    audit-command = "twine check {wheel}"
-
-    # Add an additional audit command using overrides, keeping the default
-    # abi3audit check
-    inherit.audit-command = "append"
-    audit-command = "twine check {wheel}"
-    ```
-
-!!! tab examples "Environment variables"
-
-    ```yaml
-    # Run a custom audit tool on all wheels
-    CIBW_AUDIT_COMMAND: "my-audit-tool --check {wheel}"
-
-    # Run multiple audit commands
-    CIBW_AUDIT_COMMAND: "./my-audit-tool --check-abi3 {abi3wheel} && ./my-audit-tool --check {wheel}"
-
-    # Use twine check to validate wheel metadata
-    CIBW_AUDIT_REQUIRES: "twine"
-    CIBW_AUDIT_COMMAND: "twine check {wheel}"
     ```
 
 
