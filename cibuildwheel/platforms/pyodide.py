@@ -306,9 +306,6 @@ def setup_python(
         pyodide_build_version=pyodide_build_version,
     )
 
-    # Since pyodide-build was unvendored from Pyodide v0.27.0, the versions of
-    # pyodide-build are uncoupled from the versions of Pyodide. So, we specify
-    # both the pyodide-build version and the Pyodide version in the cache path.
     xbuildenv_cache_path = CIBW_CACHE_PATH / f"pyodide-build-{pyodide_build_version}"
 
     log.step(f"Installing Pyodide xbuildenv version: {pyodide_version} ...")
