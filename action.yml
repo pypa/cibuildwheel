@@ -28,7 +28,7 @@ branding:
 runs:
   using: composite
   steps:
-    - uses: actions/setup-python@v6
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       id: python
       with:
         python-version: "3.11 - 3.14"
@@ -36,9 +36,10 @@ runs:
 
     - id: cibw
       run: |
-        # Install cibuildwheel
-        "${{ steps.python.outputs.python-path }}" -u << "EOF"
+        # Install cibuildwheel and build the command line
+        "$PYTHON" -u << "EOF"
         import os
+        import shlex
         import shutil
         import sys
         import venv
@@ -46,7 +47,7 @@ runs:
         from pathlib import Path
         from subprocess import run
 
-        EXTRAS = set(e.strip() for e in "${{ inputs.extras }}".split(",") if e.strip())
+        EXTRAS = set(e.strip() for e in os.environ.get("INPUT_EXTRAS", "").split(",") if e.strip())
 
 
         class EnvBuilder(venv.EnvBuilder):
@@ -59,14 +60,14 @@ runs:
             def post_setup(self, context):
                 super().post_setup(context)
                 self.bin_path = Path(context.env_exe).parent
-                install_spec = r"${{ github.action_path }}"
+                install_spec = os.environ["GITHUB_ACTION_PATH"]
                 if EXTRAS:
                     install_spec += f"[{','.join(sorted(EXTRAS))}]"
                 run([sys.executable, "-m", "pip", "--python", context.env_exe, "install", install_spec], check=True)
 
 
         print("::group::Install cibuildwheel")
-        venv_path = Path(r"${{ runner.temp }}") / "cibw"
+        venv_path = Path(os.environ["RUNNER_TEMP"]) / "cibw"
         if venv_path.exists():
             shutil.rmtree(venv_path)
 
@@ -88,34 +89,59 @@ runs:
 
         cibw_bin = [p for p in builder.bin_path.glob("cibuildwheel*") if p.stem == "cibuildwheel"][0]
 
+        # Build the command line
+        cmd_args = [str(cibw_bin), os.environ["INPUT_PACKAGE_DIR"]]
+
+        if output_dir := os.environ.get("INPUT_OUTPUT_DIR"):
+            cmd_args += ["--output-dir", output_dir]
+
+        if config_file := os.environ.get("INPUT_CONFIG_FILE"):
+            cmd_args += ["--config-file", config_file]
+
+        if only := os.environ.get("INPUT_ONLY"):
+            cmd_args += ["--only", only]
+
+        cmd_bash = shlex.join(cmd_args)
+
+        def pwsh_quote(text):
+            # Wrap in single quotes and double-up any existing single quotes
+            return "'" + str(text).replace("'", "''") + "'"
+
+        # Prepend '& ' so PowerShell executes the quoted binary path
+        cmd_pwsh = "& " + " ".join(pwsh_quote(arg) for arg in cmd_args)
+
         with open(os.environ["GITHUB_OUTPUT"], "at") as f:
-            f.write(f"cibw-bin={cibw_bin}\n")
             f.write(f"prepend-path={clean_bin_path}\n")
+            f.write(f"cmd-bash={cmd_bash}\n")
+            f.write(f"cmd-pwsh={cmd_pwsh}\n")
 
         print("::endgroup::")
         EOF
       shell: bash
+      env:
+        PYTHON: ${{ steps.python.outputs.python-path }}
+        INPUT_PACKAGE_DIR: ${{ inputs.package-dir }}
+        INPUT_OUTPUT_DIR: ${{ inputs.output-dir }}
+        INPUT_CONFIG_FILE: ${{ inputs.config-file }}
+        INPUT_ONLY: ${{ inputs.only }}
+        INPUT_EXTRAS: ${{ inputs.extras }}
 
     # Redirecting stderr to stdout to fix interleaving issue in Actions.
     - run: |
-        export PATH="${{ steps.cibw.outputs.prepend-path }}:$PATH"
-
-        "${{ steps.cibw.outputs.cibw-bin }}" \
-          "${{ inputs.package-dir }}" \
-          ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}} \
-          ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}} \
-          ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}} \
-          2>&1
+        export PATH="$CIBW_PREPEND_PATH:$PATH"
+        eval "$CIBW_CMD_BASH" 2>&1
       shell: bash
       if: runner.os != 'Windows'
+      env:
+        CIBW_PREPEND_PATH: ${{ steps.cibw.outputs.prepend-path }}
+        CIBW_CMD_BASH: ${{ steps.cibw.outputs.cmd-bash }}
 
     # Windows needs powershell to interact nicely with Meson
     - run: |
-        $env:PATH = "${{ steps.cibw.outputs.prepend-path }};$env:PATH"
-        & "${{ steps.cibw.outputs.cibw-bin }}" `
-          "${{ inputs.package-dir }}" `
-          ${{ inputs.output-dir != ''  && format('--output-dir "{0}"', inputs.output-dir) || ''}} `
-          ${{ inputs.config-file != '' && format('--config-file "{0}"', inputs.config-file) || ''}} `
-          ${{ inputs.only != ''        && format('--only "{0}"', inputs.only) || ''}}
+        $env:PATH = "$env:CIBW_PREPEND_PATH;$env:PATH"
+        Invoke-Expression $env:CIBW_CMD_PWSH
       shell: pwsh
       if: runner.os == 'Windows'
+      env:
+        CIBW_PREPEND_PATH: ${{ steps.cibw.outputs.prepend-path }}
+        CIBW_CMD_PWSH: ${{ steps.cibw.outputs.cmd-pwsh }}

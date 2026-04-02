@@ -1,5 +1,6 @@
 import itertools
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -10,13 +11,13 @@ project_with_a_test = test_projects.new_c_project()
 project_with_a_test.files["test/spam_test.py"] = r"""
 import spam
 
-def test_spam():
+def test_spam() -> None:
     assert spam.filter("spam") == 0
     assert spam.filter("ham") != 0
 """
 
 
-def test(tmp_path, request):
+def test(tmp_path: Path, request: pytest.FixtureRequest) -> None:
     archs = request.config.getoption("--run-emulation")
     if archs is None:
         pytest.skip("needs --run-emulation option to run")
@@ -45,7 +46,7 @@ def test(tmp_path, request):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_setting_arch_on_other_platforms(tmp_path, capfd):
+def test_setting_arch_on_other_platforms(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     if utils.get_platform() == "linux":
         pytest.skip("this test checks the behaviour on platforms other than linux")
 

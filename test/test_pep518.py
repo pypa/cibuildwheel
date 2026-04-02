@@ -1,4 +1,5 @@
 import textwrap
+from pathlib import Path
 
 from . import test_projects, utils
 
@@ -29,7 +30,7 @@ build-backend = "setuptools.build_meta"
 """
 
 
-def test_pep518(tmp_path, build_frontend_env):
+def test_pep518(tmp_path: Path, build_frontend_env: dict[str, str]) -> None:
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 

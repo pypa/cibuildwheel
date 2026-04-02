@@ -5,7 +5,7 @@ from typing import Any, Protocol
 import bashlex
 import bashlex.errors
 
-from . import bashlex_eval
+from cibuildwheel import bashlex_eval
 
 
 class EnvironmentParseError(Exception):
@@ -131,7 +131,7 @@ class ParsedEnvironment:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({[repr(a) for a in self.assignments]!r})"
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> list[EnvironmentAssignment]:
         return self.assignments
 
 

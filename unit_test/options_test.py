@@ -48,7 +48,7 @@ manylinux-x86_64-image = "manylinux_2_34"
 """
 
 
-def test_options_1(tmp_path, monkeypatch):
+def test_options_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     with tmp_path.joinpath("pyproject.toml").open("w") as f:
         f.write(PYPROJECT_1)
 
@@ -96,7 +96,7 @@ def test_options_1(tmp_path, monkeypatch):
     assert local.pyodide_version == "0.28.0"
 
 
-def test_passthrough(tmp_path, monkeypatch):
+def test_passthrough(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     with tmp_path.joinpath("pyproject.toml").open("w") as f:
         f.write(PYPROJECT_1)
 
@@ -126,7 +126,9 @@ def test_passthrough(tmp_path, monkeypatch):
         "a trailing backslash \\",
     ],
 )
-def test_passthrough_evil(tmp_path, monkeypatch, env_var_value):
+def test_passthrough_evil(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, env_var_value: str
+) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -157,7 +159,7 @@ xfail_env_parse = pytest.mark.xfail(
         pytest.param("a trailing backslash \\", marks=[xfail_env_parse]),
     ],
 )
-def test_toml_environment_evil(tmp_path, env_var_value):
+def test_toml_environment_evil(tmp_path: Path, env_var_value: str) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -296,7 +298,7 @@ def test_container_engine_option(
     assert parsed_container_engine.disable_host_mount == result_disable_host_mount
 
 
-def test_environment_pass_references():
+def test_environment_pass_references() -> None:
     options = Options(
         platform="linux",
         command_line_arguments=CommandLineArguments.defaults(),

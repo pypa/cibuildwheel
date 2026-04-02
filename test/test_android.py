@@ -2,6 +2,8 @@ import os
 import platform
 import re
 import sys
+import typing
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from shutil import rmtree, which
@@ -52,8 +54,10 @@ if "ANDROID_HOME" not in os.environ:
 # Many CI services don't support running the Android emulator: see platforms.md.
 supports_emulator = (not ci) or ("GITHUB_ACTIONS" in os.environ and platform.system() == "Linux")
 
+T = typing.TypeVar("T", bound=Callable[..., typing.Any])
 
-def needs_emulator(test):
+
+def needs_emulator(test: T) -> T:
     # All copies of the testbed app run on the same emulator with the same
     # application ID, so these tests must be run serially.
     test = pytest.mark.serial(test)
@@ -85,7 +89,7 @@ cp313_env = {
 }
 
 
-def test_android_home(tmp_path, capfd):
+def test_android_home(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     new_c_project().generate(tmp_path)
     env = os.environ.copy()
     del env["ANDROID_HOME"]
@@ -100,7 +104,7 @@ def test_android_home(tmp_path, capfd):
 # a build, which is marked as serial so it will run before the parallel tests, but isn't
 # marked as needs_emulator so it will run on all CI platforms.
 @pytest.mark.serial
-def test_expected_wheels(tmp_path, spam_env):
+def test_expected_wheels(tmp_path: Path, spam_env: dict[str, str]) -> None:
     # Since this test covers all Python versions, check the cross venv.
     test_module = "_cross_venv_test_android"
     project = new_c_project(setup_py_add=f"import {test_module}")
@@ -119,7 +123,7 @@ def test_expected_wheels(tmp_path, spam_env):
 
 
 @needs_emulator
-def test_frontend_good(tmp_path, build_frontend_env):
+def test_frontend_good(tmp_path: Path, build_frontend_env: dict[str, str]) -> None:
     new_c_project().generate(tmp_path)
     wheels = cibuildwheel_run(
         tmp_path,
@@ -129,7 +133,7 @@ def test_frontend_good(tmp_path, build_frontend_env):
 
 
 @pytest.mark.parametrize("frontend", ["pip"])
-def test_frontend_bad(frontend, tmp_path, capfd):
+def test_frontend_bad(frontend: str, tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     new_c_project().generate(tmp_path)
     with pytest.raises(CalledProcessError):
         cibuildwheel_run(
@@ -140,7 +144,7 @@ def test_frontend_bad(frontend, tmp_path, capfd):
 
 
 @needs_emulator
-def test_archs(tmp_path, capfd):
+def test_archs(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     new_c_project().generate(tmp_path)
 
     # Build all architectures while checking the handling of the `before` commands.
@@ -189,7 +193,7 @@ def test_archs(tmp_path, capfd):
         pytest.fail(f"Unexpected line: {line!r}")
 
 
-def test_build_requires(tmp_path, capfd):
+def test_build_requires(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     # Build-time requirements should be installed for the build platform, not for Android. Prove
     # this by installing some non-pure-Python requirements and using them in setup.py.
     #
@@ -226,13 +230,13 @@ def test_build_requires(tmp_path, capfd):
 
 
 @pytest.fixture
-def spam_env(tmp_path):
+def spam_env(tmp_path: Path) -> dict[str, str]:
     project = new_c_project()
     project.files["test_spam.py"] = dedent(
         """\
         import spam
 
-        def test_spam():
+        def test_spam() -> None:
             assert spam.filter("ham")
             assert not spam.filter("spam")
             print("Spam test passed")
@@ -240,7 +244,7 @@ def spam_env(tmp_path):
     )
     project.files["test_empty.py"] = dedent(
         """\
-        def test_empty():
+        def test_empty() -> None:
             pass
         """
     )
@@ -265,7 +269,13 @@ def spam_env(tmp_path):
         ("pytest test_spam.py", "=== 1 passed in "),
     ],
 )
-def test_test_command_good(command, expected_output, tmp_path, spam_env, capfd):
+def test_test_command_good(
+    command: str,
+    expected_output: str,
+    tmp_path: Path,
+    spam_env: dict[str, str],
+    capfd: pytest.CaptureFixture[str],
+) -> None:
     cibuildwheel_run(tmp_path, add_env={**spam_env, "CIBW_TEST_COMMAND": command})
     stdout, stderr = capfd.readouterr()
     assert expected_output in stdout
@@ -300,7 +310,13 @@ BAD_PLACEHOLDER_ERROR = (
         ("pytest test_ham.py", "not found: test_ham.py"),
     ],
 )
-def test_test_command_bad(command, expected_output, tmp_path, spam_env, capfd):
+def test_test_command_bad(
+    command: str,
+    expected_output: str,
+    tmp_path: Path,
+    spam_env: dict[str, str],
+    capfd: pytest.CaptureFixture[str],
+) -> None:
     with pytest.raises(CalledProcessError):
         cibuildwheel_run(tmp_path, add_env={**spam_env, "CIBW_TEST_COMMAND": command})
     assert expected_output in capfd.readouterr().err
@@ -314,7 +330,9 @@ def test_test_command_bad(command, expected_output, tmp_path, spam_env, capfd):
         ("-E", 1),
     ],
 )
-def test_test_command_python_options(options, expected, tmp_path, capfd):
+def test_test_command_python_options(
+    options: str, expected: int, tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
     project = new_c_project()
     project.generate(tmp_path)
 
@@ -330,7 +348,9 @@ def test_test_command_python_options(options, expected, tmp_path, capfd):
 
 
 @needs_emulator
-def test_package_subdir(tmp_path, spam_env, capfd):
+def test_package_subdir(
+    tmp_path: Path, spam_env: dict[str, str], capfd: pytest.CaptureFixture[str]
+) -> None:
     spam_paths = list(tmp_path.iterdir())
     package_dir = tmp_path / "package"
     package_dir.mkdir()
@@ -345,7 +365,7 @@ def test_package_subdir(tmp_path, spam_env, capfd):
 
 
 @needs_emulator
-def test_no_test_sources(tmp_path, capfd):
+def test_no_test_sources(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     new_c_project().generate(tmp_path)
     with pytest.raises(CalledProcessError):
         cibuildwheel_run(
@@ -359,17 +379,17 @@ def test_no_test_sources(tmp_path, capfd):
 
 
 @needs_emulator
-def test_environment_markers(tmp_path):
+def test_environment_markers(tmp_path: Path) -> None:
     project = new_c_project()
     test_filename = "test_environment_markers.py"
     project.files[test_filename] = dedent(
         """\
         import pytest
 
-        def test_android():
+        def test_android() -> None:
             import certifi
 
-        def test_not_android():
+        def test_not_android() -> None:
             try:
                 import platformdirs
             except ImportError:
@@ -392,7 +412,7 @@ def test_environment_markers(tmp_path):
 
 
 @needs_emulator
-def test_verbosity(tmp_path, capfd):
+def test_verbosity(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     new_c_project().generate(tmp_path)
     test_env = {
         **cp313_env,
@@ -418,7 +438,7 @@ def test_verbosity(tmp_path, capfd):
 
 
 @needs_emulator
-def test_api_level(tmp_path, capfd):
+def test_api_level(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     project = new_c_project()
     project.files["pyproject.toml"] = dedent(
         """\
@@ -450,7 +470,7 @@ def test_api_level(tmp_path, capfd):
 
 
 @needs_emulator
-def test_libcxx(tmp_path, capfd):
+def test_libcxx(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     project_dir = tmp_path / "project"
     output_dir = tmp_path / "output"
 
@@ -499,7 +519,7 @@ def test_libcxx(tmp_path, capfd):
 
 
 @needs_emulator
-def test_setuptools_rust(tmp_path, capfd):
+def test_setuptools_rust(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """
     Test Android cross-compilation using the setuptools-rust toolchain.
     """
@@ -584,7 +604,7 @@ def test_setuptools_rust(tmp_path, capfd):
 
 
 @needs_emulator
-def test_maturin(tmp_path, capfd):
+def test_maturin(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """
     Test Android cross-compilation using the maturin backend.
     """

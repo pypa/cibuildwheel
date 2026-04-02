@@ -36,7 +36,9 @@ for name, expected_version in expected_versions.items():
 """
 
 
-def test_check_versions_script(tmp_path, build_frontend_env_nouv, capfd):
+def test_check_versions_script(
+    tmp_path: Path, build_frontend_env_nouv: dict[str, str], capfd: pytest.CaptureFixture[str]
+) -> None:
     if utils.get_platform() == "linux":
         pytest.skip("we don't test dependency versions on linux, refer to other tests")
 
@@ -76,7 +78,9 @@ def get_versions_from_constraint_file(constraint_file: Path) -> dict[str, str]:
 
 
 @pytest.mark.parametrize("python_version", ["3.8", "3.12"])
-def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
+def test_pinned_versions(
+    tmp_path: Path, python_version: str, build_frontend_env_nouv: dict[str, str]
+) -> None:
     if utils.get_platform() == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
     if python_version != "3.12" and utils.get_platform() == "pyodide":
@@ -127,7 +131,9 @@ def test_pinned_versions(tmp_path, python_version, build_frontend_env_nouv):
 
 
 @pytest.mark.parametrize("method", ["inline", "file"])
-def test_dependency_constraints(method, tmp_path, build_frontend_env_nouv):
+def test_dependency_constraints(
+    method: str, tmp_path: Path, build_frontend_env_nouv: dict[str, str]
+) -> None:
     if utils.get_platform() == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
 

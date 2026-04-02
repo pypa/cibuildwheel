@@ -2,7 +2,9 @@ import contextlib
 import platform as platform_module
 import subprocess
 import sys
+from collections.abc import Generator, Iterator
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -15,27 +17,27 @@ from cibuildwheel.util import file
 class ArgsInterceptor:
     def __init__(self) -> None:
         self.call_count = 0
-        self.args: tuple[object, ...] | None = None
-        self.kwargs: dict[str, object] | None = None
+        self.args: tuple[Any, ...] = ()
+        self.kwargs: dict[str, Any] = {}
 
-    def __call__(self, *args: object, **kwargs: object) -> None:
+    def __call__(self, *args: Any, **kwargs: Any) -> None:
         self.call_count += 1
         self.args = args
         self.kwargs = kwargs
 
 
 @pytest.fixture(autouse=True)
-def mock_protection(monkeypatch):
+def mock_protection(monkeypatch: pytest.MonkeyPatch) -> None:
     """
     Ensure that a unit test will never actually run a cibuildwheel 'build'
     function, which shouldn't be run on a developer's machine
     """
 
-    def fail_on_call(*args, **kwargs):
+    def fail_on_call(*args: object, **kwargs: object) -> None:
         msg = "This should never be called"
         raise RuntimeError(msg)
 
-    def ignore_call(*args, **kwargs):
+    def ignore_call(*args: object, **kwargs: object) -> None:
         pass
 
     monkeypatch.setattr(subprocess, "Popen", fail_on_call)
@@ -49,27 +51,27 @@ def mock_protection(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def fake_package_dir_autouse(fake_package_dir):
+def fake_package_dir_autouse(fake_package_dir: list[str]) -> None:
     pass
 
 
 @pytest.fixture(autouse=True)
-def disable_print_wheels(monkeypatch):
+def disable_print_wheels(monkeypatch: pytest.MonkeyPatch) -> None:
     @contextlib.contextmanager
-    def empty_cm(*args, **kwargs):
+    def empty_cm(*args: object, **kwargs: object) -> Generator[None, None, None]:
         yield
 
     monkeypatch.setattr(Logger, "print_summary", empty_cm)
 
 
 @pytest.fixture
-def allow_empty(monkeypatch, fake_package_dir):
+def allow_empty(monkeypatch: pytest.MonkeyPatch, fake_package_dir: list[str]) -> None:
     monkeypatch.setattr(sys, "argv", [*fake_package_dir, "--allow-empty"])
 
 
 @pytest.fixture(params=["linux", "macos", "windows"])
-def platform(request, monkeypatch):
-    platform_value = request.param
+def platform(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> str:
+    platform_value: str = request.param
     monkeypatch.setenv("CIBW_PLATFORM", platform_value)
 
     if platform_value == "windows":
@@ -84,7 +86,7 @@ def platform(request, monkeypatch):
 
 
 @pytest.fixture
-def intercepted_build_args(monkeypatch):
+def intercepted_build_args(monkeypatch: pytest.MonkeyPatch) -> Iterator[ArgsInterceptor]:
     intercepted = ArgsInterceptor()
 
     monkeypatch.setattr(android, "build", intercepted)

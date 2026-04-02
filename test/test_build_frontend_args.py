@@ -1,4 +1,5 @@
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -12,7 +13,9 @@ from . import test_projects, utils
         "build",
     ],
 )
-def test_build_frontend_args(tmp_path, capfd, frontend_name):
+def test_build_frontend_args(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str], frontend_name: str
+) -> None:
     project = test_projects.new_c_project()
     project_dir = tmp_path / "project"
     project.generate(project_dir)

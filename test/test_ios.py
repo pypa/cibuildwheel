@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 import os
 import platform
 import shutil
 import subprocess
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -24,7 +23,7 @@ import platform
 from unittest import TestCase
 
 class TestPlatform(TestCase):
-    def test_platform(self):
+    def test_platform(self) -> None:
         self.assertEqual(platform.machine(), "{platform.machine()}")
 
 """
@@ -61,7 +60,12 @@ def skip_if_ios_testing_not_supported() -> None:
         {"CIBW_PLATFORM": "ios", "CIBW_BUILD_FRONTEND": "build"},
     ],
 )
-def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
+def test_ios_platforms(
+    tmp_path: Path,
+    build_config: dict[str, str],
+    monkeypatch: pytest.MonkeyPatch,
+    capfd: pytest.CaptureFixture[str],
+) -> None:
     skip_if_ios_testing_not_supported()
 
     # Create a temporary "bin" directory, symlink a tool that we know eixsts
@@ -69,7 +73,9 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
     # and add the temp bin directory to the PATH.
     tools_dir = tmp_path / "bin"
     tools_dir.mkdir()
-    tools_dir.joinpath("does-exist").symlink_to(shutil.which("true"))
+    true_app = shutil.which("true")
+    assert true_app is not None
+    tools_dir.joinpath("does-exist").symlink_to(true_app)
 
     monkeypatch.setenv("PATH", str(tools_dir), prepend=os.pathsep)
 
@@ -112,7 +118,7 @@ def test_ios_platforms(tmp_path, build_config, monkeypatch, capfd):
 
 
 @pytest.mark.serial
-def test_no_test_sources(tmp_path, capfd):
+def test_no_test_sources(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """Build will provide a helpful error if pytest is run and test-sources is not defined."""
     skip_if_ios_testing_not_supported()
 
@@ -140,7 +146,7 @@ def test_no_test_sources(tmp_path, capfd):
     )
 
 
-def test_ios_testing_with_placeholder(tmp_path, capfd):
+def test_ios_testing_with_placeholder(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """
     Tests with the {project} placeholder are not supported on iOS, because the test command
     is run in the simulator.
@@ -170,7 +176,7 @@ def test_ios_testing_with_placeholder(tmp_path, capfd):
 
 @pytest.mark.serial
 @pytest.mark.flaky(reruns=2)
-def test_ios_test_command_short_circuit(tmp_path, capfd):
+def test_ios_test_command_short_circuit(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     skip_if_ios_testing_not_supported()
 
     project_dir = tmp_path / "project"
@@ -198,7 +204,7 @@ def test_ios_test_command_short_circuit(tmp_path, capfd):
     assert "Zen of Python" not in captured.out + captured.err
 
 
-def test_missing_xbuild_tool(tmp_path, capfd):
+def test_missing_xbuild_tool(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """Build will fail if xbuild-tools references a non-existent tool."""
     skip_if_ios_testing_not_supported()
 
@@ -222,7 +228,7 @@ def test_missing_xbuild_tool(tmp_path, capfd):
     assert "Could not find a 'does-not-exist' executable on the path." in captured.err
 
 
-def test_no_xbuild_tool_definition(tmp_path, capfd):
+def test_no_xbuild_tool_definition(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """Build will succeed with a warning if there is no xbuild-tools definition."""
     skip_if_ios_testing_not_supported()
 
@@ -256,7 +262,7 @@ def test_no_xbuild_tool_definition(tmp_path, capfd):
     assert "Your project configuration does not define any cross-build tools." in captured.err
 
 
-def test_empty_xbuild_tool_definition(tmp_path, capfd):
+def test_empty_xbuild_tool_definition(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """Build will succeed with no warning if there is an empty xbuild-tools definition."""
     skip_if_ios_testing_not_supported()
 
@@ -288,7 +294,9 @@ def test_empty_xbuild_tool_definition(tmp_path, capfd):
 
 
 @pytest.mark.serial
-def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
+def test_ios_test_command_without_python_dash_m(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
     """pytest should be able to run without python -m, but it should warn."""
     skip_if_ios_testing_not_supported()
 
@@ -298,7 +306,7 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
     project.files["tests/__init__.py"] = ""
     project.files["tests/test_spam.py"] = textwrap.dedent("""
         import spam
-        def test_spam():
+        def test_spam() -> None:
             assert spam.filter("spam") == 0
             assert spam.filter("ham") != 0
     """)
@@ -326,7 +334,7 @@ def test_ios_test_command_without_python_dash_m(tmp_path, capfd):
     assert "iOS tests configured with a test command which doesn't start with 'python -m'" in err
 
 
-def test_ios_test_command_invalid(tmp_path, capfd):
+def test_ios_test_command_invalid(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """Test command should raise an error if it's clearly invalid."""
     skip_if_ios_testing_not_supported()
 
@@ -347,3 +355,37 @@ def test_ios_test_command_invalid(tmp_path, capfd):
         )
     _, err = capfd.readouterr()
     assert "iOS tests configured with a test command which doesn't start with 'python -m'" in err
+
+
+def test_repair_step(tmp_path: Path) -> None:
+    """Build will succeed & the custom repair step is called."""
+    skip_if_ios_testing_not_supported()
+
+    project_dir = tmp_path / "project"
+    basic_project = test_projects.new_c_project()
+    basic_project.files.update(basic_project_files)
+    basic_project.generate(project_dir)
+
+    # Build, but don't test the wheels; we're only checking that the right
+    # warning was raised.
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_PLATFORM": "ios",
+            "CIBW_BUILD": "cp314-*",
+            "CIBW_TEST_SKIP": "*",
+            "CIBW_REPAIR_WHEEL_COMMAND": "touch .ios-repair-step && mv {wheel} {dest_dir}",
+        },
+    )
+
+    # The expected wheels were produced.
+    expected_wheels = utils.expected_wheels(
+        "spam",
+        "0.1.0",
+        platform="ios",
+        python_abi_tags=["cp314-cp314"],
+    )
+    assert set(actual_wheels) == set(expected_wheels)
+
+    # The custom repair step is called.
+    assert project_dir.joinpath(".ios-repair-step").is_file()

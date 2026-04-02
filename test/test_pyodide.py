@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -48,7 +49,7 @@ if __name__ == "__main__":
 
 
 @pytest.mark.parametrize("use_pyproject_toml", [True, False])
-def test_pyodide_build(tmp_path, use_pyproject_toml):
+def test_pyodide_build(tmp_path: Path, use_pyproject_toml: bool) -> None:
     if sys.platform == "win32":
         pytest.skip("pyodide-build doesn't work correctly on Windows")
 
@@ -88,7 +89,7 @@ def test_pyodide_build(tmp_path, use_pyproject_toml):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_pyodide_version_incompatible(tmp_path, capfd):
+def test_pyodide_version_incompatible(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     if sys.platform == "win32":
         pytest.skip("pyodide-build doesn't work correctly on Windows")
 
@@ -110,19 +111,19 @@ def test_pyodide_version_incompatible(tmp_path, capfd):
 
 
 @pytest.mark.parametrize("expect_failure", [True, False])
-def test_pyodide_build_and_test(tmp_path, expect_failure):
+def test_pyodide_build_and_test(tmp_path: Path, expect_failure: bool) -> None:
     if sys.platform == "win32":
         pytest.skip("pyodide-build doesn't work correctly on Windows")
 
     if expect_failure:
         basic_project.files["test/spam_test.py"] = textwrap.dedent(r"""
-            def test_filter():
+            def test_filter() -> None:
                 assert 0 == 1
         """)
     else:
         basic_project.files["test/spam_test.py"] = textwrap.dedent(r"""
             import spam
-            def test_filter():
+            def test_filter() -> None:
                 assert spam.filter("spam") == 0
         """)
     basic_project.generate(tmp_path)
@@ -146,6 +147,29 @@ def test_pyodide_build_and_test(tmp_path, expect_failure):
             "spam-0.1.0-cp312-cp312-pyodide_2024_0_wasm32.whl",
             "spam-0.1.0-cp313-cp313-pyodide_2025_0_wasm32.whl",
         ]
-        print("actual_wheels", actual_wheels)
-        print("expected_wheels", expected_wheels)
         assert set(actual_wheels) == set(expected_wheels)
+
+
+def test_pyodide_repair_wheel(tmp_path: Path) -> None:
+    if sys.platform == "win32":
+        pytest.skip("pyodide-build doesn't work correctly on Windows")
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_args=["--platform", "pyodide"],
+        add_env={
+            "CIBW_REPAIR_WHEEL_COMMAND_PYODIDE": (
+                "pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}"
+            ),
+        },
+        single_python=True,
+    )
+
+    # check that the expected wheels are produced
+    expected_wheels = [
+        "spam-0.1.0-cp312-cp312-pyodide_2024_0_wasm32.whl",
+    ]
+    assert set(actual_wheels) == set(expected_wheels)

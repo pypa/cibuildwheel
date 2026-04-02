@@ -12,19 +12,25 @@ from typing import assert_never
 
 from filelock import FileLock
 
-from .. import errors
-from ..architecture import Architecture
-from ..environment import ParsedEnvironment
-from ..frontend import BuildFrontendName, get_build_frontend_extra_flags
-from ..logger import log
-from ..options import Options
-from ..selector import BuildSelector
-from ..util import resources
-from ..util.cmd import call, shell
-from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
-from ..util.helpers import prepare_command, unwrap
-from ..util.packaging import find_compatible_wheel, get_pip_version, run_abi3audit
-from ..venv import constraint_flags, find_uv, virtualenv
+from cibuildwheel import errors
+from cibuildwheel.architecture import Architecture
+from cibuildwheel.environment import ParsedEnvironment
+from cibuildwheel.frontend import BuildFrontendName, get_build_frontend_extra_flags
+from cibuildwheel.logger import log
+from cibuildwheel.options import Options
+from cibuildwheel.selector import BuildSelector
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call, shell
+from cibuildwheel.util.file import (
+    CIBW_CACHE_PATH,
+    copy_test_sources,
+    download,
+    extract_zip,
+    move_file,
+)
+from cibuildwheel.util.helpers import prepare_command, unwrap
+from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version, run_abi3audit
+from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
 
 def get_nuget_args(
@@ -287,7 +293,9 @@ def setup_python(
     # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
-    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    env.pop("UV_PYTHON", None)
+    if not use_uv:
+        env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
     # update env with results from CIBW_ENVIRONMENT
     env = environment.as_dictionary(prev_environment=env)
@@ -328,6 +336,8 @@ def setup_python(
                 uv_path,
                 "pip",
                 "install",
+                "--python",
+                where_python,
                 "--upgrade",
                 "build[virtualenv]",
                 *constraint_flags(dependency_constraint),
@@ -510,7 +520,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         call(
                             uv_path,
                             "build",
-                            "--python=python",
+                            f"--python={base_python}",
                             build_options.package_dir,
                             "--wheel",
                             f"--out-dir={built_wheel_dir}",

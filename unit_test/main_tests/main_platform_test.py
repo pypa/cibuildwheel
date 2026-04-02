@@ -5,12 +5,18 @@ import pytest
 from cibuildwheel.__main__ import main
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.selector import EnableGroup
+from cibuildwheel.typing import PlatformName
 
 from ..conftest import MOCK_PACKAGE_DIR
+from .conftest import ArgsInterceptor
 
 
 @pytest.mark.parametrize("option_value", [None, "auto", ""])
-def test_platform_unset_or_auto(monkeypatch, intercepted_build_args, option_value):
+def test_platform_unset_or_auto(
+    monkeypatch: pytest.MonkeyPatch,
+    intercepted_build_args: ArgsInterceptor,
+    option_value: str | None,
+) -> None:
     if option_value is None:
         monkeypatch.delenv("CIBW_PLATFORM", raising=False)
     else:
@@ -31,7 +37,9 @@ def test_platform_unset_or_auto(monkeypatch, intercepted_build_args, option_valu
         pytest.fail(f"Unknown platform: {sys.platform}")
 
 
-def test_unknown_platform_on_ci(monkeypatch, capsys):
+def test_unknown_platform_on_ci(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     monkeypatch.setenv("CI", "true")
     monkeypatch.setattr(sys, "platform", "nonexistent")
     monkeypatch.delenv("CIBW_PLATFORM", raising=False)
@@ -44,7 +52,9 @@ def test_unknown_platform_on_ci(monkeypatch, capsys):
     assert 'Unable to detect platform from "sys.platform"' in err
 
 
-def test_unknown_platform(monkeypatch, capsys):
+def test_unknown_platform(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     monkeypatch.setenv("CIBW_PLATFORM", "nonexistent")
 
     with pytest.raises(SystemExit) as exit:
@@ -55,7 +65,9 @@ def test_unknown_platform(monkeypatch, capsys):
     assert "Unsupported platform: nonexistent" in err
 
 
-def test_platform_argument(platform, intercepted_build_args, monkeypatch):
+def test_platform_argument(
+    platform: str, intercepted_build_args: ArgsInterceptor, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_PLATFORM", "nonexistent")
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--platform", platform])
 
@@ -67,14 +79,14 @@ def test_platform_argument(platform, intercepted_build_args, monkeypatch):
 
 
 @pytest.mark.usefixtures("platform")
-def test_platform_environment(intercepted_build_args):
+def test_platform_environment(intercepted_build_args: ArgsInterceptor) -> None:
     main()
     options = intercepted_build_args.args[0]
 
     assert options.globals.package_dir == MOCK_PACKAGE_DIR.resolve()
 
 
-def test_archs_default(platform, intercepted_build_args):
+def test_archs_default(platform: str, intercepted_build_args: ArgsInterceptor) -> None:
     main()
     options = intercepted_build_args.args[0]
 
@@ -87,7 +99,12 @@ def test_archs_default(platform, intercepted_build_args):
 
 
 @pytest.mark.parametrize("use_env_var", [False, True])
-def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_var):
+def test_archs_argument(
+    platform: str,
+    intercepted_build_args: ArgsInterceptor,
+    monkeypatch: pytest.MonkeyPatch,
+    use_env_var: bool,
+) -> None:
     if use_env_var:
         monkeypatch.setenv("CIBW_ARCHS", "ppc64le")
     else:
@@ -105,7 +122,9 @@ def test_archs_argument(platform, intercepted_build_args, monkeypatch, use_env_v
         assert options.globals.architectures == {Architecture.ppc64le}
 
 
-def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):
+def test_archs_platform_specific(
+    platform: str, intercepted_build_args: ArgsInterceptor, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_ARCHS", "unused")
     monkeypatch.setenv("CIBW_ARCHS_LINUX", "ppc64le")
     monkeypatch.setenv("CIBW_ARCHS_WINDOWS", "x86")
@@ -122,7 +141,9 @@ def test_archs_platform_specific(platform, intercepted_build_args, monkeypatch):
         assert options.globals.architectures == {Architecture.x86_64}
 
 
-def test_archs_platform_native(platform, intercepted_build_args, monkeypatch):
+def test_archs_platform_native(
+    platform: str, intercepted_build_args: ArgsInterceptor, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_ARCHS", "native")
 
     main()
@@ -134,7 +155,9 @@ def test_archs_platform_native(platform, intercepted_build_args, monkeypatch):
         assert options.globals.architectures == {Architecture.AMD64}
 
 
-def test_archs_platform_auto64(platform, intercepted_build_args, monkeypatch):
+def test_archs_platform_auto64(
+    platform: str, intercepted_build_args: ArgsInterceptor, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_ARCHS", "auto64")
 
     main()
@@ -146,7 +169,9 @@ def test_archs_platform_auto64(platform, intercepted_build_args, monkeypatch):
         assert options.globals.architectures == {Architecture.AMD64}
 
 
-def test_archs_platform_auto32(platform, intercepted_build_args, monkeypatch):
+def test_archs_platform_auto32(
+    platform: str, intercepted_build_args: ArgsInterceptor, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_ARCHS", "auto32")
 
     if platform == "macos":
@@ -165,7 +190,9 @@ def test_archs_platform_auto32(platform, intercepted_build_args, monkeypatch):
             assert options.globals.architectures == {Architecture.x86}
 
 
-def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
+def test_archs_platform_all(
+    platform: str, intercepted_build_args: ArgsInterceptor, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_ARCHS", "all")
 
     main()
@@ -204,7 +231,12 @@ def test_archs_platform_all(platform, intercepted_build_args, monkeypatch):
         ("cp311-macosx_x86_64", "macos"),
     ),
 )
-def test_only_argument(intercepted_build_args, monkeypatch, only, plat):
+def test_only_argument(
+    intercepted_build_args: ArgsInterceptor,
+    monkeypatch: pytest.MonkeyPatch,
+    only: str,
+    plat: PlatformName,
+) -> None:
     monkeypatch.setenv("CIBW_BUILD", "unused")
     monkeypatch.setenv("CIBW_SKIP", "unused")
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--only", only])
@@ -220,14 +252,14 @@ def test_only_argument(intercepted_build_args, monkeypatch, only, plat):
 
 
 @pytest.mark.parametrize("only", ("cp311-manylxinux_x86_64", "some_linux_thing"))
-def test_only_failed(monkeypatch, only):
+def test_only_failed(monkeypatch: pytest.MonkeyPatch, only: str) -> None:
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--only", only])
 
     with pytest.raises(SystemExit):
         main()
 
 
-def test_only_no_platform(monkeypatch):
+def test_only_no_platform(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         sys, "argv", [*sys.argv, "--only", "cp311-manylinux_x86_64", "--platform", "macos"]
     )
@@ -236,7 +268,7 @@ def test_only_no_platform(monkeypatch):
         main()
 
 
-def test_only_no_archs(monkeypatch):
+def test_only_no_archs(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         sys, "argv", [*sys.argv, "--only", "cp311-manylinux_x86_64", "--archs", "x86_64"]
     )
@@ -254,7 +286,12 @@ def test_only_no_archs(monkeypatch):
         ("CIBW_PLATFORM", "macos"),
     ),
 )
-def test_only_overrides_env_vars(monkeypatch, intercepted_build_args, envvar_name, envvar_value):
+def test_only_overrides_env_vars(
+    monkeypatch: pytest.MonkeyPatch,
+    intercepted_build_args: ArgsInterceptor,
+    envvar_name: str,
+    envvar_value: str,
+) -> None:
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--only", "cp311-manylinux_x86_64"])
     monkeypatch.setenv(envvar_name, envvar_value)
 
@@ -267,7 +304,9 @@ def test_only_overrides_env_vars(monkeypatch, intercepted_build_args, envvar_nam
     assert options.globals.architectures == Architecture.all_archs("linux")
 
 
-def test_pyodide_on_windows(monkeypatch, capsys):
+def test_pyodide_on_windows(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--only", "cp312-pyodide_wasm32"])
 
@@ -280,7 +319,9 @@ def test_pyodide_on_windows(monkeypatch, capsys):
     assert "Building for pyodide is not supported on Windows" in err
 
 
-def test_empty_archs_platform(platform, intercepted_build_args, monkeypatch):
+def test_empty_archs_platform(
+    platform: PlatformName, intercepted_build_args: ArgsInterceptor, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_ARCHS", "")
 
     main()

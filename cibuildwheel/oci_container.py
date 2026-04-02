@@ -16,12 +16,12 @@ from pathlib import Path, PurePath, PurePosixPath
 from types import TracebackType
 from typing import IO, Literal, Self, assert_never
 
-from .ci import CIProvider, detect_ci_provider
-from .errors import OCIEngineTooOldError
-from .logger import log
-from .typing import PathOrStr
-from .util.cmd import call
-from .util.helpers import FlexibleVersion, parse_key_value_string, strtobool
+from cibuildwheel.ci import CIProvider, detect_ci_provider
+from cibuildwheel.errors import OCIEngineTooOldError
+from cibuildwheel.logger import log
+from cibuildwheel.typing import PathOrStr
+from cibuildwheel.util.cmd import call
+from cibuildwheel.util.helpers import FlexibleVersion, parse_key_value_string, strtobool
 
 ContainerEngineName = Literal["docker", "podman"]
 
@@ -37,7 +37,7 @@ class OCIPlatform(Enum):
     S390X = "linux/s390x"
 
     @classmethod
-    def native(cls) -> "OCIPlatform":
+    def native(cls) -> Self:
         """Return the current OCI platform, or raise ValueError if unknown."""
         arch = platform.machine().lower()
         mapping = {

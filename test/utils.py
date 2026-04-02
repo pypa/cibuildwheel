@@ -11,7 +11,7 @@ import sys
 from collections.abc import Generator, Mapping, Sequence
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Final
+from typing import Final
 
 import pytest
 
@@ -27,6 +27,10 @@ PYPY_ARCHS = ["x86_64", "i686", "AMD64", "aarch64", "arm64"]
 GRAALPY_ARCHS = ["x86_64", "AMD64", "aarch64", "arm64"]
 
 SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
+
+# temporary workaround: set by build_frontend_env fixture to skip graalpy
+# when uv is the build frontend (compatibility issue between graalpy and uv)
+include_graalpy_in_expected_wheels: bool = True
 
 _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {
     None: Architecture.armv7l.value not in EMULATED_ARCHS,
@@ -305,7 +309,7 @@ def _expected_wheels(
                 "pp311-pypy311_pp73",
             ]
 
-        if EnableGroup.GraalPy in enable_groups:
+        if EnableGroup.GraalPy in enable_groups and include_graalpy_in_expected_wheels:
             python_abi_tags += [
                 "graalpy311-graalpy242_311_native",
                 "graalpy312-graalpy250_312_native",
@@ -454,7 +458,7 @@ def get_xcode_version() -> tuple[int, int]:
     return (int(version_parts[0]), int(version_parts[1]))
 
 
-def skip_if_pyodide(reason: str) -> Any:
+def skip_if_pyodide(reason: str) -> pytest.MarkDecorator:
     return pytest.mark.skipif(get_platform() == "pyodide", reason=reason)
 
 

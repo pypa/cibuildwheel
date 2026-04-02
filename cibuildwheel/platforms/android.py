@@ -22,19 +22,19 @@ from elftools.common.exceptions import ELFError
 from elftools.elf.elffile import ELFFile
 from filelock import FileLock
 
-from .. import errors, platforms  # pylint: disable=cyclic-import
-from ..architecture import Architecture, arch_synonym
-from ..frontend import get_build_frontend_extra_flags, parse_config_settings
-from ..logger import log
-from ..options import BuildOptions, Options
-from ..selector import BuildSelector
-from ..util import resources
-from ..util.cmd import call, shell
-from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
-from ..util.helpers import prepare_command
-from ..util.packaging import find_compatible_wheel
-from ..util.python_build_standalone import create_python_build_standalone_environment
-from ..venv import constraint_flags, find_uv, virtualenv
+from cibuildwheel import errors, platforms  # pylint: disable=cyclic-import
+from cibuildwheel.architecture import Architecture, arch_synonym
+from cibuildwheel.frontend import get_build_frontend_extra_flags, parse_config_settings
+from cibuildwheel.logger import log
+from cibuildwheel.options import BuildOptions, Options
+from cibuildwheel.selector import BuildSelector
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call, shell
+from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
+from cibuildwheel.util.helpers import prepare_command
+from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
+from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
 ANDROID_TRIPLET = {
     "arm64_v8a": "aarch64-linux-android",

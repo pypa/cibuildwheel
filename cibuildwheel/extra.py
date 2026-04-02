@@ -62,7 +62,7 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
             # pylint: disable=E1101
             if (
                 isinstance(e, urllib.error.HTTPError)
-                and (e.code == 403 or e.code == 429)
+                and (e.code in {403, 429})
                 and e.headers.get("x-ratelimit-remaining") == "0"
             ):
                 reset_time = int(e.headers.get("x-ratelimit-reset", 0))

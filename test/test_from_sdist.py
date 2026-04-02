@@ -6,6 +6,8 @@ from collections.abc import Mapping
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
+
 from test.test_projects.base import TestProject
 
 from . import test_projects, utils
@@ -59,7 +61,7 @@ def cibuildwheel_from_sdist_run(
 # tests
 
 
-def test_simple(tmp_path):
+def test_simple(tmp_path: Path) -> None:
     basic_project = test_projects.new_c_project()
 
     # make an sdist of the project
@@ -87,7 +89,7 @@ def test_simple(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_external_config_file_argument(tmp_path, capfd):
+def test_external_config_file_argument(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     basic_project = test_projects.new_c_project()
 
     # make an sdist of the project
@@ -118,7 +120,7 @@ def test_external_config_file_argument(tmp_path, capfd):
     assert "test log statement from before-all" in captured.out
 
 
-def test_config_in_pyproject_toml(tmp_path, capfd):
+def test_config_in_pyproject_toml(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     # make a project with a pyproject.toml
     project = test_projects.new_c_project()
     project.files["pyproject.toml"] = textwrap.dedent(
@@ -145,7 +147,7 @@ def test_config_in_pyproject_toml(tmp_path, capfd):
     assert "test log statement from before-build 8419" in captured.out
 
 
-def test_internal_config_file_argument(tmp_path, capfd):
+def test_internal_config_file_argument(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     # make a project with a config file inside
     project = test_projects.new_c_project(
         setup_cfg_add="include_package_data = True",

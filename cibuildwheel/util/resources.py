@@ -3,7 +3,7 @@ import tomllib
 from pathlib import Path
 from typing import Final
 
-from ..typing import PlatformName
+from cibuildwheel.typing import PlatformName
 
 PATH: Final[Path] = Path(__file__).parent.parent / "resources"
 INSTALL_CERTIFI_SCRIPT: Final[Path] = PATH / "install_certifi.py"
