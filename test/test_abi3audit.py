@@ -1,5 +1,6 @@
 import subprocess
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -71,7 +72,7 @@ violating_abi3_project.files["pyproject.toml"] = pyproject_toml
 
 
 @utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
-def test_abi3audit_runs_on_abi3_wheel(tmp_path, capfd):
+def test_abi3audit_runs_on_abi3_wheel(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """Test that abi3audit runs automatically on abi3 wheels."""
     project_dir = tmp_path / "project"
     limited_api_project.generate(project_dir)
@@ -92,7 +93,9 @@ def test_abi3audit_runs_on_abi3_wheel(tmp_path, capfd):
 
 
 @utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
-def test_abi3audit_skipped_for_non_abi3_wheel(tmp_path, capfd):
+def test_abi3audit_skipped_for_non_abi3_wheel(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
     """Test that abi3audit does not run for non-abi3 wheels."""
     project_dir = tmp_path / "project"
     basic_project = test_projects.new_c_project()
@@ -113,7 +116,7 @@ def test_abi3audit_skipped_for_non_abi3_wheel(tmp_path, capfd):
 
 
 @utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
-def test_abi3audit_detects_violation(tmp_path, capfd):
+def test_abi3audit_detects_violation(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """Test that abi3audit catches stable ABI violations and fails the build.
 
     This project tags the wheel as cp310-abi3 but uses PyUnicode_AsUTF8,
