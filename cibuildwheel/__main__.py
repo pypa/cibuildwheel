@@ -17,7 +17,6 @@ from typing import Any, Literal, TextIO
 import cibuildwheel
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
-from cibuildwheel.audit import run_audit
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
 from cibuildwheel.options import CommandLineArguments, Options, compute_options
@@ -384,21 +383,10 @@ def build_in_directory(args: CommandLineArguments) -> None:
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Snapshot wheels before build to detect newly built ones
-    wheels_before = {p.name for p in output_dir.glob("*.whl")}
-
     tmp_path = Path(mkdtemp(prefix="cibw-run-")).resolve(strict=True)
     try:
         with log.print_summary(options=options):
             platform_module.build(options, tmp_path)
-
-            # Run audit step after all builds complete
-            if options.globals.audit_command:
-                run_audit(
-                    audit_command=options.globals.audit_command,
-                    output_dir=output_dir,
-                    wheels_before=wheels_before,
-                )
     finally:
         # avoid https://github.com/python/cpython/issues/86962 by performing
         # cleanup manually

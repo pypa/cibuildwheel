@@ -5,85 +5,119 @@ This module provides functionality to run audit commands (like abi3audit)
 on built wheels after all platform builds are complete.
 """
 
-import os
 import subprocess
+import sys
 from pathlib import Path
 
-from packaging.utils import parse_wheel_filename
-
-from .logger import log
-from .util.helpers import format_safe
-
-
-def is_abi3_wheel(wheel_path: Path) -> bool:
-    """Check if a wheel is an abi3 wheel by parsing its filename."""
-    _, _, _, tags = parse_wheel_filename(wheel_path.name)
-    return any(t.abi == "abi3" for t in tags)
+from cibuildwheel import errors
+from cibuildwheel.logger import log
+from cibuildwheel.options import BuildOptions
+from cibuildwheel.util.cmd import call, shell
+from cibuildwheel.util.helpers import prepare_command
+from cibuildwheel.util.packaging import is_abi3_wheel
+from cibuildwheel.venv import activate_virtualenv, virtualenv
 
 
 def run_audit(
-    audit_command: str,
-    output_dir: Path,
-    wheels_before: set[str],
+    *,
+    tmp_dir: Path,
+    build_options: BuildOptions,
+    wheel: Path,
 ) -> None:
     """
-    Run the audit command on wheels built in this run.
+    Run the audit commands on a single wheel.
 
-    The audit command supports the following placeholders:
-    - {wheel}: expands to each wheel path, runs the command once per wheel
-    - {abi3_wheel}: same as {wheel}, but only for abi3 wheels
-
-    If the command contains {abi3_wheel} but no abi3 wheels were produced,
-    the audit step is skipped.
-
-    Args:
-        audit_command: The command template to run
-        output_dir: Directory where wheels were output
-        wheels_before: Set of wheel filenames that existed before the build
+    Creates a virtualenv (or reuses an existing one) and installs any
+    audit requirements, then runs each audit command template against
+    the wheel. Commands containing {abi3_wheel} are skipped for
+    non-abi3 wheels.
     """
-    if not audit_command:
+
+    if not needs_audit(build_options.audit_command, wheel.name):
         return
 
-    # Find wheels built in this run (new wheels that weren't there before)
-    all_wheels = sorted(output_dir.glob("*.whl"))
-    just_built = [w for w in all_wheels if w.name not in wheels_before]
+    log.step("Auditing wheel...")
 
-    if not just_built:
-        return
+    audit_venv_dir = tmp_dir / "audit_venv"
+    if not audit_venv_dir.exists():
+        audit_venv_dir.mkdir(parents=True, exist_ok=True)
 
-    # Determine if we're auditing abi3 wheels only
-    abi3_only = "{abi3_wheel}" in audit_command
-
-    # Filter wheels if needed
-    if abi3_only:
-        wheels_to_audit = [w for w in just_built if is_abi3_wheel(w)]
-        if not wheels_to_audit:
-            log.step("Skipping audit step (no abi3 wheels produced)")
-            return
-    else:
-        wheels_to_audit = just_built
-
-    log.step("Running audit...")
-
-    for wheel in wheels_to_audit:
-        # Prepare command with placeholders
-        prepared = format_safe(
-            audit_command,
-            wheel=wheel,
-            abi3_wheel=wheel,
+        use_uv = build_options.build_frontend.name in {"uv", "build[uv]"}
+        dependency_constraint = build_options.dependency_constraints.get_for_python_version(
+            version=sys.version, tmp_dir=tmp_dir
         )
 
-        log.step(f"  Auditing {wheel.name}...")
-        env = os.environ.copy()
+        env = virtualenv(
+            sys.version,
+            Path(sys.executable),
+            audit_venv_dir,
+            dependency_constraint=dependency_constraint,
+            use_uv=use_uv,
+        )
+    else:
+        env = activate_virtualenv(audit_venv_dir)
 
-        try:
-            subprocess.run(
-                prepared,
-                shell=True,
-                check=True,
-                env=env,
-                cwd=output_dir,
+    # install audit requirements. This is run every time in case the user has
+    # defined overrides.
+    audit_requires = build_options.audit_requires
+    if audit_requires:
+        print(f"Installing audit dependencies: {', '.join(audit_requires)}")
+
+        pip = ["uv", "pip"] if use_uv else ["pip"]
+        # we pin if the audit-requires is left as the default "abi3audit"
+        should_pin = audit_requires == ["abi3audit"] and dependency_constraint
+
+        call(
+            *pip,
+            "install",
+            *(["--constraint", str(dependency_constraint)] if should_pin else []),
+            *audit_requires,
+            env=env,
+        )
+
+    audit_command = build_options.audit_command
+
+    for command_template in audit_command:
+        if "{abi3_wheel}" in command_template and "{wheel}" in command_template:
+            msg = (
+                f"Invalid audit command {command_template!r}: cannot contain both {{abi3_wheel}} "
+                "and {{wheel}} placeholders"
             )
+            raise errors.ConfigurationError(msg)
+
+        if "{abi3_wheel}" in command_template and not is_abi3_wheel(wheel.name):
+            continue
+
+        prepared_command = prepare_command(
+            command_template,
+            abi3_wheel=wheel,
+            wheel=wheel,
+            project=".",
+            package=build_options.package_dir,
+        )
+
+        print(f"Running audit command: {prepared_command}")
+        try:
+            shell(prepared_command, env=env)
         except subprocess.CalledProcessError as e:
-            log.error(f"Audit command failed for {wheel.name}")
-            raise SystemExit(e.returncode) from e
+            print(f"Audit command failed with exit code {e.returncode}")
+            msg = f"Audit command failed: {prepared_command}"
+            raise errors.AuditCommandFailedError(msg) from e
+
+
+def needs_audit(audit_commands: list[str], wheel_name: str) -> bool:
+    saw_abi3_placeholder = False
+    for audit_command in audit_commands:
+        if "{abi3_wheel}" in audit_command:
+            saw_abi3_placeholder = True
+            if is_abi3_wheel(wheel_name):
+                return True
+        elif "{wheel}" in audit_command:
+            return True
+
+    if saw_abi3_placeholder:
+        print("No audit required for this wheel, as it is not abi3")
+    else:
+        print("No audit configured")
+
+    return False

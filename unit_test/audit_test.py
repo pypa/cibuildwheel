@@ -1,134 +1,135 @@
+import contextlib
+import subprocess
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 import pytest
 
-from cibuildwheel.audit import is_abi3_wheel, run_audit
+from cibuildwheel import errors
+from cibuildwheel.audit import needs_audit, run_audit
 
 
-class TestIsAbi3Wheel:
-    def test_abi3_wheel(self) -> None:
-        assert is_abi3_wheel(Path("example-1.0.0-cp38-abi3-manylinux_2_17_x86_64.whl"))
+def mock_virtualenv() -> contextlib.AbstractContextManager[Mock]:
+    return patch(
+        "cibuildwheel.audit.virtualenv",
+        return_value={
+            "PATH": "/bin",
+            "VIRTUAL_ENV": "/tmp/v",
+        },
+    )
 
-    def test_abi3_wheel_macos(self) -> None:
-        assert is_abi3_wheel(Path("example-1.0.0-cp39-abi3-macosx_10_9_x86_64.whl"))
 
-    def test_abi3_wheel_windows(self) -> None:
-        assert is_abi3_wheel(Path("example-1.0.0-cp310-abi3-win_amd64.whl"))
+class TestNeedsAudit:
+    def test_empty_commands(self) -> None:
+        assert needs_audit([], "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl") is False
 
-    def test_non_abi3_wheel(self) -> None:
-        assert not is_abi3_wheel(Path("example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"))
+    def test_wheel_placeholder_matches_any_wheel(self) -> None:
+        assert needs_audit(
+            ["my-tool {wheel}"], "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
+        )
 
-    def test_pure_python_wheel(self) -> None:
-        assert not is_abi3_wheel(Path("example-1.0.0-py3-none-any.whl"))
+    def test_abi3_placeholder_skips_non_abi3(self) -> None:
+        assert (
+            needs_audit(
+                ["abi3audit {abi3_wheel}"], "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
+            )
+            is False
+        )
+
+    def test_abi3_placeholder_matches_abi3(self) -> None:
+        assert needs_audit(
+            ["abi3audit {abi3_wheel}"], "example-1.0.0-cp38-abi3-manylinux_2_17_x86_64.whl"
+        )
+
+    def test_mixed_commands_matches_if_any_applies(self) -> None:
+        commands = ["abi3audit {abi3_wheel}", "twine check {wheel}"]
+        # non-abi3 wheel still needs audit because of the {wheel} command
+        assert needs_audit(commands, "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl")
 
 
 class TestRunAudit:
-    def test_empty_command_does_nothing(self, tmp_path: Path) -> None:
-        # Create a wheel file
-        wheel_path = tmp_path / "example-1.0.0-cp38-abi3-manylinux_2_17_x86_64.whl"
-        wheel_path.touch()
+    @pytest.fixture
+    def mock_build_options(self) -> Mock:
+        opts = Mock()
+        opts.audit_command = []
+        opts.audit_requires = []
+        opts.package_dir = Path("/fake/package")
+        opts.build_frontend.name = "build"
+        opts.dependency_constraints.get_for_python_version.return_value = None
+        return opts
 
-        # Should not raise and should be a no-op
-        run_audit(
-            audit_command="",
-            output_dir=tmp_path,
-            wheels_before=set(),
-        )
+    def test_no_commands_does_nothing(self, tmp_path: Path, mock_build_options: Mock) -> None:
+        wheel = tmp_path / "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
+        mock_build_options.audit_command = []
 
-    def test_audit_runs_on_new_wheels(self, tmp_path: Path) -> None:
-        # Create a wheel file (simulating a build)
-        wheel_path = tmp_path / "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
-        wheel_path.touch()
+        with patch("cibuildwheel.audit.shell") as mock_shell:
+            run_audit(tmp_dir=tmp_path, build_options=mock_build_options, wheel=wheel)
+            mock_shell.assert_not_called()
 
-        # Create a marker file to verify command ran
-        marker = tmp_path / "audit_ran.txt"
+    def test_runs_wheel_command(self, tmp_path: Path, mock_build_options: Mock) -> None:
+        wheel = tmp_path / "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
+        mock_build_options.audit_command = ["my-tool {wheel}"]
 
-        run_audit(
-            audit_command=f"touch {marker}",
-            output_dir=tmp_path,
-            wheels_before=set(),
-        )
+        with mock_virtualenv(), patch("cibuildwheel.audit.shell") as mock_shell:
+            run_audit(tmp_dir=tmp_path, build_options=mock_build_options, wheel=wheel)
+            mock_shell.assert_called_once()
+            cmd = mock_shell.call_args[0][0]
+            assert str(wheel) in cmd
 
-        assert marker.exists()
+    def test_abi3_command_skipped_for_non_abi3(
+        self, tmp_path: Path, mock_build_options: Mock
+    ) -> None:
+        wheel = tmp_path / "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
+        mock_build_options.audit_command = ["abi3audit {abi3_wheel}"]
 
-    def test_audit_skips_old_wheels(self, tmp_path: Path) -> None:
-        # Create a wheel file
-        wheel_path = tmp_path / "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
-        wheel_path.touch()
+        with patch("cibuildwheel.audit.shell") as mock_shell:
+            run_audit(tmp_dir=tmp_path, build_options=mock_build_options, wheel=wheel)
+            mock_shell.assert_not_called()
 
-        # Create a marker file to verify command ran
-        marker = tmp_path / "audit_ran.txt"
+    def test_abi3_command_runs_for_abi3(self, tmp_path: Path, mock_build_options: Mock) -> None:
+        wheel = tmp_path / "example-1.0.0-cp38-abi3-manylinux_2_17_x86_64.whl"
+        mock_build_options.audit_command = ["abi3audit {abi3_wheel}"]
 
-        # Pre-existing wheel should be skipped
-        run_audit(
-            audit_command=f"touch {marker}",
-            output_dir=tmp_path,
-            wheels_before={wheel_path.name},
-        )
+        with (
+            mock_virtualenv(),
+            patch("cibuildwheel.audit.shell") as mock_shell,
+        ):
+            run_audit(tmp_dir=tmp_path, build_options=mock_build_options, wheel=wheel)
+            mock_shell.assert_called_once()
+            cmd = mock_shell.call_args[0][0]
+            assert str(wheel) in cmd
 
-        assert not marker.exists()
+    def test_raises_on_command_failure(self, tmp_path: Path, mock_build_options: Mock) -> None:
+        wheel = tmp_path / "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
+        mock_build_options.audit_command = ["failing-tool {wheel}"]
 
-    def test_abi3_only_mode_skips_non_abi3(self, tmp_path: Path) -> None:
-        # Create a non-abi3 wheel
-        wheel_path = tmp_path / "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
-        wheel_path.touch()
+        with (
+            mock_virtualenv(),
+            patch(
+                "cibuildwheel.audit.shell",
+                side_effect=subprocess.CalledProcessError(1, "failing-tool"),
+            ),
+            pytest.raises(errors.AuditCommandFailedError),
+        ):
+            run_audit(tmp_dir=tmp_path, build_options=mock_build_options, wheel=wheel)
 
-        # Create a marker file to verify command ran
-        marker = tmp_path / "audit_ran.txt"
+    def test_multiple_commands_all_run(self, tmp_path: Path, mock_build_options: Mock) -> None:
+        wheel = tmp_path / "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
+        mock_build_options.audit_command = ["tool-a {wheel}", "tool-b {wheel}"]
 
-        run_audit(
-            audit_command=f"echo {{abi3_wheel}} && touch {marker}",
-            output_dir=tmp_path,
-            wheels_before=set(),
-        )
+        with (
+            mock_virtualenv(),
+            patch("cibuildwheel.audit.shell") as mock_shell,
+        ):
+            run_audit(tmp_dir=tmp_path, build_options=mock_build_options, wheel=wheel)
+            assert mock_shell.call_count == 2
 
-        # Should not run because no abi3 wheels
-        assert not marker.exists()
+    def test_both_placeholders_raises(self, tmp_path: Path, mock_build_options: Mock) -> None:
+        wheel = tmp_path / "example-1.0.0-cp38-abi3-manylinux_2_17_x86_64.whl"
+        mock_build_options.audit_command = ["my-tool {wheel} {abi3_wheel}"]
 
-    def test_abi3_only_mode_runs_on_abi3(self, tmp_path: Path) -> None:
-        # Create an abi3 wheel
-        wheel_path = tmp_path / "example-1.0.0-cp38-abi3-manylinux_2_17_x86_64.whl"
-        wheel_path.touch()
-
-        # Create a marker file to verify command ran
-        marker = tmp_path / "audit_ran.txt"
-
-        run_audit(
-            audit_command=f"echo {{abi3_wheel}} && touch {marker}",
-            output_dir=tmp_path,
-            wheels_before=set(),
-        )
-
-        assert marker.exists()
-
-    def test_wheel_placeholder_expanded(self, tmp_path: Path) -> None:
-        # Create a wheel file
-        wheel_path = tmp_path / "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
-        wheel_path.touch()
-
-        # Write wheel path to a file to verify expansion
-        output_file = tmp_path / "wheel_path.txt"
-
-        run_audit(
-            audit_command=f"echo {{wheel}} > {output_file}",
-            output_dir=tmp_path,
-            wheels_before=set(),
-        )
-
-        assert output_file.exists()
-        content = output_file.read_text().strip()
-        assert content == str(wheel_path)
-
-    def test_audit_fails_on_error(self, tmp_path: Path) -> None:
-        # Create a wheel file
-        wheel_path = tmp_path / "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl"
-        wheel_path.touch()
-
-        with pytest.raises(SystemExit) as exc_info:
-            run_audit(
-                audit_command="exit 1",
-                output_dir=tmp_path,
-                wheels_before=set(),
-            )
-
-        assert exc_info.value.code == 1
+        with (
+            mock_virtualenv(),
+            pytest.raises(errors.ConfigurationError, match="cannot contain both"),
+        ):
+            run_audit(tmp_dir=tmp_path, build_options=mock_build_options, wheel=wheel)

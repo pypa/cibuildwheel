@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING, assert_never
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
+from cibuildwheel.audit import needs_audit, run_audit
 from cibuildwheel.frontend import get_build_frontend_extra_flags
 from cibuildwheel.logger import log
 from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
@@ -19,7 +20,7 @@ from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.file import copy_test_sources
 from cibuildwheel.util.helpers import prepare_command, unwrap
-from cibuildwheel.util.packaging import find_compatible_wheel, is_abi3_wheel, run_abi3audit
+from cibuildwheel.util.packaging import find_compatible_wheel
 
 if TYPE_CHECKING:
     from cibuildwheel.typing import PathOrStr
@@ -360,14 +361,15 @@ def build_in_container(
             if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                 raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
 
-            if is_abi3_wheel(repaired_wheel.name):
-                local_abi3audit_dir = local_identifier_tmp_dir / "abi3audit"
+            log.step_end()
+
+            if needs_audit(build_options.audit_command, repaired_wheel.name):
+                local_abi3audit_dir = local_identifier_tmp_dir / "audit"
                 local_abi3audit_dir.mkdir(parents=True, exist_ok=True)
-                container.copy_out(repaired_wheel_dir, local_abi3audit_dir)
-                local_wheel = local_abi3audit_dir / repaired_wheel.name
-                run_abi3audit(local_wheel)
                 try:
-                    run_abi3audit(local_wheel)
+                    container.copy_out(repaired_wheel_dir, local_abi3audit_dir)
+                    local_wheel = local_abi3audit_dir / repaired_wheel.name
+                    run_audit(tmp_dir=local_tmp_dir, build_options=build_options, wheel=local_wheel)
                 finally:
                     shutil.rmtree(local_abi3audit_dir, ignore_errors=True)
 

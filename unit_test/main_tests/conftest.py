@@ -69,7 +69,7 @@ def allow_empty(monkeypatch: pytest.MonkeyPatch, fake_package_dir: list[str]) ->
     monkeypatch.setattr(sys, "argv", [*fake_package_dir, "--allow-empty"])
 
 
-@pytest.fixture(params=["linux", "macos", "windows"])
+@pytest.fixture(params=["linux", "macos", "windows", "pyodide"])
 def platform(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> str:
     platform_value: str = request.param
     monkeypatch.setenv("CIBW_PLATFORM", platform_value)

@@ -17,6 +17,7 @@ from packaging.version import Version
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
+from cibuildwheel.audit import run_audit
 from cibuildwheel.ci import detect_ci_provider
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import BuildFrontendName, get_build_frontend_extra_flags
@@ -27,7 +28,7 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
 from cibuildwheel.util.helpers import prepare_command, unwrap
-from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version, run_abi3audit
+from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
 from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
 
@@ -567,9 +568,9 @@ def build(options: Options, tmp_path: Path) -> None:
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
 
-                run_abi3audit(repaired_wheel)
-
                 log.step_end()
+
+                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 machine_arch = platform.machine()

@@ -2,3 +2,4 @@ pip
 build
 delocate
 virtualenv
+abi3audit
