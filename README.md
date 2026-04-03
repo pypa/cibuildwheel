@@ -311,11 +311,11 @@ Core:
 - Matthieu Darbois [@mayeut](https://github.com/mayeut)
 - Henry Schreiner [@henryiii](https://github.com/henryiii)
 - Grzegorz Bokota [@Czaki](https://github.com/Czaki)
+- Agriya Khetarpal [@agriyakhetarpal](https://github.com/agriyakhetarpal) (also Pyodide)
 
 Platform maintainers:
 
 - Russell Keith-Magee [@freakboy3742](https://github.com/freakboy3742) (iOS)
-- Agriya Khetarpal [@agriyakhetarpal](https://github.com/agriyakhetarpal) (Pyodide)
 - Hood Chatham [@hoodmane](https://github.com/hoodmane) (Pyodide)
 - Gyeongjae Choi [@ryanking13](https://github.com/ryanking13) (Pyodide)
 - Tim Felgentreff [@timfel](https://github.com/timfel) (GraalPy)
