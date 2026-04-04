@@ -632,7 +632,7 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
         return
 
     log.step("Testing wheel...")
-    use_uv = build_frontend == "build[uv]"
+    use_uv = build_frontend in {"build[uv]", "uv"}
     uv_path = find_uv()
     if use_uv and uv_path is None:
         msg = "uv not found"
