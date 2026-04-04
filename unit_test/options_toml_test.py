@@ -541,3 +541,52 @@ before-all = ["override2"]
             options_reader.get("config-settings", option_format=ShlexTableFormat())
             == "key1=value1 key2=override2 empty='' key3=value3"
         )
+
+
+def test_audit_command_option(tmp_path: Path, platform: PlatformName) -> None:
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+audit-command = "abi3audit {abi3_wheel}"
+"""
+    )
+
+    options_reader = OptionsReader(pyproject_toml, platform=platform, env={})
+    assert (
+        options_reader.get("audit-command", option_format=ListFormat(" && "))
+        == "abi3audit {abi3_wheel}"
+    )
+
+
+def test_audit_command_option_list(tmp_path: Path, platform: PlatformName) -> None:
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+audit-command = ["first command", "second command"]
+"""
+    )
+
+    options_reader = OptionsReader(pyproject_toml, platform=platform, env={})
+    assert (
+        options_reader.get("audit-command", option_format=ListFormat(" && "))
+        == "first command && second command"
+    )
+
+
+def test_audit_command_option_env(tmp_path: Path, platform: PlatformName) -> None:
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+"""
+    )
+
+    options_reader = OptionsReader(
+        pyproject_toml, platform=platform, env={"CIBW_AUDIT_COMMAND": "my-audit-tool {wheel}"}
+    )
+    assert (
+        options_reader.get("audit-command", option_format=ListFormat(" && "))
+        == "my-audit-tool {wheel}"
+    )

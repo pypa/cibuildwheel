@@ -15,7 +15,7 @@ from cibuildwheel.util.helpers import (
     unwrap,
     unwrap_preserving_paragraphs,
 )
-from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.util.packaging import find_compatible_wheel, is_abi3_wheel
 
 
 def test_format_safe() -> None:
@@ -401,3 +401,23 @@ def test_unwrap_preserving_paragraphs() -> None:
         """)
         == "paragraph one\n\nparagraph two"
     )
+
+
+class TestIsAbi3Wheel:
+    def test_abi3_wheel(self) -> None:
+        assert is_abi3_wheel("foo-1.0-cp310-abi3-manylinux_2_28_x86_64.whl") is True
+
+    def test_abi3_wheel_macos(self) -> None:
+        assert is_abi3_wheel("foo-1.0-cp311-abi3-macosx_11_0_arm64.whl") is True
+
+    def test_abi3_wheel_windows(self) -> None:
+        assert is_abi3_wheel("foo-1.0-cp310-abi3-win_amd64.whl") is True
+
+    def test_cpython_wheel(self) -> None:
+        assert is_abi3_wheel("foo-1.0-cp310-cp310-manylinux_2_28_x86_64.whl") is False
+
+    def test_none_any_wheel(self) -> None:
+        assert is_abi3_wheel("foo-1.0-py3-none-any.whl") is False
+
+    def test_none_platform_wheel(self) -> None:
+        assert is_abi3_wheel("foo-1.0-cp310-none-win_amd64.whl") is False

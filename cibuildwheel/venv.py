@@ -139,10 +139,7 @@ def virtualenv(
             python,
             venv_path,
         )
-    paths = [str(venv_path), str(venv_path / "Scripts")] if _IS_WIN else [str(venv_path / "bin")]
-    venv_env = os.environ.copy() if env is None else env.copy()
-    venv_env["PATH"] = os.pathsep.join([*paths, venv_env["PATH"]])
-    venv_env["VIRTUAL_ENV"] = str(venv_path)
+    venv_env = activate_virtualenv(venv_path, env=env)
     if not use_uv and pip_version == "embed":
         call(
             "python",
@@ -155,6 +152,20 @@ def virtualenv(
             env=venv_env,
             cwd=venv_path,
         )
+    return venv_env
+
+
+def activate_virtualenv(
+    venv_path: Path,
+    env: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """
+    Return a copy of the environment with the virtualenv at `venv_path` activated.
+    """
+    paths = [str(venv_path), str(venv_path / "Scripts")] if _IS_WIN else [str(venv_path / "bin")]
+    venv_env = os.environ.copy() if env is None else env.copy()
+    venv_env["PATH"] = os.pathsep.join([*paths, venv_env["PATH"]])
+    venv_env["VIRTUAL_ENV"] = str(venv_path)
     return venv_env
 
 

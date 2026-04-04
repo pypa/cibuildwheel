@@ -14,6 +14,7 @@ from filelock import FileLock
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
+from cibuildwheel.audit import run_audit
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import BuildFrontendName, get_build_frontend_extra_flags
 from cibuildwheel.logger import log
@@ -539,9 +540,11 @@ def build(options: Options, tmp_path: Path) -> None:
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
 
-                test_wheel = repaired_wheel
-
                 log.step_end()
+
+                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
+
+                test_wheel = repaired_wheel
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 if not config.is_simulator:
