@@ -39,14 +39,16 @@ jobs:
       with:
         persist-credentials: false
 
-    - uses: wntrblm/nox@5a277b752f6094150e25237d47c34168e2b7526e # 2026.02.09
+    - uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+      with:
+        python-version: "3.14"
 
     - name: "Run update: dependencies"
-      run: nox --force-color -s update_constraints
+      run: uvx nox --force-color -s update_constraints
     - name: "Run update: python configs"
-      run: nox --force-color -s update_pins
+      run: uvx nox --force-color -s update_pins
     - name: "Run update: docs user projects"
-      run: nox --force-color -s update_proj -- --auth=${{ secrets.GITHUB_TOKEN }}
+      run: uvx nox --force-color -s update_proj -- --auth=${{ secrets.GITHUB_TOKEN }}
 
     - name: Create Pull Request
       if: github.ref == 'refs/heads/main' && github.repository == 'pypa/cibuildwheel'
