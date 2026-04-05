@@ -468,13 +468,6 @@ def detect_warnings(*, options: Options) -> Generator[str, None, None]:
     build_selector = options.globals.build_selector
     test_selector = options.globals.test_selector
 
-    if EnableGroup.CPythonFreeThreading in build_selector.enable:
-        yield (
-            "'cpython-freethreading' enable is deprecated and will be removed in a future version. "
-            "It should be removed from tool.cibuildwheel.enable in pyproject.toml "
-            "or CIBW_ENABLE environment variable."
-        )
-
     all_valid_identifiers = [
         config.identifier
         for module in ALL_PLATFORM_MODULES.values()
@@ -544,6 +537,9 @@ def check_for_invalid_selectors(
                 error_type = errors.DeprecationError
             if "p36" in selector_ or "p37" in selector_:
                 msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update `{selector_name}`. "
+                error_type = errors.DeprecationError
+            if "cp313t" in selector_:
+                msg += f"cibuildwheel 3.x no longer supports Python 3.13 free-threading. Please use the an older 3.x version or update `{selector_name}`. "
                 error_type = errors.DeprecationError
 
             if selector_name == "build":
