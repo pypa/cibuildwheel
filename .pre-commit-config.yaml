@@ -16,14 +16,14 @@ repos:
   - id: trailing-whitespace
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: 4924b0e01e032fea073ad04a1c5cfa7e4add0afb  # frozen: v0.15.6
+  rev: c60c980e561ed3e73101667fe8365c609d19a438  # frozen: v0.15.9
   hooks:
   - id: ruff-check
     args: ["--fix"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: a66e98df7b4aeeb3724184b332785976d062b92e  # frozen: v1.19.1
+  rev: 8e5c80792e2ec0c87804d8ef915bf35e2caea6da  # frozen: v1.20.0
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
@@ -85,7 +85,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 9f48a48aa91a6040d749ad68ec70907d907a5a7f  # frozen: 0.37.0
+  rev: ed81924a8b1cecdaa570b072528fa80c9c4d6ccd  # frozen: 0.37.1
   hooks:
     - id: check-dependabot
     - id: check-github-actions
