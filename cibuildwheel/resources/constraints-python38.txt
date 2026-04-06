@@ -28,9 +28,9 @@ platformdirs==4.3.6
     #   virtualenv
 pyproject-hooks==1.2.0
     # via build
-python-discovery==1.2.1
+python-discovery==1.2.0
     # via virtualenv
-tomli==2.4.1
+tomli==2.4.0
     # via build
 typing-extensions==4.13.2
     # via
