@@ -414,14 +414,14 @@ def _expected_wheels(
 
         elif platform == "pyodide":
             platform_tags = {
-                "cp312-cp312": ["pyodide_2024_0_wasm32"],
-                "cp313-cp313": ["pyodide_2025_0_wasm32"],
+                "cp312-cp312": ["pyemscripten_2024_0_wasm32"],
+                "cp313-cp313": ["pyemscripten_2025_0_wasm32"],
             }.get(python_abi_tag, [])
 
             if not platform_tags:
                 # for example if the python tag is `none` or `abi3`, all
                 # platform tags are built with that python tag
-                platform_tags = ["pyodide_2024_0_wasm32"]
+                platform_tags = ["pyemscripten_2024_0_wasm32"]
 
         else:
             msg = f"Unsupported platform {platform!r}"
