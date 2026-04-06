@@ -89,7 +89,7 @@ jobs:
         - os: ubuntu-latest
           python_version: '3.14'
         - os: ubuntu-latest
-          python_version: '3.13'
+          python_version: '3.14'
           test_select: android
         - os: ubuntu-24.04-arm
           python_version: '3.13'
