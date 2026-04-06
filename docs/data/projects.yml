@@ -3,7 +3,7 @@
 # gh: GitHub repo (eventually a url: could be added for non-github projects)
 # stars: GitHub repo (optional, if different from package, such as for Twisted)
 # pypi: The pypi name, if different from the GitHub package name
-# os: Operating system list, [windows, apple, linux] (optional)
+# os: Operating system list, [windows, apple, linux, android, ios] (optional)
 # ci: [github, azurepipelines, circleci, gitlab, travisci, cirrusci] (optional)
 # notes: (text, optional)
 
@@ -48,8 +48,8 @@
 - name: pybase64
   gh: mayeut/pybase64
   ci: [github]
-  os: [windows, apple, linux]
-
+  os: [windows, apple, linux, android, ios]
+  notes: setuptools backend with custom CMake step for external sources. SBOM embedded via a custom repair step.
 
 - name: KDEpy
   gh: tommyod/KDEpy
@@ -173,7 +173,7 @@
 - name: pyzmq
   gh: zeromq/pyzmq
   ci: [github]
-  os: [windows, apple, linux]
+  os: [windows, apple, linux, android]
   ci_config: .github/workflows/wheels.yml
   notes: |
     Python bindings for zeromq, the networking library.
