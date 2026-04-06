@@ -140,11 +140,19 @@ def test_dependency_constraints(
     project_dir = tmp_path / "project"
     test_projects.new_c_project().generate(project_dir)
 
-    tool_versions = {
-        "pip": "23.1.2",
-        "build": "1.2.2",
-        "delocate": "0.10.3",
-    }
+    if utils.get_platform() == "pyodide":
+        # pyodide-build 0.34+ requires build~=1.4.0, so we must use a
+        # compatible version here. delocate is macOS-only and not used on pyodide.
+        tool_versions = {
+            "pip": "23.1.2",
+            "build": "1.4.2",
+        }
+    else:
+        tool_versions = {
+            "pip": "23.1.2",
+            "build": "1.2.2",
+            "delocate": "0.10.3",
+        }
 
     if method == "file":
         constraints_file = tmp_path / "constraints file.txt"
