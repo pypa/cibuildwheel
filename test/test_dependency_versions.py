@@ -146,6 +146,7 @@ def test_dependency_constraints(
         tool_versions = {
             "pip": "23.1.2",
             "build": "1.4.2",
+            "delocate": "0.10.3",
         }
     else:
         tool_versions = {
