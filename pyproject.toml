@@ -138,7 +138,6 @@ module = [
     "setuptools._distutils.util",
     "bashlex",
     "bashlex.*",
-    "importlib_resources",
 ]
 ignore_missing_imports = true
 
