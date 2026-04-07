@@ -28,7 +28,7 @@
       "ci_config": { "type": "string" },
       "os": {
         "type": "array",
-        "items": { "enum": ["windows", "apple", "linux", "android", "ios"] }
+        "items": { "enum": ["windows", "apple", "linux", "android", "ios", "pyodide"] }
       }
     },
     "required": ["name", "gh", "ci", "os"]

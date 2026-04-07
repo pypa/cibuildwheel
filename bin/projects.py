@@ -44,6 +44,7 @@ ICONS = (
     "linux",
     "android",
     "ios",
+    "pyodide",
 )
 
 
