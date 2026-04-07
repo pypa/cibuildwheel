@@ -56,19 +56,19 @@ Usage
 
 `cibuildwheel` runs inside a CI service. Supported platforms depend on which service you're using:
 
-|                 | Linux | macOS | Windows | Linux ARM | macOS ARM | Windows ARM | Android | iOS | Pyodide |
-|-----------------|-------|-------|---------|-----------|-----------|-------------|---------|-----|---------|
-| GitHub Actions  | ✅    | ✅    | ✅       | ✅        | ✅        | ✅²         | ✅⁴      | ✅³  | ✅      |
-| Azure Pipelines | ✅    | ✅    | ✅       |           | ✅        | ✅²         | ✅⁴      | ✅³  | ⚠️⁵       |
-| CircleCI        | ✅    | ✅    |         | ✅        | ✅        |             | ✅⁴      | ✅³  | ⚠️⁵       |
-| Gitlab CI       | ✅    | ✅    | ✅      | ✅¹       | ✅        |             | ✅⁴      | ✅³  | ⚠️⁵       |
-| Cirrus CI       | ✅    | ✅    | ✅      | ✅        | ✅        |             | ✅⁴      |      | ⚠️⁵       |
+|                 | Linux | macOS | Windows | Linux ARM      | macOS ARM | Windows ARM    | Android                    | iOS                        | Pyodide        |
+| --------------- | ----- | ----- | ------- | -------------- | --------- | -------------- | -------------------------- | -------------------------- | -------------- |
+| GitHub Actions  | ✅    | ✅    | ✅      | ✅             | ✅        | ✅<sup>2</sup> | ✅<sup>4</sup>             | ✅<sup>3</sup>             | ✅             |
+| Azure Pipelines | ✅    | ✅    | ✅      |                | ✅        | ✅<sup>2</sup> | ✅<sup>4</sup>             | ✅<sup>3</sup>             | ✅<sup>5</sup> |
+| CircleCI        | ✅    | ✅    |         | ✅             | ✅        |                | ✅<sup>4</sup><sup>5</sup> | ✅<sup>3</sup><sup>5</sup> | ✅<sup>5</sup> |
+| GitLab CI       | ✅    | ✅    | ✅      | ✅<sup>1</sup> | ✅        |                | ✅<sup>4</sup><sup>5</sup> | ✅<sup>3</sup><sup>5</sup> | ✅<sup>5</sup> |
+| Cirrus CI       | ✅    | ✅    | ✅      | ✅             | ✅        |                | ✅<sup>4</sup><sup>5</sup> |                            | ✅<sup>5</sup> |
 
-<sup>¹ [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
-<sup>² [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
-<sup>³ Requires a macOS runner; runs tests on the simulator for the runner's architecture. </sup><br>
-<sup>⁴ Building for Android requires the runner to be Linux x86_64, macOS ARM64 or macOS x86_64. Testing has [additional requirements](https://cibuildwheel.pypa.io/en/stable/platforms/#android).</sup><br>
-<sup>⁵ Builds may work, but are untested in cibuildwheel's CI.</sup><br>
+<sup>1 [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
+<sup>2 [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
+<sup>3 Requires a macOS runner; runs tests on the simulator for the runner's architecture. </sup><br>
+<sup>4 Building for Android requires the runner to be Linux x86_64, macOS ARM64 or macOS x86_64. Testing has [additional requirements](https://cibuildwheel.pypa.io/en/stable/platforms/#android).</sup><br>
+<sup>5 Builds may work, but are untested in cibuildwheel's CI.</sup><br>
 
 <!--intro-end-->
 
