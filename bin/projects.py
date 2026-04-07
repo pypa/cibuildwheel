@@ -20,6 +20,7 @@ Suggested usage:
 import builtins
 import functools
 import textwrap
+import urllib.error
 import urllib.request
 import xml.dom.minidom
 from collections.abc import Iterable, Mapping, Sequence
@@ -133,8 +134,13 @@ class Project:
 
 def fetch_icon(icon_name: str) -> None:
     url = f"https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/{icon_name}.svg"
-    with urllib.request.urlopen(url) as f:
-        original_svg_data = f.read()
+    try:
+        with urllib.request.urlopen(url) as f:
+            original_svg_data = f.read()
+    except urllib.error.HTTPError as e:
+        if e.code == 404 and path_for_icon(icon_name).exists():
+            return
+        raise
 
     document = xml.dom.minidom.parseString(original_svg_data)
     svgElement = document.documentElement
