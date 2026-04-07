@@ -48,7 +48,7 @@
 - name: pybase64
   gh: mayeut/pybase64
   ci: [github]
-  os: [windows, apple, linux, android, ios]
+  os: [windows, apple, linux, android, ios, pyodide]
   notes: setuptools backend with custom CMake step for external sources. SBOM embedded via a custom repair step.
 
 - name: KDEpy
