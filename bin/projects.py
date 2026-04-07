@@ -31,7 +31,7 @@ from typing import Any, Self, TextIO
 
 import click
 import yaml
-from github import Github, GithubException
+from github import Auth, Github, GithubException
 
 ICONS = (
     "github",
@@ -174,7 +174,7 @@ def get_projects(
         for icon in ICONS:
             fetch_icon(icon)
 
-    github = Github(auth) if online else None
+    github = Github(auth=Auth.Token(auth)) if (online and auth) else None
 
     return sorted((Project(item, github) for item in config), reverse=online)
 
