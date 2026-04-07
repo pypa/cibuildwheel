@@ -42,6 +42,8 @@ ICONS = (
     "windows",
     "apple",
     "linux",
+    "android",
+    "ios",
 )
 
 
