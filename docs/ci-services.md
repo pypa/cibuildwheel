@@ -103,7 +103,7 @@ Commit this file, and push to Gitlab. The pipeline should start automatically.
 
 Gitlab will store the built wheels for you - you can access them from the Pipelines view. Check out the Gitlab [docs](https://docs.gitlab.com/ee/ci/yaml/) for more info on this config file.
 
-
+> ⚠️ Got an error? Check the [FAQ](faq.md).
 
 ### Other CI services
 
