@@ -45,7 +45,7 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 <sup>**5** manylinux armv7l support is experimental. As there are no RHEL based image for this architecture, it's using an Ubuntu based image instead.</sup><br>
 
 - Builds manylinux, musllinux, macOS, and Windows wheels for CPython, PyPy, and GraalPy
-- Works on GitHub Actions, Azure Pipelines, CircleCI, GitLab CI, and Cirrus CI
+- Works on GitHub Actions, Azure Pipelines, CircleCI, and GitLab CI
 - Bundles shared library dependencies on Linux and macOS through [auditwheel](https://github.com/pypa/auditwheel) and [delocate](https://github.com/matthew-brett/delocate)
 - Runs your library's tests against the wheel-installed version of your library
 
@@ -62,7 +62,6 @@ Usage
 | Azure Pipelines | ✅    | ✅    | ✅      |                | ✅        | ✅<sup>2</sup> | ✅<sup>4</sup>             | ✅<sup>3</sup>             | ✅<sup>5</sup> |
 | CircleCI        | ✅    | ✅    |         | ✅             | ✅        |                | ✅<sup>4</sup><sup>5</sup> | ✅<sup>3</sup><sup>5</sup> | ✅<sup>5</sup> |
 | GitLab CI       | ✅    | ✅    | ✅      | ✅<sup>1</sup> | ✅        |                | ✅<sup>4</sup><sup>5</sup> | ✅<sup>3</sup><sup>5</sup> | ✅<sup>5</sup> |
-| Cirrus CI       | ✅    | ✅    | ✅      | ✅             | ✅        |                | ✅<sup>4</sup><sup>5</sup> |                            | ✅<sup>5</sup> |
 
 <sup>**1** [Requires emulation](https://cibuildwheel.pypa.io/en/stable/faq/#emulation), distributed separately. Other services may also support Linux ARM through emulation or third-party build hosts, but these are not tested in our CI.</sup><br>
 <sup>**2** [Uses cross-compilation](https://cibuildwheel.pypa.io/en/stable/faq/#windows-arm64). It is not possible to test `arm64` on this CI platform.</sup><br>
@@ -213,7 +212,6 @@ Here are some repos that use cibuildwheel.
 [circleci icon]: docs/data/readme_icons/circleci.svg
 [gitlab icon]: docs/data/readme_icons/gitlab.svg
 [travisci icon]: docs/data/readme_icons/travisci.svg
-[cirrusci icon]: docs/data/readme_icons/cirrusci.svg
 [windows icon]: docs/data/readme_icons/windows.svg
 [apple icon]: docs/data/readme_icons/apple.svg
 [linux icon]: docs/data/readme_icons/linux.svg

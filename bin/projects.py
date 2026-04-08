@@ -39,7 +39,6 @@ ICONS = (
     "circleci",
     "gitlab",
     "travisci",
-    "cirrusci",
     "windows",
     "apple",
     "linux",
