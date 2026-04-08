@@ -20,6 +20,7 @@ Suggested usage:
 import builtins
 import functools
 import textwrap
+import urllib.error
 import urllib.request
 import xml.dom.minidom
 from collections.abc import Iterable, Mapping, Sequence
@@ -30,7 +31,7 @@ from typing import Any, Self, TextIO
 
 import click
 import yaml
-from github import Github, GithubException
+from github import Auth, Github, GithubException
 
 ICONS = (
     "github",
@@ -44,6 +45,7 @@ ICONS = (
     "linux",
     "android",
     "ios",
+    "pyodide",
 )
 
 
@@ -132,8 +134,13 @@ class Project:
 
 def fetch_icon(icon_name: str) -> None:
     url = f"https://cdn.jsdelivr.net/npm/simple-icons@v4/icons/{icon_name}.svg"
-    with urllib.request.urlopen(url) as f:
-        original_svg_data = f.read()
+    try:
+        with urllib.request.urlopen(url) as f:
+            original_svg_data = f.read()
+    except urllib.error.HTTPError as e:
+        if e.code == 404 and path_for_icon(icon_name).exists():
+            return
+        raise
 
     document = xml.dom.minidom.parseString(original_svg_data)
     svgElement = document.documentElement
@@ -167,7 +174,7 @@ def get_projects(
         for icon in ICONS:
             fetch_icon(icon)
 
-    github = Github(auth) if online else None
+    github = Github(auth=Auth.Token(auth)) if (online and auth) else None
 
     return sorted((Project(item, github) for item in config), reverse=online)
 
