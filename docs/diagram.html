@@ -114,19 +114,11 @@
           },
         },
         {
-          label: 'Install target Python',
-          platforms: ['android'],
+          label: 'Install Python & set up cross-compilation',
+          platforms: ['android', 'ios'],
           style: 'block',
           tooltip: {
-            description: 'Download and install a pre-built Android cross-compilation Python, set up the build environment with cross-compilation toolchain, CMake toolchain file, and Rust/Cargo configuration.'
-          },
-        },
-        {
-          label: 'Install build & target Python',
-          platforms: ['ios'],
-          style: 'block',
-          tooltip: {
-            description: 'Install a macOS build Python and an iOS target Python, then create a cross-compilation virtualenv with an isolated PATH and xbuild tools.'
+            description: 'Install Python for the build and target platforms, and set up a cross-compilation environment.'
           },
         },
         {
@@ -159,7 +151,7 @@
           tooltip: {
             title: 'CIBW_BUILD_FRONTEND',
             tag: 'Customisable step',
-            description: 'Build the wheel according to your package configuration, using the frontend of your choice. Desktop platforms support pip or build; Android supports build or uv; iOS supports pip or build; Pyodide uses pyodide-build.'
+            description: 'Build the wheel according to your package configuration, using the frontend of your choice – pip, build, or uv.'
           },
         },
       ],
@@ -226,7 +218,7 @@
           platforms: ['linux', 'macos', 'windows', 'android', 'ios', 'pyodide'],
           style: 'block',
           tooltip: {
-            description: 'Install the wheel we just built into the test environment. On Android, wheels are installed into a site-packages directory for the emulator. On iOS, wheels are installed into the simulator testbed app. On Pyodide, wheels are installed into a Pyodide virtualenv.'
+            description: 'Install the wheel we just built into the test environment.'
           },
         },
       ],
@@ -250,7 +242,7 @@
           tooltip: {
             title: 'CIBW_TEST_COMMAND',
             tag: 'Optional step',
-            description: 'Run the test command on an Android emulator using the CPython testbed. Tests must begin with "python -m".'
+            description: 'Run the test command on an Android emulator using the CPython testbed.'
           },
         },
         {
@@ -261,7 +253,7 @@
           tooltip: {
             title: 'CIBW_TEST_COMMAND',
             tag: 'Optional step',
-            description: 'Run the test command on an iOS simulator using the testbed app. Tests must begin with "python -m". Only runs on simulator SDKs with a matching native architecture.'
+            description: 'Run the test command on an iOS simulator using the testbed app.'
           },
         },
         {
