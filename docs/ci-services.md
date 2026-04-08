@@ -111,6 +111,10 @@ Gitlab will store the built wheels for you - you can access them from the Pipeli
 
 Appveyor official support was dropped in cibuildwheel v3.0, due to a lack of CI credits. However, it can probably still be used as-is. Check the Appveyor example from the cibuildwheel v2.0 branch: [appveyor-minimal.yml](https://github.com/pypa/cibuildwheel/blob/v2.23.3/examples/appveyor-minimal.yml).
 
+### Cirrus CI [linux/mac/windows] {: #cirrus-ci}
+
+Due to Cirrus CI [end-of-life](https://cirruslabs.org) on June 1, 2026, we no longer officially support this service.
+
 ## Next steps
 
 Once you've got the wheel building successfully, you might want to set up [testing](options.md#test-command) or [automatic releases to PyPI](deliver-to-pypi.md#automatic-method).
