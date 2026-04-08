@@ -3,7 +3,7 @@
 # gh: GitHub repo (eventually a url: could be added for non-github projects)
 # stars: GitHub repo (optional, if different from package, such as for Twisted)
 # pypi: The pypi name, if different from the GitHub package name
-# os: Operating system list, [windows, apple, linux, android, ios] (optional)
+# os: Operating system list, [windows, apple, linux, android, ios, pyodide] (optional)
 # ci: [github, azurepipelines, circleci, gitlab, travisci, cirrusci] (optional)
 # notes: (text, optional)
 
@@ -17,7 +17,7 @@
   gh: matplotlib/matplotlib
   notes: The venerable Matplotlib, a Python library with C++ portions
   ci: [github]
-  os: [windows, apple, linux]
+  os: [windows, apple, linux, pyodide]
 
 - name: pyinstrument
   gh: joerick/pyinstrument
@@ -48,7 +48,7 @@
 - name: pybase64
   gh: mayeut/pybase64
   ci: [github]
-  os: [windows, apple, linux, android, ios]
+  os: [windows, apple, linux, android, ios, pyodide]
   notes: setuptools backend with custom CMake step for external sources. SBOM embedded via a custom repair step.
 
 - name: KDEpy
@@ -144,7 +144,7 @@
 - name: scikit-learn
   gh: scikit-learn/scikit-learn
   ci: [github]
-  os: [windows, apple, linux]
+  os: [windows, apple, linux, pyodide]
   ci_config: .github/workflows/wheels.yml
   notes: |
     The machine learning library. A complex but clean config using many of
@@ -154,7 +154,7 @@
 - name: scikit-image
   gh: scikit-image/scikit-image
   ci: [github]
-  os: [windows, apple, linux]
+  os: [windows, apple, linux, pyodide]
   ci_config: .github/workflows/cibuildwheel.yml
   notes: |
     Image processing library. Uses cibuildwheel to build and test a project
@@ -194,17 +194,17 @@
 - name: pybind11 python_example
   gh: pybind/python_example
   ci: [github]
-  os: [windows, apple, linux]
+  os: [windows, apple, linux, pyodide]
 
 - name: pybind11 cmake_example
   gh: pybind/cmake_example
   ci: [github]
-  os: [windows, apple, linux]
+  os: [windows, apple, linux, pyodide]
 
 - name: pybind11 scikit_build_example
   gh: pybind/scikit_build_example
   ci: [github]
-  os: [windows, apple, linux]
+  os: [windows, apple, linux, pyodide]
 
 - name: pybind11 cross build example
   gh: wbarnha/pybind_cmake_example_crossbuild
@@ -215,7 +215,7 @@
 - name: iminuit
   gh: scikit-hep/iminuit
   ci: [github]
-  os: [windows, apple, linux]
+  os: [windows, apple, linux, pyodide]
 
 - name: pyjet
   gh: scikit-hep/pyjet
@@ -230,7 +230,7 @@
 - name: boost-histogram
   gh: scikit-hep/boost-histogram
   ci: [github, travisci]
-  os: [windows, apple, linux]
+  os: [windows, apple, linux, pyodide]
   notes: Supports full range of wheels, including PyPy and alternate archs.
 
 - name: Rtree
@@ -332,7 +332,7 @@
 - name: sourmash
   gh: sourmash-bio/sourmash
   ci: [github]
-  os: [apple, linux, windows]
+  os: [apple, linux, windows, pyodide]
 
 - name: markupsafe
   gh: pallets/markupsafe
@@ -565,7 +565,7 @@
 - name: NumPy
   gh: numpy/numpy
   ci: [github, travisci]
-  os: [windows, apple, linux]
+  os: [windows, apple, linux, pyodide]
 
 - name: Wrapt
   gh: GrahamDumpleton/wrapt
