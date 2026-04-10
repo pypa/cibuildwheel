@@ -1,5 +1,13 @@
 #!/usr/bin/env python3
 
+# /// script
+# dependencies = [
+#   "click",
+#   "packaging",
+#   "rich",
+# ]
+# ///
+
 
 import dataclasses
 import difflib

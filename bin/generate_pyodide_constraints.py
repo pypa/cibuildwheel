@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 
+# /// script
+# dependencies = [
+#   "click",
+# ]
+# ///
+
 import sys
 import textwrap
 from pathlib import Path

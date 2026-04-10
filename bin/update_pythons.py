@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 
+# /// script
+# dependencies = [
+#   "click",
+#   "packaging",
+#   "requests",
+#   "rich",
+# ]
+# ///
+
 
 import difflib
 import logging

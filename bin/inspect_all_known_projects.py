@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
 
+# /// script
+# dependencies = [
+#   "click",
+#   "pygithub",
+#   "pyyaml",
+#   "rich",
+# ]
+# ///
+
 """
 Check known projects for usage of requires-python.
 

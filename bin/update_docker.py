@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 
+# /// script
+# dependencies = [
+#   "packaging",
+#   "requests",
+# ]
+# ///
+
 import configparser
 import dataclasses
 from pathlib import Path
