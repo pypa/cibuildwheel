@@ -185,6 +185,18 @@ def docs(session: nox.Session) -> None:
 
 
 @nox.session(default=False)
+def update_how_it_works_image(session: nox.Session) -> None:
+    """
+    Generate the how it works image.
+    """
+    pyproject = nox.project.load_toml()
+    session.install("-e.", *nox.project.dependency_groups(pyproject, "docs"))
+    session.install("playwright")
+    session.run("playwright", "install", "chromium")
+    session.run("python", "bin/update_how_it_works_image.py")
+
+
+@nox.session(default=False)
 def build(session: nox.Session) -> None:
     """
     Build an SDist and wheel.
