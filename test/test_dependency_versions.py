@@ -124,7 +124,7 @@ def test_pinned_versions(
     expected_wheels = [
         w
         for w in utils.expected_wheels("spam", "0.1.0")
-        if f"-cp{version_no_dot}" in w or f"-pp{version_no_dot}" in w
+        if f"-cp{version_no_dot}-cp{version_no_dot}-" in w or f"-pp{version_no_dot}-" in w
     ]
 
     assert set(actual_wheels) == set(expected_wheels)
