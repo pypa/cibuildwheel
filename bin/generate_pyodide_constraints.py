@@ -3,7 +3,11 @@
 # /// script
 # dependencies = [
 #   "click",
+#   "cibuildwheel",
 # ]
+#
+# [tool.uv.sources]
+# cibuildwheel = { path = ".." }
 # ///
 
 import sys

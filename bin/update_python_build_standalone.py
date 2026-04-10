@@ -1,5 +1,14 @@
 #!/usr/bin/env -S uv run --script
 
+# /// script
+# dependencies = [
+#   "cibuildwheel",
+# ]
+#
+# [tool.uv.sources]
+# cibuildwheel = { path = ".." }
+# ///
+
 import json
 
 from cibuildwheel.extra import github_api_request

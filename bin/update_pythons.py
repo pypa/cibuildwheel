@@ -6,7 +6,11 @@
 #   "packaging",
 #   "requests",
 #   "rich",
+#   "cibuildwheel",
 # ]
+#
+# [tool.uv.sources]
+# cibuildwheel = { path = ".." }
 # ///
 
 

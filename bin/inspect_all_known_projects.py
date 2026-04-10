@@ -6,7 +6,11 @@
 #   "pygithub",
 #   "pyyaml",
 #   "rich",
+#   "cibuildwheel",
 # ]
+#
+# [tool.uv.sources]
+# cibuildwheel = { path = ".." }
 # ///
 
 """
