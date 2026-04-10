@@ -5,6 +5,9 @@
     <div class="grid-line" style="grid-row-start: 3"></div>
     <div class="grid-line" style="grid-row-start: 4"></div>
     <div class="grid-line" style="grid-row-start: 5"></div>
+    <div class="grid-line" style="grid-row-start: 6"></div>
+    <div class="grid-line" style="grid-row-start: 7"></div>
+    <div class="grid-line" style="grid-row-start: 8"></div>
     <!-- the docker container outline -->
     <div class="grid-outline docker">
       <div class="outline">
@@ -17,11 +20,17 @@
     </div>
     <div class="grid-outline testVenv" style="grid-row-start: 4"><div class="outline"></div></div>
     <div class="grid-outline testVenv" style="grid-row-start: 5"><div class="outline"></div></div>
+    <div class="grid-outline testVenv" style="grid-row-start: 6"><div class="outline"></div></div>
+    <div class="grid-outline testVenv" style="grid-row-start: 7"><div class="outline"></div></div>
+    <div class="grid-outline testVenv" style="grid-row-start: 8"><div class="outline"></div></div>
     <!-- THE GRID CONTENT -->
     <!-- the row labels -->
     <div class="grid-row-label" style="grid-row-start: 3">Linux</div>
     <div class="grid-row-label" style="grid-row-start: 4">macOS</div>
     <div class="grid-row-label" style="grid-row-start: 5">Windows</div>
+    <div class="grid-row-label" style="grid-row-start: 6">Android</div>
+    <div class="grid-row-label" style="grid-row-start: 7">iOS</div>
+    <div class="grid-row-label" style="grid-row-start: 8">Pyodide</div>
     <!-- the column labels -->
     <div class="grid-column-label"
          style="grid-row: 1 / span 1; grid-column: 5 / -3">
@@ -86,7 +95,7 @@
       [
         {
           href: 'options/#before-all',
-          platforms: ['linux', 'macos', 'windows'],
+          platforms: ['linux', 'macos', 'windows', 'android', 'ios', 'pyodide'],
           style: 'dot',
           tooltip: {
             title: 'CIBW_BEFORE_ALL',
@@ -104,11 +113,27 @@
             description: 'Install the version of Python required to build this wheel.'
           },
         },
+        {
+          label: 'Install Python & set up cross-compilation',
+          platforms: ['android', 'ios'],
+          style: 'block',
+          tooltip: {
+            description: 'Install Python for the build and target platforms, and set up a cross-compilation environment.'
+          },
+        },
+        {
+          label: 'Set up Pyodide xbuildenv',
+          platforms: ['pyodide'],
+          style: 'block',
+          tooltip: {
+            description: 'Install a base Python, set up a build virtualenv with pyodide-build, install the Pyodide cross-build environment and Emscripten toolchain.'
+          },
+        },
       ],
       [
         {
           href: 'options/#before-build',
-          platforms: ['linux', 'macos', 'windows'],
+          platforms: ['linux', 'macos', 'windows', 'android', 'ios', 'pyodide'],
           style: 'dot',
           tooltip: {
             title: 'CIBW_BEFORE_BUILD',
@@ -121,12 +146,12 @@
         {
           label: 'Build wheel',
           href: 'options/#build-frontend',
-          platforms: ['linux', 'macos', 'windows'],
+          platforms: ['linux', 'macos', 'windows', 'android', 'ios', 'pyodide'],
           style: 'block',
           tooltip: {
             title: 'CIBW_BUILD_FRONTEND',
             tag: 'Customisable step',
-            description: 'Build the wheel according to your package configuration, using the frontend of your choice - pip or build.'
+            description: 'Build the wheel according to your package configuration, using the frontend of your choice – pip, build, or uv.'
           },
         },
       ],
@@ -154,23 +179,31 @@
           },
         },
         {
-          env: "CIBW_REPAIR_WHEEL_COMMAND",
+          label: 'Repair wheel',
           href: 'options/#repair-wheel-command',
-          label: 'repair wheel',
-          platforms: ['windows'],
+          platforms: ['android'],
+          style: 'block',
+          tooltip: {
+            title: 'CIBW_REPAIR_WHEEL_COMMAND',
+            tag: 'Customisable step',
+            description: 'By default, bundles libc++ into the wheel if any shared library links against it, using patchelf. Can be overridden with a custom repair command.'
+          },
+        },
+        {
+          href: 'options/#repair-wheel-command',
+          platforms: ['windows', 'ios', 'pyodide'],
           style: 'dot',
-          optional: true,
           tooltip: {
             title: 'CIBW_REPAIR_WHEEL_COMMAND',
             tag: 'Optional step',
-            description: 'Execute a shell command to repair each built wheel'
+            description: 'Execute a shell command to repair each built wheel.'
           },
         },
       ],
       [
         {
           href: 'options/#before-test',
-          platforms: ['linux', 'macos', 'windows'],
+          platforms: ['linux', 'macos', 'windows', 'android', 'ios', 'pyodide'],
           style: 'dot',
           tooltip: {
             title: 'CIBW_BEFORE_TEST',
@@ -182,10 +215,10 @@
       [
         {
           label: 'Install wheel',
-          platforms: ['linux', 'macos', 'windows'],
+          platforms: ['linux', 'macos', 'windows', 'android', 'ios', 'pyodide'],
           style: 'block',
           tooltip: {
-            description: 'Install the wheel we just built into the test virtualenv.'
+            description: 'Install the wheel we just built into the test environment.'
           },
         },
       ],
@@ -198,7 +231,40 @@
           tooltip: {
             title: 'CIBW_TEST_COMMAND',
             tag: 'Optional step',
-            description: 'Execute a shell command to test each built wheel'
+            description: 'Execute a shell command to test each built wheel.'
+          },
+        },
+        {
+          label: 'Test on emulator',
+          href: 'options/#test-command',
+          platforms: ['android'],
+          style: 'block',
+          tooltip: {
+            title: 'CIBW_TEST_COMMAND',
+            tag: 'Optional step',
+            description: 'Run the test command on an Android emulator using the CPython testbed.'
+          },
+        },
+        {
+          label: 'Test on simulator',
+          href: 'options/#test-command',
+          platforms: ['ios'],
+          style: 'block',
+          tooltip: {
+            title: 'CIBW_TEST_COMMAND',
+            tag: 'Optional step',
+            description: 'Run the test command on an iOS simulator using the testbed app.'
+          },
+        },
+        {
+          label: 'Test in Node.js',
+          href: 'options/#test-command',
+          platforms: ['pyodide'],
+          style: 'block',
+          tooltip: {
+            title: 'CIBW_TEST_COMMAND',
+            tag: 'Optional step',
+            description: 'Run the test command in a Pyodide virtualenv powered by Node.js.'
           },
         },
       ],
@@ -219,26 +285,21 @@
     data() {
       return {
         diagram,
-        platforms: ['linux', 'macos', 'windows'],
+        platforms: ['linux', 'macos', 'windows', 'android', 'ios', 'pyodide'],
       }
     },
     methods: {
       blockStyle(action) {
-        let start, end
-        if (action.platforms.includes('linux')) {
-          start = 3
-        } else if (action.platforms.includes('macos')) {
-          start = 4
-        } else if (action.platforms.includes('windows')) {
-          start = 5
-        }
+        const platformOrder = ['linux', 'macos', 'windows', 'android', 'ios', 'pyodide']
+        const rowOffset = 3 // first platform starts at grid row 3
 
-        if (action.platforms.includes('windows')) {
-          end = 6
-        } else if (action.platforms.includes('macos')) {
-          end = 5
-        } else if (action.platforms.includes('linux')) {
-          end = 4
+        let start = null
+        let end = null
+        for (let i = 0; i < platformOrder.length; i++) {
+          if (action.platforms.includes(platformOrder[i])) {
+            if (start === null) start = rowOffset + i
+            end = rowOffset + i + 1
+          }
         }
 
         return {
@@ -413,7 +474,7 @@
   .grid-outline {
     grid-row-end: span 1;
     position: relative;
-    color: #8f8f8f;
+    color: #666666;
   }
   .grid-outline.docker {
     grid-row: 3 / span 1;
@@ -478,7 +539,7 @@
     font-weight: 500;
     text-transform: uppercase;
     font-size: 0.9em;
-    color: #C9C9C9;
+    color: #888888;
   }
   .tooltip-description {
     margin-top: 1px;

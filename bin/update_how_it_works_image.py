@@ -1,49 +1,57 @@
 #!/usr/bin/env python3
 
-
 import subprocess
-import sys
+import tempfile
 from pathlib import Path
 
 try:
-    from html2image import Html2Image  # type: ignore[import-not-found]
+    from playwright.sync_api import sync_playwright  # type: ignore[import-not-found]
 except ImportError:
-    sys.exit(
+    msg = """
+        playwright not found. Install it with:
+            pip install playwright
+            playwright install chromium
+
+        Or, run this script with:
+            nox -s update_how_it_works_image
         """
-        html2image not found. Ensure you have Chrome (on Mac/Windows) or
-        Chromium (on Linux) installed, and then do:
-            pip install html2image
-        """
-    )
+    raise SystemExit(msg) from None
 
 
 def main() -> None:
-    subprocess.run(["mkdocs", "build"], check=True)
+    with tempfile.TemporaryDirectory() as tmp_dir_str:
+        tmp_dir = Path(tmp_dir_str)
+        subprocess.run(["mkdocs", "build", "--site-dir", tmp_dir], check=True)
 
-    hti = Html2Image(custom_flags=["--force-device-scale-factor=2"])
+        html_str = Path("docs/diagram.html").read_text()
+        css_tags = f"""
+            <style>{(tmp_dir / "css/theme.css").read_text()}</style>
+            <style>{(tmp_dir / "css/theme_extra.css").read_text()}</style>
+            <style>{(tmp_dir / "extra.css").read_text()}</style>
+            <style>
+                body {{
+                    background: white;
+                }}
+            </style>
+        """
+        html_str = f"<html><head>{css_tags}</head><body>{html_str}</body></html>"
 
-    html_str = Path("docs/diagram.md").read_text()
-    css_tags = f"""
-        <style>{Path("site/css/theme.css").read_text()}</style>
-        <style>{Path("site/css/theme_extra.css").read_text()}</style>
-        <style>{Path("site/extra.css").read_text()}</style>
-        <style>
-            body {{
-                background: white;
-            }}
-        </style>
-    """
-    html_str = css_tags + html_str
+        html_path = Path(tmp_dir) / "diagram_screenshot.html"
+        html_path.write_text(html_str)
 
-    [screenshot, *_] = hti.screenshot(
-        html_str=html_str,
-        size=(830, 405),
-    )
+        dest_path = Path("docs/data/how-it-works.png")
 
-    dest_path = Path("docs/data/how-it-works.png")
-    dest_path.unlink(missing_ok=True)
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page(device_scale_factor=2, viewport={"width": 830, "height": 600})
+            page.goto(html_path.as_uri())
+            page.wait_for_load_state("networkidle")
 
-    Path(screenshot).rename(dest_path)
+            height = page.evaluate("document.body.scrollHeight")
+            page.set_viewport_size({"width": 830, "height": height})
+
+            page.screenshot(path=str(dest_path), full_page=True)
+            browser.close()
 
 
 if __name__ == "__main__":
