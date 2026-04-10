@@ -4,7 +4,7 @@
 # stars: GitHub repo (optional, if different from package, such as for Twisted)
 # pypi: The pypi name, if different from the GitHub package name
 # os: Operating system list, [windows, apple, linux, android, ios, pyodide] (optional)
-# ci: [github, azurepipelines, circleci, gitlab, travisci, cirrusci] (optional)
+# ci: [github, azurepipelines, circleci, gitlab, travisci] (optional)
 # notes: (text, optional)
 
 - name: abess
@@ -401,7 +401,7 @@
 - name: pillow-heif
   gh: bigcat88/pillow_heif
   pypi: pillow-heif
-  ci: [github, cirrusci]
+  ci: [github]
   os: [apple, linux, windows]
   notes: Bindings to libheif library with third party dependencies. Fully automated CI for tests and publishing including Apple Silicon builds.
 

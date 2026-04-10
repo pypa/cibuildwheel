@@ -115,11 +115,6 @@ services = [
         dst_config_path=".gitlab-ci.yml",
         badge_md="[![Gitlab](https://gitlab.com/joerick/cibuildwheel/badges/{branch}/pipeline.svg)](https://gitlab.com/joerick/cibuildwheel/-/commits/{branch})",
     ),
-    CIService(
-        name="cirrus-ci",
-        dst_config_path=".cirrus.yml",
-        badge_md="[![Cirrus CI](https://api.cirrus-ci.com/github/pypa/cibuildwheel.svg?branch={branch})](https://cirrus-ci.com/github/pypa/cibuildwheel/{branch})",
-    ),
 ]
 
 
