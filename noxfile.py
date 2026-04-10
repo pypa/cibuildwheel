@@ -181,8 +181,6 @@ def update_how_it_works_image(session: nox.Session) -> None:
     """
     Generate the how it works image.
     """
-    pyproject = nox.project.load_toml()
-    session.install("-e.", *nox.project.dependency_groups(pyproject, "docs"))
     session.install_and_run_script("bin/update_how_it_works_image.py")
 
 

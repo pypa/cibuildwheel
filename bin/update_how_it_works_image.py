@@ -2,7 +2,6 @@
 
 # /// script
 # dependencies = [
-#   "mkdocs",
 #   "playwright",
 # ]
 # ///
@@ -14,28 +13,33 @@ from pathlib import Path
 
 from playwright.sync_api import sync_playwright  # type: ignore[import-not-found]
 
+CSS = """
+    <link href="https://fonts.googleapis.com/css2?family=Lato&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+          font-family: Lato, "Helvetica Neue", Helvetica, Arial, sans-serif;
+          font-weight: 400;
+          font-size: 16px;
+          color: #404040;
+          background: white;
+          margin: 0;
+          padding: 0;
+        }
+        * {
+          box-sizing: border-box;
+        }
+    </style>
+"""
+
 
 def main() -> None:
     subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
 
+    html_str = Path("docs/diagram.html").read_text()
+    html_str = f"<html><head>{CSS}</head><body>{html_str}</body></html>"
+
     with tempfile.TemporaryDirectory() as tmp_dir_str:
-        tmp_dir = Path(tmp_dir_str)
-        subprocess.run(["mkdocs", "build", "--site-dir", tmp_dir], check=True)
-
-        html_str = Path("docs/diagram.html").read_text()
-        css_tags = f"""
-            <style>{(tmp_dir / "css/theme.css").read_text()}</style>
-            <style>{(tmp_dir / "css/theme_extra.css").read_text()}</style>
-            <style>{(tmp_dir / "extra.css").read_text()}</style>
-            <style>
-                body {{
-                    background: white;
-                }}
-            </style>
-        """
-        html_str = f"<html><head>{css_tags}</head><body>{html_str}</body></html>"
-
-        html_path = Path(tmp_dir) / "diagram_screenshot.html"
+        html_path = Path(tmp_dir_str) / "diagram_screenshot.html"
         html_path.write_text(html_str)
 
         dest_path = Path("docs/data/how-it-works.png")
