@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
 
+# /// script
+# dependencies = [
+#   "mkdocs",
+#   "playwright",
+# ]
+# ///
+
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
-try:
-    from playwright.sync_api import sync_playwright  # type: ignore[import-not-found]
-except ImportError:
-    msg = """
-        playwright not found. Install it with:
-            pip install playwright
-            playwright install chromium
-
-        Or, run this script with:
-            nox -s update_how_it_works_image
-        """
-    raise SystemExit(msg) from None
+from playwright.sync_api import sync_playwright  # type: ignore[import-not-found]
 
 
 def main() -> None:
+    subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+
     with tempfile.TemporaryDirectory() as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         subprocess.run(["mkdocs", "build", "--site-dir", tmp_dir], check=True)

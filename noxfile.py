@@ -191,9 +191,7 @@ def update_how_it_works_image(session: nox.Session) -> None:
     """
     pyproject = nox.project.load_toml()
     session.install("-e.", *nox.project.dependency_groups(pyproject, "docs"))
-    session.install("playwright")
-    session.run("playwright", "install", "chromium")
-    session.run("python", "bin/update_how_it_works_image.py")
+    session.install_and_run_script("bin/update_how_it_works_image.py")
 
 
 @nox.session(default=False)
