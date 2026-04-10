@@ -97,8 +97,8 @@ def test_build_filter_pyodide_prerelease() -> None:
         skip_config="",
         enable=frozenset([EnableGroup.PyodidePrerelease]),
     )
-    assert build_selector("cp312-pyodide_wasm32")
     assert build_selector("cp313-pyodide_wasm32")
+    assert build_selector("cp314-pyodide_wasm32")
 
 
 def test_build_filter_pyodide() -> None:
@@ -107,8 +107,8 @@ def test_build_filter_pyodide() -> None:
         skip_config="",
         enable=frozenset(),
     )
-    assert build_selector("cp312-pyodide_wasm32")
     assert build_selector("cp313-pyodide_wasm32")
+    assert not build_selector("cp314-pyodide_wasm32")
 
 
 def test_skip() -> None:

@@ -36,7 +36,7 @@ manylinux-x86_64-image = "manylinux_2_28"
 
 environment-pass = ["EXAMPLE_ENV"]
 
-pyodide-version = "0.28.0"
+pyodide-version = "0.29.3"
 
 [tool.cibuildwheel.macos]
 test-requires = "else"
@@ -93,7 +93,7 @@ def test_options_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux_2_34"]
 
     local = options.build_options("cp312-pyodide_wasm32")
-    assert local.pyodide_version == "0.28.0"
+    assert local.pyodide_version == "0.29.3"
 
 
 def test_passthrough(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

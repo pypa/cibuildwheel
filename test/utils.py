@@ -264,10 +264,11 @@ def _expected_wheels(
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
 
-    if platform == "pyodide" and python_abi_tags is None:
+    # To be kept in sync with Python versions for Pyodide identifiers in cibuildwheel/selector.py.
+    if platform == "pyodide" and python_abi_tags is None:  # noqa: SIM114
         python_abi_tags = [
-            "cp312-cp312",
             "cp313-cp313",
+            "cp314-cp314",
         ]
     elif platform == "android" and python_abi_tags is None:  # noqa: SIM114
         python_abi_tags = [
