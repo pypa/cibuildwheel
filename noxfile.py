@@ -23,7 +23,7 @@ from pathlib import Path
 import nox
 
 nox.needs_version = ">=2025.2.9"
-nox.options.default_venv_backend = "uv"
+nox.options.default_venv_backend = "uv|virtualenv"
 
 DIR = Path(__file__).parent.resolve()
 
@@ -70,6 +70,9 @@ def update_constraints(session: nox.Session) -> None:
     """
 
     resources = Path("cibuildwheel/resources")
+
+    if session.venv_backend != "uv":
+        session.install("uv>=0.9")
 
     # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
     # regenerate the constraints files
