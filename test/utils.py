@@ -26,7 +26,7 @@ EMULATED_ARCHS: Final[list[str]] = sorted(
 PYPY_ARCHS = ["x86_64", "i686", "AMD64", "aarch64", "arm64"]
 GRAALPY_ARCHS = ["x86_64", "AMD64", "aarch64", "arm64"]
 
-SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
+SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 13)
 
 # temporary workaround: set by build_frontend_env fixture to skip graalpy
 # when uv is the build frontend (compatibility issue between graalpy and uv)
@@ -265,11 +265,10 @@ def _expected_wheels(
         musllinux_versions = ["musllinux_1_2"]
 
     # To be kept in sync with Python versions for Pyodide identifiers in cibuildwheel/selector.py.
-    if platform == "pyodide" and python_abi_tags is None:  # noqa: SIM114
-        python_abi_tags = [
-            "cp313-cp313",
-            "cp314-cp314",
-        ]
+    if platform == "pyodide" and python_abi_tags is None:
+        python_abi_tags = ["cp313-cp313"]
+        if EnableGroup.PyodidePrerelease in enable_groups:
+            python_abi_tags.append("cp314-cp314")
     elif platform == "android" and python_abi_tags is None:  # noqa: SIM114
         python_abi_tags = [
             "cp313-cp313",
@@ -415,14 +414,14 @@ def _expected_wheels(
 
         elif platform == "pyodide":
             platform_tags = {
-                "cp312-cp312": ["pyemscripten_2024_0_wasm32"],
                 "cp313-cp313": ["pyemscripten_2025_0_wasm32"],
+                "cp314-cp314": ["pyemscripten_2026_0_wasm32"],
             }.get(python_abi_tag, [])
 
             if not platform_tags:
-                # for example if the python tag is `none` or `abi3`, all
-                # platform tags are built with that python tag
-                platform_tags = ["pyemscripten_2024_0_wasm32"]
+                # for example if the python tag is `none` or `abi3`, the wheel
+                # is built by the stable cp313 Python version
+                platform_tags = ["pyemscripten_2025_0_wasm32"]
 
         else:
             msg = f"Unsupported platform {platform!r}"
