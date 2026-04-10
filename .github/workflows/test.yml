@@ -46,7 +46,7 @@ jobs:
       id: python
       with:
         python-version: "3.x"
-    - uses: j178/prek-action@79f765515bd648eb4d6bb1b17277b7cb22cb6468 # v2.0.0
+    - uses: j178/prek-action@53276d8b0d10f8b6672aa85b4588c6921d0370cc # v2.0.1
     - name: PyLint checks
       run: pipx run --python "${STEPS_PYTHON_OUTPUTS_PYTHON_PATH}" nox -s pylint -- --output-format=github
       env:
@@ -89,7 +89,7 @@ jobs:
         - os: ubuntu-latest
           python_version: '3.14'
         - os: ubuntu-latest
-          python_version: '3.13'
+          python_version: '3.14'
           test_select: android
         - os: ubuntu-24.04-arm
           python_version: '3.13'

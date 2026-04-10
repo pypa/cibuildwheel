@@ -20,7 +20,6 @@
             "travisci",
             "circleci",
             "gitlab",
-            "cirrusci",
             "azurepipelines"
           ]
         }
@@ -28,7 +27,7 @@
       "ci_config": { "type": "string" },
       "os": {
         "type": "array",
-        "items": { "enum": ["windows", "apple", "linux"] }
+        "items": { "enum": ["windows", "apple", "linux", "android", "ios", "pyodide"] }
       }
     },
     "required": ["name", "gh", "ci", "os"]
