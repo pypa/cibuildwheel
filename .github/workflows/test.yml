@@ -323,11 +323,13 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_PLATFORM: pyodide
+        CIBW_ENABLE: pyodide-prerelease
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: uv run --no-sync ./bin/run_tests.py
       env:
         CIBW_PLATFORM: pyodide
+        CIBW_ENABLE: pyodide-prerelease
 
   test-uv-extras:
     name: Test uv extra on ${{ matrix.os }} ${{ matrix.test_select }}
