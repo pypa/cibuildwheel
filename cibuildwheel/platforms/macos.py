@@ -15,25 +15,20 @@ from typing import Literal, assert_never
 from filelock import FileLock
 from packaging.version import Version
 
-from .. import errors
-from ..architecture import Architecture
-from ..ci import detect_ci_provider
-from ..environment import ParsedEnvironment
-from ..frontend import BuildFrontendName, get_build_frontend_extra_flags
-from ..logger import log
-from ..options import Options
-from ..selector import BuildSelector
-from ..util import resources
-from ..util.cmd import call, shell
-from ..util.file import (
-    CIBW_CACHE_PATH,
-    copy_test_sources,
-    download,
-    move_file,
-)
-from ..util.helpers import prepare_command, unwrap
-from ..util.packaging import find_compatible_wheel, get_pip_version
-from ..venv import constraint_flags, find_uv, virtualenv
+from cibuildwheel import errors
+from cibuildwheel.architecture import Architecture
+from cibuildwheel.ci import detect_ci_provider
+from cibuildwheel.environment import ParsedEnvironment
+from cibuildwheel.frontend import BuildFrontendName, get_build_frontend_extra_flags
+from cibuildwheel.logger import log
+from cibuildwheel.options import Options
+from cibuildwheel.selector import BuildSelector
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call, shell
+from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
+from cibuildwheel.util.helpers import prepare_command, unwrap
+from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
+from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
 
 @functools.cache
@@ -258,6 +253,10 @@ def setup_python(
     # https://github.com/pypa/virtualenv/issues/620
     # Also see https://github.com/python/cpython/pull/9516
     env.pop("__PYVENV_LAUNCHER__", None)
+    # uv uses this over the current environment's python, so remove it to avoid confusion
+    env.pop("PYTHON_VERSION", None)
+    env.pop("PYTHON_ARCH", None)
+    env.pop("UV_PYTHON", None)
 
     # we version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
@@ -375,6 +374,8 @@ def setup_python(
                 uv_path,
                 "pip",
                 "install",
+                "--python",
+                which_python,
                 "--upgrade",
                 "delocate",
                 "build[virtualenv, uv]",
@@ -387,6 +388,8 @@ def setup_python(
                 uv_path,
                 "pip",
                 "install",
+                "--python",
+                which_python,
                 "--upgrade",
                 "delocate",
                 *constraint_flags(dependency_constraint),

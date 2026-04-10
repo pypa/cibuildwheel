@@ -7,7 +7,7 @@ import textwrap
 from collections import defaultdict
 from collections.abc import Sequence
 
-from ..typing import PathOrStr
+from cibuildwheel.typing import PathOrStr
 
 
 def format_safe(template: str, **kwargs: str | os.PathLike[str]) -> str:

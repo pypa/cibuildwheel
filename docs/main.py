@@ -8,7 +8,7 @@ import rich.console
 import rich.text
 
 
-def define_env(env: Any) -> None:
+def define_env(env: Any) -> None:  # noqa: ANN401
     "Hook function for mkdocs-macros"
 
     @env.macro  # type: ignore[untyped-decorator]

@@ -11,7 +11,7 @@ import sys
 from collections.abc import Generator, Mapping, Sequence
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Final
+from typing import Final
 
 import pytest
 
@@ -35,7 +35,6 @@ include_graalpy_in_expected_wheels: bool = True
 _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {
     None: Architecture.armv7l.value not in EMULATED_ARCHS,
     CIProvider.travis_ci: False,
-    CIProvider.cirrus_ci: False,
 }.get(detect_ci_provider(), True)
 
 
@@ -460,7 +459,7 @@ def get_xcode_version() -> tuple[int, int]:
     return (int(version_parts[0]), int(version_parts[1]))
 
 
-def skip_if_pyodide(reason: str) -> Any:
+def skip_if_pyodide(reason: str) -> pytest.MarkDecorator:
     return pytest.mark.skipif(get_platform() == "pyodide", reason=reason)
 
 

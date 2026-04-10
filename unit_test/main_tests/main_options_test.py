@@ -1,7 +1,10 @@
+import os
 import sys
 import tomllib
+from collections.abc import Mapping
 from fnmatch import fnmatch
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -13,10 +16,15 @@ from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
 
+if TYPE_CHECKING:
+    from .conftest import ArgsInterceptor
+
 # CIBW_PLATFORM is tested in main_platform_test.py
 
 
-def test_old_free_threaded(monkeypatch, capsys):
+def test_old_free_threaded(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     monkeypatch.setenv("CIBW_FREE_THREADED_SUPPORT", "ON")
 
     with pytest.raises(SystemExit):
@@ -29,7 +37,9 @@ def test_old_free_threaded(monkeypatch, capsys):
 
 
 @pytest.mark.usefixtures("platform")
-def test_output_dir(intercepted_build_args, monkeypatch):
+def test_output_dir(
+    intercepted_build_args: "ArgsInterceptor", monkeypatch: pytest.MonkeyPatch
+) -> None:
     OUTPUT_DIR = Path("some_output_dir")
 
     monkeypatch.setenv("CIBW_OUTPUT_DIR", str(OUTPUT_DIR))
@@ -40,7 +50,7 @@ def test_output_dir(intercepted_build_args, monkeypatch):
 
 
 @pytest.mark.usefixtures("platform")
-def test_output_dir_default(intercepted_build_args):
+def test_output_dir_default(intercepted_build_args: "ArgsInterceptor") -> None:
     main()
 
     assert intercepted_build_args.args[0].globals.output_dir == Path("wheelhouse").resolve()
@@ -48,7 +58,11 @@ def test_output_dir_default(intercepted_build_args):
 
 @pytest.mark.usefixtures("platform")
 @pytest.mark.parametrize("also_set_environment", [False, True])
-def test_output_dir_argument(also_set_environment, intercepted_build_args, monkeypatch):
+def test_output_dir_argument(
+    also_set_environment: bool,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     OUTPUT_DIR = Path("some_output_dir")
 
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--output-dir", str(OUTPUT_DIR)])
@@ -61,7 +75,9 @@ def test_output_dir_argument(also_set_environment, intercepted_build_args, monke
 
 
 @pytest.mark.usefixtures("platform", "allow_empty")
-def test_build_selector(intercepted_build_args, monkeypatch):
+def test_build_selector(
+    intercepted_build_args: "ArgsInterceptor", monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_BUILD", "cp313-*")
     monkeypatch.setenv("CIBW_SKIP", "cp39-*")
 
@@ -76,7 +92,9 @@ def test_build_selector(intercepted_build_args, monkeypatch):
 
 
 @pytest.mark.usefixtures("platform", "allow_empty")
-def test_invalid_build_selector(monkeypatch, capsys):
+def test_invalid_build_selector(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     monkeypatch.setenv("CIBW_BUILD", "invalid")
 
     with pytest.raises(SystemExit) as e:
@@ -95,7 +113,12 @@ def test_invalid_build_selector(monkeypatch, capsys):
     ],
 )
 @pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_invalid_skip_selector(monkeypatch, capsys, option_name, option_env_var):
+def test_invalid_skip_selector(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    option_name: str,
+    option_env_var: str,
+) -> None:
     monkeypatch.setenv(option_env_var, "invalid")
 
     main()
@@ -109,7 +132,9 @@ def test_invalid_skip_selector(monkeypatch, capsys, option_name, option_env_var)
     "selector", ["*-macosx_universal2:arm64", "*-macosx_universal2:x86_64", "*-macosx_arm64"]
 )
 @pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_valid_test_skip_selector(monkeypatch, capsys, selector):
+def test_valid_test_skip_selector(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], selector: str
+) -> None:
     monkeypatch.setenv("CIBW_TEST_SKIP", selector)
 
     main()
@@ -121,7 +146,9 @@ def test_valid_test_skip_selector(monkeypatch, capsys, selector):
 
 @pytest.mark.parametrize("selector", ["*-macosx_universal2:invalid", "*-macosx_arm64:arm64"])
 @pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_invalid_test_skip_selector(monkeypatch, capsys, selector):
+def test_invalid_test_skip_selector(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], selector: str
+) -> None:
     monkeypatch.setenv("CIBW_TEST_SKIP", selector)
 
     main()
@@ -132,13 +159,85 @@ def test_invalid_test_skip_selector(monkeypatch, capsys, selector):
 
 
 @pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_empty_selector(monkeypatch):
+def test_empty_selector(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("CIBW_SKIP", "*")
 
     with pytest.raises(SystemExit) as e:
         main()
 
     assert e.value.code == 3
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_cp313t_warning1(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("CIBW_ENABLE", "cpython-freethreading")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-freethreading' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_cp313t_warning2(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
+    )
+    monkeypatch.setenv("CIBW_ENABLE", "cpython-freethreading")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-freethreading' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_cp313t_warning3(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
+    )
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-freethreading' enable is deprecated" in err
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+def test_cp313t_warning4(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
+) -> None:
+    local_path = tmp_path / "tmp_project"
+    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
+    local_path.joinpath("setup.py").touch()
+
+    monkeypatch.setattr(
+        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
+    )
+    monkeypatch.setenv("CIBW_ENABLE", "all")
+
+    main()
+
+    _, err = capsys.readouterr()
+    print(err)
+    assert "'cpython-freethreading' enable is deprecated" in err
 
 
 @pytest.mark.parametrize(
@@ -161,8 +260,13 @@ def test_empty_selector(monkeypatch):
     ],
 )
 def test_manylinux_images(
-    architecture, image, full_image, platform, intercepted_build_args, monkeypatch
-):
+    architecture: str,
+    image: str | None,
+    full_image: str,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     if image is not None:
         monkeypatch.setenv("CIBW_MANYLINUX_" + architecture.upper() + "_IMAGE", image)
 
@@ -184,7 +288,7 @@ def get_default_repair_command(platform: str) -> str:
         return "auditwheel repair -w {dest_dir} {wheel}"
     elif platform == "macos":
         return "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
-    elif platform == "windows" or platform == "pyodide":
+    elif platform in {"windows", "pyodide"}:
         return ""
     else:
         msg = f"Unknown platform: {platform!r}"
@@ -194,8 +298,12 @@ def get_default_repair_command(platform: str) -> str:
 @pytest.mark.parametrize("repair_command", [None, "repair", "repair -w {dest_dir} {wheel}"])
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_repair_command(
-    repair_command, platform_specific, platform, intercepted_build_args, monkeypatch
-):
+    repair_command: str | None,
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     if repair_command is not None:
         if platform_specific:
             monkeypatch.setenv("CIBW_REPAIR_WHEEL_COMMAND_" + platform.upper(), repair_command)
@@ -216,7 +324,13 @@ def test_repair_command(
     [{}, {"something": "value"}, {"something": "value", "something_else": "other_value"}],
 )
 @pytest.mark.parametrize("platform_specific", [False, True])
-def test_environment(environment, platform_specific, platform, intercepted_build_args, monkeypatch):
+def test_environment(
+    environment: Mapping[str, str],
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     env_string = " ".join(f"{k}={v}" for k, v in environment.items())
     if platform_specific:
         monkeypatch.setenv("CIBW_ENVIRONMENT_" + platform.upper(), env_string)
@@ -236,8 +350,12 @@ def test_environment(environment, platform_specific, platform, intercepted_build
 @pytest.mark.parametrize("test_requires", [None, "requirement other_requirement"])
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_test_requires(
-    test_requires, platform_specific, platform, intercepted_build_args, monkeypatch
-):
+    test_requires: str | None,
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     if test_requires is not None:
         if platform_specific:
             monkeypatch.setenv("CIBW_TEST_REQUIRES_" + platform.upper(), test_requires)
@@ -254,7 +372,13 @@ def test_test_requires(
 
 @pytest.mark.parametrize("test_extras", [None, "extras"])
 @pytest.mark.parametrize("platform_specific", [False, True])
-def test_test_extras(test_extras, platform_specific, platform, intercepted_build_args, monkeypatch):
+def test_test_extras(
+    test_extras: str | None,
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     if test_extras is not None:
         if platform_specific:
             monkeypatch.setenv("CIBW_TEST_EXTRAS_" + platform.upper(), test_extras)
@@ -272,8 +396,12 @@ def test_test_extras(test_extras, platform_specific, platform, intercepted_build
 @pytest.mark.parametrize("test_command", [None, "test --command"])
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_test_command(
-    test_command, platform_specific, platform, intercepted_build_args, monkeypatch
-):
+    test_command: str | None,
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     if test_command is not None:
         if platform_specific:
             monkeypatch.setenv("CIBW_TEST_COMMAND_" + platform.upper(), test_command)
@@ -291,8 +419,12 @@ def test_test_command(
 @pytest.mark.parametrize("before_build", [None, "before --build"])
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_before_build(
-    before_build, platform_specific, platform, intercepted_build_args, monkeypatch
-):
+    before_build: str | None,
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     if before_build is not None:
         if platform_specific:
             monkeypatch.setenv("CIBW_BEFORE_BUILD_" + platform.upper(), before_build)
@@ -309,8 +441,12 @@ def test_before_build(
 @pytest.mark.parametrize("build_verbosity", [None, 0, 2, -2, 4, -4])
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_build_verbosity(
-    build_verbosity, platform_specific, platform, intercepted_build_args, monkeypatch
-):
+    build_verbosity: int | None,
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     if build_verbosity is not None:
         if platform_specific:
             monkeypatch.setenv("CIBW_BUILD_VERBOSITY_" + platform.upper(), str(build_verbosity))
@@ -326,7 +462,12 @@ def test_build_verbosity(
 
 
 @pytest.mark.parametrize("platform_specific", [False, True])
-def test_config_settings(platform_specific, platform, intercepted_build_args, monkeypatch):
+def test_config_settings(
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     config_settings = (
         'setting=value setting=value2 triplet=1 triplet=2 triplet=3 other="something else"'
     )
@@ -376,7 +517,9 @@ def test_config_settings(platform_specific, platform, intercepted_build_args, mo
     ],
 )
 @pytest.mark.usefixtures("platform", "intercepted_build_args", "allow_empty")
-def test_build_selector_deprecated_error(monkeypatch, selector, pattern, capsys):
+def test_build_selector_deprecated_error(
+    monkeypatch: pytest.MonkeyPatch, selector: str, pattern: str, capsys: pytest.CaptureFixture[str]
+) -> None:
     monkeypatch.setenv(selector, pattern)
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
@@ -396,7 +539,13 @@ def test_build_selector_deprecated_error(monkeypatch, selector, pattern, capsys)
 
 @pytest.mark.parametrize("before_all", ["", None, "test text"])
 @pytest.mark.parametrize("platform_specific", [False, True])
-def test_before_all(before_all, platform_specific, platform, intercepted_build_args, monkeypatch):
+def test_before_all(
+    before_all: str | None,
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     if before_all is not None:
         if platform_specific:
             monkeypatch.setenv("CIBW_BEFORE_ALL_" + platform.upper(), before_all)
@@ -417,8 +566,13 @@ def test_before_all(before_all, platform_specific, platform, intercepted_build_a
 )
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_dependency_versions(
-    dependency_versions, platform_specific, platform, intercepted_build_args, monkeypatch, tmp_path
-):
+    dependency_versions: str | None,
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
     option_value = dependency_versions
 
     if dependency_versions == "FILE":
@@ -443,13 +597,16 @@ def test_dependency_versions(
         assert dependency_constraints == DependencyConstraints.latest()
     elif dependency_versions == "FILE":
         assert dependency_constraints.base_file_path
+        assert option_value is not None
         assert dependency_constraints.base_file_path.samefile(Path(option_value))
     elif dependency_versions.startswith("packages:"):
         assert dependency_constraints.packages == ["pip==21.0.0"]
 
 
 @pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
-def test_debug_traceback(monkeypatch, method, capfd):
+def test_debug_traceback(
+    monkeypatch: pytest.MonkeyPatch, method: str, capfd: pytest.CaptureFixture[str]
+) -> None:
     if method == "command_line":
         monkeypatch.setattr(sys, "argv", [*sys.argv, "--debug-traceback"])
     elif method == "env_var":
@@ -471,7 +628,9 @@ def test_debug_traceback(monkeypatch, method, capfd):
 
 
 @pytest.mark.parametrize("method", ["unset", "command_line", "env_var"])
-def test_enable(method, intercepted_build_args, monkeypatch):
+def test_enable(
+    method: str, intercepted_build_args: "ArgsInterceptor", monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     if method == "command_line":
@@ -489,8 +648,11 @@ def test_enable(method, intercepted_build_args, monkeypatch):
         assert enable_groups == frozenset([EnableGroup.PyPy, EnableGroup.GraalPy])
 
 
-def test_enable_all(intercepted_build_args, monkeypatch):
+def test_enable_all(
+    intercepted_build_args: "ArgsInterceptor", monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "all"])
+    monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     main()
 
@@ -498,7 +660,9 @@ def test_enable_all(intercepted_build_args, monkeypatch):
     assert enable_groups == EnableGroup.all_groups()
 
 
-def test_enable_arg_inherits(intercepted_build_args, monkeypatch):
+def test_enable_arg_inherits(
+    intercepted_build_args: "ArgsInterceptor", monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setenv("CIBW_ENABLE", "pypy graalpy")
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "cpython-prerelease"])
 
@@ -511,7 +675,9 @@ def test_enable_arg_inherits(intercepted_build_args, monkeypatch):
     )
 
 
-def test_enable_arg_error_message(monkeypatch, capsys):
+def test_enable_arg_error_message(
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--enable", "invalid_group"])
 
     with pytest.raises(SystemExit) as ex:
@@ -522,7 +688,7 @@ def test_enable_arg_error_message(monkeypatch, capsys):
     assert "Valid group names are:" in err
 
 
-def test_defaults(platform, intercepted_build_args):
+def test_defaults(platform: str, intercepted_build_args: "ArgsInterceptor") -> None:
     main()
 
     build_options: BuildOptions = intercepted_build_args.args[0].build_options(identifier=None)

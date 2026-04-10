@@ -103,7 +103,6 @@ fragmentRedirect([
   { source: 'setup/#appveyor', destination: 'ci-services/' },
   { source: 'setup/#circleci', destination: 'ci-services/' },
   { source: 'setup/#gitlab-ci', destination: 'ci-services/' },
-  { source: 'setup/#cirrus-ci', destination: 'ci-services/' },
 
   { source: 'faq/#linux-builds-in-containers', destination: 'platforms/#linux-containers' },
   { source: 'faq/#apple-silicon', destination: 'platforms/#macos-architectures' },

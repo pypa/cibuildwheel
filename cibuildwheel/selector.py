@@ -2,7 +2,7 @@ import dataclasses
 import itertools
 from enum import StrEnum
 from fnmatch import fnmatch
-from typing import Any
+from typing import Self
 
 import bracex
 from packaging.specifiers import SpecifierSet
@@ -37,11 +37,11 @@ class EnableGroup(StrEnum):
     PyodidePrerelease = "pyodide-prerelease"
 
     @classmethod
-    def all_groups(cls) -> frozenset["EnableGroup"]:
-        return frozenset(cls)
+    def all_groups(cls) -> frozenset[Self]:
+        return frozenset(set(cls) - {cls.CPythonFreeThreading})
 
     @classmethod
-    def parse_option_value(cls, value: str) -> frozenset["EnableGroup"]:
+    def parse_option_value(cls, value: str) -> frozenset[Self]:
         """
         Parses a string of space-separated values into a set of EnableGroup
         members. The string may contain group names or "all".
@@ -113,7 +113,7 @@ class BuildSelector:
 
         return should_build and not should_skip
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> dict[str, str | list[str]]:
         return {
             "build_config": self.build_config,
             "skip_config": self.skip_config,
@@ -134,5 +134,5 @@ class TestSelector:
         should_skip = selector_matches(self.skip_config, build_id)
         return not should_skip
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> dict[str, str]:
         return {"skip_config": self.skip_config}

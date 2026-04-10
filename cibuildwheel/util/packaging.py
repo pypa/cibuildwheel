@@ -2,13 +2,13 @@ import shlex
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
-from typing import Any, Literal, Self, TypeVar
+from typing import Literal, Self, TypeVar
 
 from packaging.utils import parse_wheel_filename
 
-from . import resources
-from .cmd import call
-from .helpers import parse_key_value_string, unwrap
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call
+from cibuildwheel.util.helpers import parse_key_value_string, unwrap
 
 
 @dataclass(kw_only=True)
@@ -102,7 +102,7 @@ class DependencyConstraints:
 
         return None
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> str | dict[str, str]:
         if self == DependencyConstraints.pinned():
             return "pinned"
         elif self.packages:
@@ -169,10 +169,9 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
             elif platform.startswith("pyodide"):
                 # each Pyodide version has its own platform tag
                 continue
-            else:
-                # Windows should exactly match
-                if tag.platform != platform:
-                    continue
+            # Windows should exactly match
+            elif tag.platform != platform:
+                continue
 
             # If all the filters above pass, then the wheel is a previously built compatible wheel.
             return wheel

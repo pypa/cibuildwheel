@@ -12,7 +12,7 @@ from zipfile import ZipFile
 import certifi
 from platformdirs import user_cache_path
 
-from ..errors import FatalError
+from cibuildwheel.errors import FatalError
 
 DEFAULT_CIBW_CACHE_PATH: Final[Path] = user_cache_path(appname="cibuildwheel", appauthor="pypa")
 CIBW_CACHE_PATH: Final[Path] = Path(

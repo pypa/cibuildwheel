@@ -4,7 +4,7 @@ import cibuildwheel.selector
 from cibuildwheel.selector import BuildSelector, EnableGroup
 
 
-def test_build():
+def test_build() -> None:
     build_selector = BuildSelector(
         build_config="cp3*-* *-manylinux*", skip_config="", enable=frozenset([EnableGroup.PyPy])
     )
@@ -41,7 +41,7 @@ def test_build():
     assert not build_selector("pp311-win_amd64")
 
 
-def test_build_filter_pre():
+def test_build_filter_pre() -> None:
     build_selector = BuildSelector(
         build_config="cp3*-* *-manylinux*",
         skip_config="",
@@ -55,7 +55,7 @@ def test_build_filter_pre():
     assert not build_selector("cp313t-manylinux_x86_64")
 
 
-def test_build_filter_pypy():
+def test_build_filter_pypy() -> None:
     build_selector = BuildSelector(
         build_config="*",
         skip_config="",
@@ -67,7 +67,7 @@ def test_build_filter_pypy():
     assert not build_selector("pp39-manylinux_x86_64")
 
 
-def test_build_filter_pypy_eol():
+def test_build_filter_pypy_eol() -> None:
     build_selector = BuildSelector(
         build_config="*",
         skip_config="",
@@ -79,7 +79,7 @@ def test_build_filter_pypy_eol():
     assert build_selector("pp39-manylinux_x86_64")
 
 
-def test_build_filter_pypy_all():
+def test_build_filter_pypy_all() -> None:
     build_selector = BuildSelector(
         build_config="*",
         skip_config="",
@@ -91,7 +91,7 @@ def test_build_filter_pypy_all():
     assert build_selector("pp39-manylinux_x86_64")
 
 
-def test_build_filter_pyodide_prerelease():
+def test_build_filter_pyodide_prerelease() -> None:
     build_selector = BuildSelector(
         build_config="*",
         skip_config="",
@@ -101,7 +101,7 @@ def test_build_filter_pyodide_prerelease():
     assert build_selector("cp313-pyodide_wasm32")
 
 
-def test_build_filter_pyodide():
+def test_build_filter_pyodide() -> None:
     build_selector = BuildSelector(
         build_config="*",
         skip_config="",
@@ -111,7 +111,7 @@ def test_build_filter_pyodide():
     assert build_selector("cp313-pyodide_wasm32")
 
 
-def test_skip():
+def test_skip() -> None:
     build_selector = BuildSelector(
         build_config="*",
         skip_config="pp310-* cp3?-manylinux_i686 cp36-win* *-win32",
@@ -136,7 +136,7 @@ def test_skip():
     assert build_selector("cp37-win_amd64")
 
 
-def test_build_and_skip():
+def test_build_and_skip() -> None:
     build_selector = BuildSelector(
         build_config="cp36-* cp37-macosx* *-manylinux*",
         skip_config="pp37-* cp37-manylinux_i686",
@@ -160,7 +160,7 @@ def test_build_and_skip():
     assert not build_selector("cp37-win_amd64")
 
 
-def test_build_braces():
+def test_build_braces() -> None:
     build_selector = BuildSelector(build_config="cp{36,37}*", skip_config="")
 
     assert build_selector("cp36-manylinux_x86_64")
@@ -169,7 +169,7 @@ def test_build_braces():
     assert not build_selector("cp39-manylinux_x86_64")
 
 
-def test_build_limited_python():
+def test_build_limited_python() -> None:
     build_selector = BuildSelector(
         build_config="*",
         skip_config="",
@@ -190,7 +190,7 @@ def test_build_limited_python():
     assert build_selector("gp311_242-win_amd64")
 
 
-def test_build_limited_python_partial():
+def test_build_limited_python_partial() -> None:
     build_selector = BuildSelector(
         build_config="*", skip_config="", requires_python=SpecifierSet(">=3.6, !=3.7.*")
     )
@@ -201,7 +201,7 @@ def test_build_limited_python_partial():
     assert build_selector("cp39-manylinux_x86_64")
 
 
-def test_build_limited_python_patch():
+def test_build_limited_python_patch() -> None:
     build_selector = BuildSelector(
         build_config="*", skip_config="", requires_python=SpecifierSet(">=3.6.8")
     )
@@ -210,13 +210,13 @@ def test_build_limited_python_patch():
     assert build_selector("cp37-manylinux_x86_64")
 
 
-def test_build_free_threaded_python():
+def test_build_free_threaded_python() -> None:
     build_selector = BuildSelector(build_config="*", skip_config="", enable=frozenset(EnableGroup))
 
     assert build_selector("cp313t-manylinux_x86_64")
 
 
-def test_testing_selector():
+def test_testing_selector() -> None:
     # This is not a global import to keep pytest from collecting it as a test
     test_selector = cibuildwheel.selector.TestSelector(skip_config="cp36-*")
 

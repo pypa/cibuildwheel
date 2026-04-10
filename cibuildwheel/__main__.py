@@ -15,7 +15,6 @@ from tempfile import mkdtemp
 from typing import Any, Literal, TextIO
 
 import cibuildwheel
-import cibuildwheel.util
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
@@ -53,7 +52,7 @@ class Unbuffered:
         self.stream.writelines(data)
         self.stream.flush()
 
-    def __getattr__(self, attr: str) -> Any:
+    def __getattr__(self, attr: str) -> Any:  # noqa: ANN401
         return getattr(self.stream, attr)
 
 
@@ -432,17 +431,17 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
         msg = "\n".join(error_list)
         raise errors.ConfigurationError(msg)
 
+    n = len(identifiers)
+    print(f"{n} build{'s' if n != 1 else ''} selected:")
+    print(", ".join(identifiers))
+    print()
     print("Here we go!\n")
 
 
 def detect_errors(*, options: Options, identifiers: Iterable[str]) -> Generator[str, None, None]:
     # Check for deprecated CIBW_FREE_THREADED_SUPPORT environment variable
     if "CIBW_FREE_THREADED_SUPPORT" in os.environ:
-        yield (
-            "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported. "
-            'Use tool.cibuildwheel.enable = ["cpython-freethreading"] in pyproject.toml '
-            "or set CIBW_ENABLE=cpython-freethreading instead."
-        )
+        yield "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported."
 
     # Deprecated {python} and {pip}
     for option_name in ["test_command", "before_build"]:
@@ -468,6 +467,13 @@ def detect_warnings(*, options: Options) -> Generator[str, None, None]:
 
     build_selector = options.globals.build_selector
     test_selector = options.globals.test_selector
+
+    if EnableGroup.CPythonFreeThreading in build_selector.enable:
+        yield (
+            "'cpython-freethreading' enable is deprecated and will be removed in a future version. "
+            "It should be removed from tool.cibuildwheel.enable in pyproject.toml "
+            "or CIBW_ENABLE environment variable."
+        )
 
     all_valid_identifiers = [
         config.identifier

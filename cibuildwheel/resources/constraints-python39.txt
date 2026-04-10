@@ -2,7 +2,7 @@
 #    nox -s update_constraints
 altgraph==0.17.5
     # via macholib
-build==1.4.0
+build==1.4.2
     # via -r cibuildwheel/resources/constraints.in
 delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
@@ -34,9 +34,9 @@ platformdirs==4.4.0
     #   virtualenv
 pyproject-hooks==1.2.0
     # via build
-python-discovery==1.1.3
+python-discovery==1.2.1
     # via virtualenv
-tomli==2.4.0
+tomli==2.4.1
     # via build
 typing-extensions==4.15.0
     # via

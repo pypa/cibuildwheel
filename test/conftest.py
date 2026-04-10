@@ -46,7 +46,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     flag_enable = config.getoption("--enable")
     flag_platform = config.getoption("--platform")
 

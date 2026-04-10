@@ -6,6 +6,7 @@ import pytest
 
 import cibuildwheel.architecture
 from cibuildwheel.architecture import Architecture, arch_synonym
+from cibuildwheel.typing import PlatformName
 
 
 @pytest.fixture(
@@ -20,7 +21,9 @@ from cibuildwheel.architecture import Architecture, arch_synonym
         pytest.param(("windows", "win32", "ARM64", "arm"), id="windows-arm"),
     ]
 )
-def platform_machine(request, monkeypatch):
+def platform_machine(
+    request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch
+) -> tuple[str, str]:
     platform_name, platform_value, machine_value, machine_name = request.param
     monkeypatch.setattr(sys, "platform", platform_value)
     monkeypatch.setattr(platform_module, "machine", lambda: machine_value)
@@ -28,7 +31,7 @@ def platform_machine(request, monkeypatch):
     return platform_name, machine_name
 
 
-def test_arch_auto(platform_machine):
+def test_arch_auto(platform_machine: tuple[str, str]) -> None:
     _, machine_name = platform_machine
 
     arch_set = Architecture.auto_archs("linux")
@@ -52,7 +55,7 @@ def test_arch_auto(platform_machine):
     assert arch_set == expected[machine_name]
 
 
-def test_arch_auto64(platform_machine):
+def test_arch_auto64(platform_machine: tuple[str, str]) -> None:
     _, machine_name = platform_machine
 
     arch_set = Architecture.parse_config("auto64", "linux")
@@ -68,7 +71,7 @@ def test_arch_auto64(platform_machine):
     assert arch_set == expected[machine_name]
 
 
-def test_arch_auto32(platform_machine):
+def test_arch_auto32(platform_machine: tuple[str, str]) -> None:
     _, machine_name = platform_machine
 
     arch_set = Architecture.parse_config("auto32", "linux")
@@ -83,7 +86,7 @@ def test_arch_auto32(platform_machine):
     assert arch_set == expected[machine_name]
 
 
-def test_arch_auto_no_aarch32(monkeypatch):
+def test_arch_auto_no_aarch32(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "platform", "linux")
     monkeypatch.setattr(platform_module, "machine", lambda: "aarch64")
     monkeypatch.setattr(shutil, "which", lambda *args, **kwargs: None)
@@ -103,14 +106,14 @@ def test_arch_auto_no_aarch32(monkeypatch):
     assert arch_set == set()
 
 
-def test_arch_native_on_ios(monkeypatch):
+def test_arch_native_on_ios(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "platform", "darwin")
     monkeypatch.setattr(platform_module, "machine", lambda: "arm64")
     arch_set = Architecture.parse_config("native", platform="ios")
     assert arch_set == {Architecture.arm64_iphonesimulator}
 
 
-def test_arch_auto_on_ios(monkeypatch):
+def test_arch_auto_on_ios(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "platform", "darwin")
     monkeypatch.setattr(platform_module, "machine", lambda: "arm64")
     arch_set = Architecture.parse_config("auto", platform="ios")
@@ -130,5 +133,7 @@ def test_arch_auto_on_ios(monkeypatch):
         ("x86", "windows", "macos", None),
     ],
 )
-def test_arch_synonym(arch, from_platform, to_platform, expected):
+def test_arch_synonym(
+    arch: str, from_platform: PlatformName, to_platform: PlatformName, expected: str | None
+) -> None:
     assert arch_synonym(arch, from_platform, to_platform) == expected

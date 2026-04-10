@@ -8,20 +8,20 @@ from collections.abc import Iterable, Iterator, Sequence, Set
 from pathlib import Path, PurePath, PurePosixPath
 from typing import TYPE_CHECKING, assert_never
 
-from .. import errors
-from ..architecture import Architecture
-from ..frontend import get_build_frontend_extra_flags
-from ..logger import log
-from ..oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
-from ..options import BuildOptions, Options
-from ..selector import BuildSelector
-from ..util import resources
-from ..util.file import copy_test_sources
-from ..util.helpers import prepare_command, unwrap
-from ..util.packaging import find_compatible_wheel
+from cibuildwheel import errors
+from cibuildwheel.architecture import Architecture
+from cibuildwheel.frontend import get_build_frontend_extra_flags
+from cibuildwheel.logger import log
+from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
+from cibuildwheel.options import BuildOptions, Options
+from cibuildwheel.selector import BuildSelector
+from cibuildwheel.util import resources
+from cibuildwheel.util.file import copy_test_sources
+from cibuildwheel.util.helpers import prepare_command, unwrap
+from cibuildwheel.util.packaging import find_compatible_wheel
 
 if TYPE_CHECKING:
-    from ..typing import PathOrStr
+    from cibuildwheel.typing import PathOrStr
 
 ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.x86_64: OCIPlatform.AMD64,
@@ -481,8 +481,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 Docker or Podman is required to run Linux builds. If you're
                 building on Travis CI, add `services: [docker]` to your
                 .travis.yml. If you're building on Circle CI in Linux, add a
-                `setup_remote_docker` step to your .circleci/config.yml. If
-                you're building on Cirrus CI, use `docker_builder` task.
+                `setup_remote_docker` step to your .circleci/config.yml.
                 """
             )
             raise errors.ConfigurationError(msg) from error

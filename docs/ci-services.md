@@ -103,20 +103,6 @@ Commit this file, and push to Gitlab. The pipeline should start automatically.
 
 Gitlab will store the built wheels for you - you can access them from the Pipelines view. Check out the Gitlab [docs](https://docs.gitlab.com/ee/ci/yaml/) for more info on this config file.
 
-### Cirrus CI [linux/mac/windows] {: #cirrus-ci}
-
-To build Linux, Mac, and Windows wheels on Cirrus CI, create a `.cirrus.yml` file in your repo,
-
-> .cirrus.yml
-
-```yaml
-{% include "../examples/cirrus-ci-minimal.yml" %}
-```
-
-Commit this file, enable building of your repo on Cirrus CI, and push.
-
-Cirrus CI will store the built wheels for you - you can access them from the individual task view. Check out the Cirrus CI [docs](https://cirrus-ci.org/guide/writing-tasks/) for more info on this config file.
-
 > ⚠️ Got an error? Check the [FAQ](faq.md).
 
 ### Other CI services
@@ -124,6 +110,10 @@ Cirrus CI will store the built wheels for you - you can access them from the ind
 #### AppVeyor {: #appveyor}
 
 Appveyor official support was dropped in cibuildwheel v3.0, due to a lack of CI credits. However, it can probably still be used as-is. Check the Appveyor example from the cibuildwheel v2.0 branch: [appveyor-minimal.yml](https://github.com/pypa/cibuildwheel/blob/v2.23.3/examples/appveyor-minimal.yml).
+
+### Cirrus CI [linux/mac/windows] {: #cirrus-ci}
+
+Due to Cirrus CI [end-of-life](https://cirruslabs.org) on June 1, 2026, we no longer officially support this service.
 
 ## Next steps
 

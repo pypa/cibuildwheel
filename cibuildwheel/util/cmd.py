@@ -7,8 +7,8 @@ import typing
 from collections.abc import Iterator, Mapping
 from typing import Final, Literal
 
-from ..errors import FatalError
-from ..typing import PathOrStr
+from cibuildwheel.errors import FatalError
+from cibuildwheel.typing import PathOrStr
 
 _IS_WIN: Final[bool] = sys.platform.startswith("win")
 

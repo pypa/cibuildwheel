@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from . import test_projects, utils
 
 before_test_project = test_projects.new_c_project()
@@ -11,7 +13,7 @@ PROJECT_DIR = Path(__file__).parent.parent.resolve()
 
 
 class TestBeforeTest(TestCase):
-    def test_version(self):
+    def test_version(self) -> None:
         # assert that the Python version as written to pythonversion_bt.txt in the CIBW_BEFORE_TEST step
         # is the same one as is currently running.
         # because of use symlinks in MacOS run this test is also need
@@ -20,7 +22,7 @@ class TestBeforeTest(TestCase):
         print('sys.version', sys.version)
         assert stored_version == sys.version
 
-    def test_prefix(self):
+    def test_prefix(self) -> None:
         # check that the prefix also was written
         stored_prefix = PROJECT_DIR.joinpath('pythonprefix_bt.txt').read_text()
         print('stored_prefix', stored_prefix)
@@ -32,7 +34,7 @@ class TestBeforeTest(TestCase):
 """
 
 
-def test(tmp_path, build_frontend_env):
+def test(tmp_path: Path, build_frontend_env: dict[str, str]) -> None:
     project_dir = tmp_path / "project"
     before_test_project.generate(project_dir)
     test_project_dir = project_dir / "dependency"

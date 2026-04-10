@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import dataclasses
 import os
 import platform
@@ -8,39 +6,26 @@ import shutil
 import subprocess
 import sys
 import textwrap
+from collections.abc import Sequence, Set
 from pathlib import Path
-from typing import TYPE_CHECKING, assert_never
+from typing import assert_never
 
 from filelock import FileLock
 
-from .. import errors
-from ..frontend import (
-    BuildFrontendName,
-    get_build_frontend_extra_flags,
-)
-from ..logger import log
-from ..util import resources
-from ..util.cmd import call, shell, split_command
-from ..util.file import (
-    CIBW_CACHE_PATH,
-    copy_test_sources,
-    download,
-    move_file,
-)
-from ..util.helpers import prepare_command, unwrap_preserving_paragraphs
-from ..util.packaging import (
-    find_compatible_wheel,
-)
-from ..venv import constraint_flags, virtualenv
-from .macos import install_cpython as install_build_cpython
-
-if TYPE_CHECKING:
-    from collections.abc import Sequence, Set
-
-    from ..architecture import Architecture
-    from ..environment import ParsedEnvironment
-    from ..options import Options
-    from ..selector import BuildSelector
+from cibuildwheel import errors
+from cibuildwheel.architecture import Architecture
+from cibuildwheel.environment import ParsedEnvironment
+from cibuildwheel.frontend import BuildFrontendName, get_build_frontend_extra_flags
+from cibuildwheel.logger import log
+from cibuildwheel.options import Options
+from cibuildwheel.platforms.macos import install_cpython as install_build_cpython
+from cibuildwheel.selector import BuildSelector
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call, shell, split_command
+from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
+from cibuildwheel.util.helpers import prepare_command, unwrap_preserving_paragraphs
+from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.venv import constraint_flags, virtualenv
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -284,7 +269,8 @@ def setup_python(
     build_frontend: BuildFrontendName,
     xbuild_tools: Sequence[str] | None,
 ) -> tuple[Path, dict[str, str]]:
-    if build_frontend == "build[uv]" or build_frontend == "uv":
+    # Not using set because mypy can't narrow it
+    if build_frontend == "build[uv]" or build_frontend == "uv":  # noqa: PLR1714
         msg = "uv doesn't support iOS"
         raise errors.FatalError(msg)
 
@@ -441,7 +427,8 @@ def build(options: Options, tmp_path: Path) -> None:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
             # uv doesn't support iOS
-            if build_frontend.name == "build[uv]" or build_frontend.name == "uv":
+            # Not using set because mypy can't narrow it
+            if build_frontend.name == "build[uv]" or build_frontend.name == "uv":  # noqa: PLR1714
                 msg = "uv doesn't support iOS"
                 raise errors.FatalError(msg)
 

@@ -6,11 +6,10 @@ import sys
 import typing
 from collections.abc import Set
 from enum import StrEnum, auto
-from typing import Final, Literal
+from typing import Final, Literal, Self
 
 from cibuildwheel import errors
-
-from .typing import PlatformName
+from cibuildwheel.typing import PlatformName
 
 PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "linux": "Linux",
@@ -83,34 +82,34 @@ class Architecture(StrEnum):
     arm64_iphonesimulator = auto()
     x86_64_iphonesimulator = auto()
 
-    @staticmethod
-    def parse_config(config: str, platform: PlatformName) -> "set[Architecture]":
+    @classmethod
+    def parse_config(cls, config: str, platform: PlatformName) -> set[Self]:
         result = set()
         for arch_str in re.split(r"[\s,]+", config):
             match arch_str:
                 case "auto":
-                    result |= Architecture.auto_archs(platform=platform)
+                    result |= cls.auto_archs(platform=platform)
                 case "native":
-                    if native_arch := Architecture.native_arch(platform=platform):
+                    if native_arch := cls.native_arch(platform=platform):
                         result.add(native_arch)
                 case "all":
-                    result |= Architecture.all_archs(platform=platform)
+                    result |= cls.all_archs(platform=platform)
                 case "auto64":
-                    result |= Architecture.bitness_archs(platform=platform, bitness="64")
+                    result |= cls.bitness_archs(platform=platform, bitness="64")
                 case "auto32":
-                    result |= Architecture.bitness_archs(platform=platform, bitness="32")
+                    result |= cls.bitness_archs(platform=platform, bitness="32")
                 case _:
                     try:
-                        result.add(Architecture(arch_str))
+                        result.add(cls(arch_str))
                     except ValueError as e:
                         msg = f"Invalid architecture '{arch_str}'"
                         raise errors.ConfigurationError(msg) from e
         return result
 
-    @staticmethod
-    def native_arch(platform: PlatformName) -> "Architecture | None":
+    @classmethod
+    def native_arch(cls, platform: PlatformName) -> Self | None:
         native_machine = platform_module.machine()
-        native_architecture = Architecture(native_machine)
+        native_architecture = cls(native_machine)
 
         # Cross-platform support. Used for --print-build-identifiers or docker builds.
         host_platform: PlatformName = (
@@ -120,15 +119,15 @@ class Architecture(StrEnum):
         )
 
         if platform == "pyodide":
-            return Architecture.wasm32
+            return cls.wasm32
         elif platform == "ios":
             # Can only build for iOS on macOS. The "native" architecture is the
             # simulator for the macOS native platform.
             if host_platform == "macos":
-                if native_architecture == Architecture.x86_64:
-                    return Architecture.x86_64_iphonesimulator
+                if native_architecture == cls.x86_64:
+                    return cls.x86_64_iphonesimulator
                 else:
-                    return Architecture.arm64_iphonesimulator
+                    return cls.arm64_iphonesimulator
             else:
                 return None
 
@@ -140,64 +139,64 @@ class Architecture(StrEnum):
                 # can't build anything on this platform
                 return None
 
-            native_architecture = Architecture(synonym)
+            native_architecture = cls(synonym)
 
         return native_architecture
 
-    @staticmethod
-    def auto_archs(platform: PlatformName) -> "set[Architecture]":
-        native_arch = Architecture.native_arch(platform)
+    @classmethod
+    def auto_archs(cls, platform: PlatformName) -> set[Self]:
+        native_arch = cls.native_arch(platform)
         if native_arch is None:
             return set()  # can't build anything on this platform
         result = {native_arch}
 
         match platform:
-            case "windows" if Architecture.AMD64 in result:
-                result.add(Architecture.x86)
-            case "ios" if native_arch == Architecture.arm64_iphonesimulator:
+            case "windows" if cls.AMD64 in result:
+                result.add(cls.x86)
+            case "ios" if native_arch == cls.arm64_iphonesimulator:
                 # Also build the device wheel if we're on ARM64.
-                result.add(Architecture.arm64_iphoneos)
+                result.add(cls.arm64_iphoneos)
 
         return result
 
-    @staticmethod
-    def all_archs(platform: PlatformName) -> "set[Architecture]":
+    @classmethod
+    def all_archs(cls, platform: PlatformName) -> set[Self]:
         all_archs_map = {
             "linux": {
-                Architecture.x86_64,
-                Architecture.i686,
-                Architecture.aarch64,
-                Architecture.ppc64le,
-                Architecture.s390x,
-                Architecture.armv7l,
-                Architecture.riscv64,
+                cls.x86_64,
+                cls.i686,
+                cls.aarch64,
+                cls.ppc64le,
+                cls.s390x,
+                cls.armv7l,
+                cls.riscv64,
             },
-            "macos": {Architecture.x86_64, Architecture.arm64, Architecture.universal2},
-            "windows": {Architecture.x86, Architecture.AMD64, Architecture.ARM64},
-            "pyodide": {Architecture.wasm32},
-            "android": {Architecture.x86_64, Architecture.arm64_v8a},
+            "macos": {cls.x86_64, cls.arm64, cls.universal2},
+            "windows": {cls.x86, cls.AMD64, cls.ARM64},
+            "pyodide": {cls.wasm32},
+            "android": {cls.x86_64, cls.arm64_v8a},
             "ios": {
-                Architecture.x86_64_iphonesimulator,
-                Architecture.arm64_iphonesimulator,
-                Architecture.arm64_iphoneos,
+                cls.x86_64_iphonesimulator,
+                cls.arm64_iphonesimulator,
+                cls.arm64_iphoneos,
             },
         }
         return all_archs_map[platform]
 
-    @staticmethod
-    def bitness_archs(platform: PlatformName, bitness: Literal["64", "32"]) -> "set[Architecture]":
+    @classmethod
+    def bitness_archs(cls, platform: PlatformName, bitness: Literal["64", "32"]) -> set[Self]:
         # This map maps 64-bit architectures to their 32-bit equivalents.
         archs_map = {
-            Architecture.x86_64: Architecture.i686,
-            Architecture.AMD64: Architecture.x86,
-            Architecture.aarch64: Architecture.armv7l,
+            cls.x86_64: cls.i686,
+            cls.AMD64: cls.x86,
+            cls.aarch64: cls.armv7l,
         }
-        native_arch = Architecture.native_arch(platform)
+        native_arch = cls.native_arch(platform)
 
         if native_arch is None:
             return set()  # can't build anything on this platform
 
-        if native_arch == Architecture.wasm32:
+        if native_arch == cls.wasm32:
             return {native_arch} if bitness == "32" else set()
 
         match bitness:
@@ -207,7 +206,7 @@ class Architecture(StrEnum):
                 if native_arch in archs_map.values():
                     return {native_arch}
                 elif native_arch in archs_map and platform in {"linux", "windows"}:
-                    if native_arch == Architecture.aarch64 and not _check_aarch32_el0():
+                    if native_arch == cls.aarch64 and not _check_aarch32_el0():
                         # If we're on aarch64, skip if we cannot build armv7l wheels.
                         return set()
                     return {archs_map[native_arch]}
