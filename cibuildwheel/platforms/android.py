@@ -91,6 +91,14 @@ def shell_prepared(command: str, *, build_options: BuildOptions, env: dict[str, 
     )
 
 
+def glob1(base: Path, pattern: str) -> Path:
+    results = list(base.glob(pattern))
+    if len(results) != 1:
+        msg = f"{base} contains {len(results)} paths matching '{pattern}'; expected 1"
+        raise errors.FatalError(msg)
+    return results[0]
+
+
 def before_all(options: Options, python_configurations: list[PythonConfiguration]) -> None:
     before_all_options = options.build_options(python_configurations[0].identifier)
     if before_all_options.before_all:
@@ -366,7 +374,7 @@ def setup_android_env(
 
     sysconfigdata_path = Path(
         shutil.copy(
-            next(python_dir.glob("prefix/lib/python*/_sysconfigdata_*.py")),
+            glob1(python_dir, "prefix/lib/python*/_sysconfigdata_*.py"),
             site_packages,
         )
     )
@@ -499,7 +507,7 @@ def pip_install_android(state: BuildState, target: Path, *args: PathOrStr) -> No
 
 
 def find_site_packages(env: dict[str, str]) -> Path:
-    return next(Path(env["VIRTUAL_ENV"]).glob("lib/python*/site-packages"))
+    return glob1(Path(env["VIRTUAL_ENV"]), "lib/python*/site-packages")
 
 
 def find_pip(build_options: BuildOptions) -> tuple[bool, list[str]]:
@@ -566,12 +574,7 @@ def build_wheel(state: BuildState) -> Path:
             msg = f"Android requires the build frontend to be 'build' or 'uv', not {x!r}"
             raise errors.FatalError(msg)
 
-    built_wheels = list(built_wheel_dir.glob("*.whl"))
-    if len(built_wheels) != 1:
-        msg = f"{built_wheel_dir} contains {len(built_wheels)} wheels; expected 1"
-        raise errors.FatalError(msg)
-    built_wheel = built_wheels[0]
-
+    built_wheel = glob1(built_wheel_dir, "*.whl")
     if built_wheel.name.endswith("none-any.whl"):
         raise errors.NonPlatformWheelError()
     return built_wheel
@@ -583,18 +586,14 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     repaired_wheel_dir.mkdir()
 
     if state.options.repair_command:
+        # Tell auditwheel the locations of compiler libraries.
         toolchain = Path(state.android_env["CC"]).parent.parent
         triplet = android_triplet(state.config.identifier)
         ldpaths = ":".join(
-            # Pass ldpaths to help auditwheel find compiler libraries. If we implement
-            # PEP 725 in the future to provide non-Python libraries, we'll need to add
-            # their location here.
-            str(next(Path(toolchain).glob(path)))
-            for path in [
-                # libc++_shared
-                f"sysroot/usr/lib/{triplet}",
-                # libomp
-                f"lib/clang/*/lib/linux/{triplet.split('-')[0]}",
+            str(glob1(toolchain, pattern))
+            for pattern in [
+                f"lib/clang/*/lib/linux/{triplet.split('-')[0]}",  # libomp
+                f"sysroot/usr/lib/{triplet}",  # libc++_shared
             ]
         )
         shell(
@@ -615,8 +614,9 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     if len(repaired_wheels) == 0:
         raise errors.RepairStepProducedNoWheelError()
     if len(repaired_wheels) != 1:
-        msg = f"{repaired_wheel_dir} contains {len(repaired_wheels)} wheels; expected 1"
-        raise errors.FatalError(msg)
+        raise errors.RepairStepProducedMultipleWheelsError(
+            [rw.name for rw in repaired_wheels],
+        )
     repaired_wheel = repaired_wheels[0]
 
     if repaired_wheel.name.endswith("none-any.whl"):

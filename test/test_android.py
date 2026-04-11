@@ -516,6 +516,38 @@ def test_libcxx(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
         assert ".libs" not in name
 
 
+@pytest.mark.parametrize(
+    ("script", "error"),
+    [
+        ("", "did not produce a wheel"),
+        ("touch $dest_dir/one.whl $dest_dir/two.whl", "produced multiple wheels"),
+        ("touch $dest_dir/one-0.0.1-py3-none-any.whl", "pure Python wheel was generated"),
+    ],
+)
+def test_repair_error(
+    script: str, error: str, tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
+    new_c_project().generate(tmp_path)
+    repair_path = tmp_path / "repair.sh"
+    repair_path.write_text(
+        dedent(
+            f"""\
+            #!/bin/sh
+            dest_dir=$1
+            {script}
+            """
+        )
+    )
+    repair_path.chmod(0o755)
+
+    with pytest.raises(CalledProcessError):
+        cibuildwheel_run(
+            tmp_path,
+            add_env={**cp313_env, "CIBW_REPAIR_WHEEL_COMMAND": f"{repair_path} {{dest_dir}}"},
+        )
+    assert error in capfd.readouterr().err
+
+
 @needs_emulator
 def test_setuptools_rust(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """
