@@ -71,7 +71,7 @@ violating_abi3_project = test_projects.new_c_project(
 violating_abi3_project.files["pyproject.toml"] = pyproject_toml
 
 
-@utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
+@utils.skip_if_pyodide("abi3audit is disabled on Pyodide (wasm shared objects are not supported)")
 def test_abi3audit_runs_on_abi3_wheel(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """Test that abi3audit runs automatically on abi3 wheels."""
     project_dir = tmp_path / "project"
@@ -114,7 +114,7 @@ def test_abi3audit_skipped_for_non_abi3_wheel(
     assert "Running audit command: abi3audit" not in captured.out
 
 
-@utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
+@utils.skip_if_pyodide("abi3audit is disabled on Pyodide (wasm shared objects are not supported)")
 def test_abi3audit_detects_violation(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     """Test that abi3audit catches stable ABI violations and fails the build.
 
