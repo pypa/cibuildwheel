@@ -8,7 +8,7 @@ from cibuildwheel.options import BuildOptions
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.helpers import prepare_command
 from cibuildwheel.util.packaging import is_abi3_wheel
-from cibuildwheel.venv import activate_virtualenv, virtualenv
+from cibuildwheel.venv import activate_virtualenv, find_uv, virtualenv
 
 
 def run_audit(
@@ -31,7 +31,7 @@ def run_audit(
 
     log.step("Auditing wheel...")
 
-    use_uv = build_options.build_frontend.name in {"uv", "build[uv]"}
+    use_uv = build_options.build_frontend.name in {"build[uv]", "uv"}
     version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
     dependency_constraint = build_options.dependency_constraints.get_for_python_version(
         version=version, tmp_dir=tmp_dir
@@ -57,7 +57,13 @@ def run_audit(
     if audit_requires:
         print(f"Installing audit dependencies: {', '.join(audit_requires)}")
 
-        pip = ["uv", "pip"] if use_uv else ["pip"]
+        pip: list[str]
+        if use_uv:
+            uv_path = find_uv()
+            assert uv_path is not None
+            pip = [str(uv_path), "pip"]
+        else:
+            pip = ["pip"]
         # we pin if the audit-requires is left as the default "abi3audit"
         should_pin = audit_requires == ["abi3audit"] and dependency_constraint
 
