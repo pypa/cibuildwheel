@@ -38,9 +38,7 @@ def run_audit(
     )
 
     audit_venv_dir = tmp_dir / "audit_venv"
-    if not audit_venv_dir.exists():
-        audit_venv_dir.mkdir(parents=True, exist_ok=True)
-
+    if not (audit_venv_dir / "pyvenv.cfg").exists():
         env = virtualenv(
             version,
             Path(sys.executable),
