@@ -590,3 +590,113 @@ def test_audit_command_option_env(tmp_path: Path, platform: PlatformName) -> Non
         options_reader.get("audit-command", option_format=ListFormat(" && "))
         == "my-audit-tool {wheel}"
     )
+
+
+def test_audit_requires_option(tmp_path: Path, platform: PlatformName) -> None:
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+audit-requires = "abi3audit"
+"""
+    )
+
+    options_reader = OptionsReader(pyproject_toml, platform=platform, env={})
+    assert options_reader.get("audit-requires", option_format=ListFormat(" ")) == "abi3audit"
+
+
+def test_audit_requires_option_list(tmp_path: Path, platform: PlatformName) -> None:
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+audit-requires = ["abi3audit", "twine"]
+"""
+    )
+
+    options_reader = OptionsReader(pyproject_toml, platform=platform, env={})
+    assert options_reader.get("audit-requires", option_format=ListFormat(" ")) == "abi3audit twine"
+
+
+def test_audit_requires_option_env(tmp_path: Path, platform: PlatformName) -> None:
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+"""
+    )
+
+    options_reader = OptionsReader(
+        pyproject_toml, platform=platform, env={"CIBW_AUDIT_REQUIRES": "custom-audit-tool"}
+    )
+    assert (
+        options_reader.get("audit-requires", option_format=ListFormat(" ")) == "custom-audit-tool"
+    )
+
+
+def test_audit_requires_option_env_override(tmp_path: Path, platform: PlatformName) -> None:
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+audit-requires = "abi3audit"
+"""
+    )
+
+    options_reader = OptionsReader(
+        pyproject_toml, platform=platform, env={"CIBW_AUDIT_REQUIRES": "custom-audit-tool"}
+    )
+    assert (
+        options_reader.get("audit-requires", option_format=ListFormat(" ")) == "custom-audit-tool"
+    )
+
+
+def test_audit_requires_platform_specific(tmp_path: Path) -> None:
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+audit-requires = "abi3audit"
+
+[tool.cibuildwheel.linux]
+audit-requires = ["abi3audit", "check-wheel-contents"] # whatever
+
+[tool.cibuildwheel.macos]
+audit-requires = ["check-wheel-contents", "pydistcheck"] # whatever
+"""
+    )
+
+    linux_reader = OptionsReader(pyproject_toml, platform="linux", env={})
+    assert (
+        linux_reader.get("audit-requires", option_format=ListFormat(" "))
+        == "abi3audit check-wheel-contents"
+    )
+
+    macos_reader = OptionsReader(pyproject_toml, platform="macos", env={})
+    assert (
+        macos_reader.get("audit-requires", option_format=ListFormat(" "))
+        == "check-wheel-contents pydistcheck"
+    )
+
+    windows_reader = OptionsReader(pyproject_toml, platform="windows", env={})
+    assert windows_reader.get("audit-requires", option_format=ListFormat(" ")) == "abi3audit"
+
+
+def test_audit_requires_platform_env_override(tmp_path: Path) -> None:
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+audit-requires = "abi3audit"
+"""
+    )
+
+    options_reader = OptionsReader(
+        pyproject_toml,
+        platform="linux",
+        env={
+            "CIBW_AUDIT_REQUIRES": "some-fallback-tool",
+            "CIBW_AUDIT_REQUIRES_LINUX": "linux-audit-tool",
+        },
+    )
+    assert options_reader.get("audit-requires", option_format=ListFormat(" ")) == "linux-audit-tool"
