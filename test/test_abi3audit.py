@@ -136,3 +136,81 @@ def test_abi3audit_detects_violation(tmp_path: Path, capfd: pytest.CaptureFixtur
 
     captured = capfd.readouterr()
     assert "Running abi3audit" in captured.out
+
+
+def test_custom_audit_command(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    project_dir = tmp_path / "project"
+    test_projects.new_c_project().generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_AUDIT_COMMAND": "echo custom-audit-ok {wheel}",
+            "CIBW_AUDIT_REQUIRES": "",
+            "CIBW_ARCHS": "native",
+        },
+        single_python=True,
+    )
+
+    assert len(actual_wheels) >= 1
+    captured = capfd.readouterr()
+    assert "Auditing wheel" in captured.out
+    assert "custom-audit-ok" in captured.out
+
+
+def test_custom_audit_requires(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    project_dir = tmp_path / "project"
+    test_projects.new_c_project().generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_AUDIT_REQUIRES": "pycowsay",
+            "CIBW_AUDIT_COMMAND": (
+                "python -c \"import pycowsay; print(pycowsay.cow('moo'))\" {wheel}"
+            ),
+            "CIBW_ARCHS": "native",
+        },
+        single_python=True,
+    )
+
+    assert len(actual_wheels) >= 1
+    captured = capfd.readouterr()
+    assert "Installing audit dependencies: pycowsay" in captured.out
+    assert "moo" in captured.out
+
+
+def test_empty_audit_command_disables_audit(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
+    project_dir = tmp_path / "project"
+    test_projects.new_c_project().generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_AUDIT_COMMAND": "",
+            "CIBW_ARCHS": "native",
+        },
+        single_python=True,
+    )
+
+    assert len(actual_wheels) >= 1
+    captured = capfd.readouterr()
+    assert "Auditing wheel" not in captured.out
+
+
+def test_custom_audit_command_failure(tmp_path: Path) -> None:
+    project_dir = tmp_path / "project"
+    test_projects.new_c_project().generate(project_dir)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(
+            project_dir,
+            add_env={
+                "CIBW_AUDIT_COMMAND": 'python -c "import sys; sys.exit(1)" {wheel}',
+                "CIBW_AUDIT_REQUIRES": "",
+                "CIBW_ARCHS": "native",
+            },
+            single_python=True,
+        )
