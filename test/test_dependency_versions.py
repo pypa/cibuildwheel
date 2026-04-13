@@ -1,5 +1,4 @@
 import json
-import platform
 import re
 import subprocess
 import textwrap
@@ -77,7 +76,7 @@ def get_versions_from_constraint_file(constraint_file: Path) -> dict[str, str]:
     return dict(re.findall(VERSION_REGEX, constraint_file_text))
 
 
-@pytest.mark.parametrize("python_version", ["3.8", "3.12"])
+@pytest.mark.parametrize("python_version", ["3.9", "3.12"])
 def test_pinned_versions(
     tmp_path: Path, python_version: str, build_frontend_env_nouv: dict[str, str]
 ) -> None:
@@ -85,12 +84,6 @@ def test_pinned_versions(
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
     if python_version != "3.12" and utils.get_platform() == "pyodide":
         pytest.skip(f"pyodide does not support Python {python_version}")
-    if (
-        python_version == "3.8"
-        and utils.get_platform() == "windows"
-        and platform.machine() == "ARM64"
-    ):
-        pytest.skip(f"Windows ARM64 does not support Python {python_version}")
 
     project_dir = tmp_path / "project"
     test_projects.new_c_project().generate(project_dir)

@@ -464,7 +464,6 @@ def build_wheel(state: BuildState) -> Path:
                     state.options.build_frontend,
                     state.options.build_verbosity,
                     state.options.config_settings,
-                    py38=False,
                 ),
                 env=state.android_env,
             )
@@ -482,7 +481,6 @@ def build_wheel(state: BuildState) -> Path:
                     state.options.build_frontend,
                     state.options.build_verbosity,
                     state.options.config_settings,
-                    py38=False,
                 ),
                 env=state.android_env,
             )
