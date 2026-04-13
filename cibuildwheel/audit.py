@@ -31,15 +31,15 @@ def run_audit(
 
     log.step("Auditing wheel...")
 
+    use_uv = build_options.build_frontend.name in {"uv", "build[uv]"}
+    version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    dependency_constraint = build_options.dependency_constraints.get_for_python_version(
+        version=version, tmp_dir=tmp_dir
+    )
+
     audit_venv_dir = tmp_dir / "audit_venv"
     if not audit_venv_dir.exists():
         audit_venv_dir.mkdir(parents=True, exist_ok=True)
-
-        use_uv = build_options.build_frontend.name in {"uv", "build[uv]"}
-        version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
-        dependency_constraint = build_options.dependency_constraints.get_for_python_version(
-            version=version, tmp_dir=tmp_dir
-        )
 
         env = virtualenv(
             version,
