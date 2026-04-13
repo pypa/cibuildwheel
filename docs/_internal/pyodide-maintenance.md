@@ -1,13 +1,13 @@
 # Maintaining Pyodide support
 
-This page describes some short steps on how to update cibuildwheel's Pyodide platform code when the set of supported Pyodide Python versions changes – for example, when:
+This page describes how to update cibuildwheel's Pyodide platform code when either:
 
-- a new Pyodide alpha release arrives with support for a new [Pyodide ABI](https://pyodide.org/en/latest/development/abi.html) (which may be tied to updates in Emscripten and CPython versions, compiler/linker flags, Rust toolchain support and so on), or
-- when that alpha graduates to a stable release.
+- a new Pyodide alpha release arrives with support for a new [PyEmscripten Platform](https://pyodide.org/en/latest/development/abi.html) (which is tied to updates in Emscripten and CPython versions, compiler/linker flags, and so on), or
+- when that alpha release graduates to a stable one.
 
 ## Background
 
-Pyodide ships/may ship two kinds of Python builds at any point in time (note that these numbers may not be up to date):
+Pyodide has two types of releases that matter to cibuildheel:
 
 - **Stable** – the most recent full Pyodide release (e.g., `0.29.x` / cp313). This is enabled by default with no special `CIBW_ENABLE` flag needed.
 - **Prerelease** – an alpha/beta/rc Pyodide release that uses the _next_ CPython version (e.g., `314.0.0a1` / cp314). Users must opt in with `CIBW_ENABLE: pyodide-prerelease` to build against this version. This may or may not be available at any given time, depending on the Pyodide release cycle.
@@ -41,11 +41,9 @@ if EnableGroup.PyodidePrerelease not in self.enable and fnmatch(
     return False
 ```
 
-Also, update the comment above it to reflect the new version numbers and the instructions for when this guard should eventually be disabled.
-
 ### 3. Generate and pin a constraints file
 
-The easiest way is to run the `update_constraints` `nox` session, which reads `build-platforms.toml` and regenerates all Pyodide constraints files automatically:
+Run the `update_constraints` `nox` session, which reads `build-platforms.toml` and regenerates all Pyodide constraints files automatically:
 
 ```bash
 nox -s update_constraints
@@ -63,9 +61,7 @@ python bin/generate_pyodide_constraints.py 315.0.0a1 \
 
 - Update the unit tests so the new identifier is accepted by the selector with `PyodidePrerelease` enabled and rejected without it. Pyodide-specific integration tests may also need their hardcoded expected-wheel lists extended.
 
-- Run the full test suite with `CIBW_PLATFORM=pyodide` and `CIBW_ENABLE=pyodide-prerelease` environment variables to make sure the new configuration is well exercised in CI.
-
-- In GHA, make sure `CIBW_ENABLE: pyodide-prerelease` is set in the Pyodide CI job so that the prerelease identifier is exercised in CI.
+- Run the full test suite with `CIBW_PLATFORM=pyodide` and `CIBW_ENABLE=pyodide-prerelease` environment variables to make sure the new configuration is exercised in CI.
 
 ## When a Pyodide prerelease becomes stable
 
@@ -80,7 +76,7 @@ In `build-platforms.toml`, update the former prerelease entry's `default_pyodide
 In `selector.py`:
 
 - **If a new prerelease is available**: update the `fnmatch` pattern to the next identifier (e.g. `cp315-pyodide_*`) as described above.
-- **If there is no new prerelease**L remove the `PyodidePrerelease` logic entirely.
+- **If there is no new prerelease**: comment out the `PyodidePrerelease` logic.
 
 ### 3. Update the constraints file
 
@@ -90,9 +86,7 @@ Run `nox -s update_constraints` to regenerate the constraints file for the newly
 
 Update the unit tests so the newly stable identifier is accepted by the selector without needing `PyodidePrerelease` in the enable set. Pyodide-specific integration tests may also need their hardcoded expected-wheel lists extended.
 
-- Run the full test suite with `CIBW_PLATFORM=pyodide` environment variables to make sure the new configuration is well exercised in CI.
-
-- Remove `CIBW_ENABLE: pyodide-prerelease` from the GHA Pyodide CI job steps, as no prerelease identifiers should remain after the stable release ships.
+- Run the full test suite with `CIBW_PLATFORM=pyodide` and `CIBW_ENABLE=pyodide-prerelease` environment variables to make sure the new configuration is exercised in CI.
 
 ## When an old Pyodide version is to be retired
 
