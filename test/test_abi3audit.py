@@ -15,6 +15,7 @@ build-backend = "setuptools.build_meta"
 limited_api_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
         r"""
+        import sys
         import sysconfig
 
         IS_CPYTHON = sys.implementation.name == "cpython"
@@ -40,6 +41,7 @@ limited_api_project.files["pyproject.toml"] = pyproject_toml
 violating_abi3_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
         r"""
+        import sys
         import sysconfig
 
         IS_CPYTHON = sys.implementation.name == "cpython"
