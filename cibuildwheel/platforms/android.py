@@ -36,6 +36,8 @@ from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
 from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
+RESOURCES_ANDROID = resources.PATH / "android"
+
 ANDROID_TRIPLET = {
     "arm64_v8a": "aarch64-linux-android",
     "x86_64": "x86_64-linux-android",
@@ -176,6 +178,11 @@ def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
     python_dir = build_path / "python"
     python_dir.mkdir()
     shutil.unpack_archive(python_tgz, python_dir)
+
+    # Patch a testbed bug. This code and the patch file can both be removed once we've
+    # updated to Python versions that include the fix.
+    call("patch", "-p1", "-i", RESOURCES_ANDROID / "android.patch", cwd=python_dir)
+
     return python_dir
 
 
@@ -350,7 +357,7 @@ def setup_android_env(
 ) -> dict[str, str]:
     site_packages = next(venv_dir.glob("lib/python*/site-packages"))
     for suffix in ["pth", "py"]:
-        shutil.copy(resources.PATH / f"_cross_venv.{suffix}", site_packages)
+        shutil.copy(RESOURCES_ANDROID / f"_cross_venv.{suffix}", site_packages)
 
     sysconfigdata_path = Path(
         shutil.copy(
@@ -425,7 +432,7 @@ def setup_rust(
     venv_bin = Path(env["VIRTUAL_ENV"]) / "bin"
     for tool in ["cargo", "rustup"]:
         shim_path = venv_bin / tool
-        shutil.copy(resources.PATH / "_rust_shim.py", shim_path)
+        shutil.copy(RESOURCES_ANDROID / "rust_shim.py", shim_path)
         shim_path.chmod(0o755)
 
 

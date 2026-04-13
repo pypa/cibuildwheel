@@ -14,6 +14,7 @@ repos:
     exclude: (cibuildwheel/resources/pinned_docker_images.cfg)|(.svg$)
   - id: mixed-line-ending
   - id: trailing-whitespace
+    exclude: ^cibuildwheel/resources/android/android.patch$
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: c60c980e561ed3e73101667fe8365c609d19a438  # frozen: v0.15.9
@@ -28,7 +29,7 @@ repos:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
     args: ["--python-version=3.11"]
-    exclude: ^cibuildwheel/resources/_cross_venv.py$  # Requires Python 3.13 or later
+    exclude: ^cibuildwheel/resources/android/_cross_venv.py$  # Requires Python 3.13 or later
     additional_dependencies: &mypy-dependencies
       - bracex
       - build
