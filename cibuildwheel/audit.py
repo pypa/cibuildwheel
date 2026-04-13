@@ -31,7 +31,7 @@ def run_audit(
 
     log.step("Auditing wheel...")
 
-    use_uv = build_options.build_frontend.name in {"build[uv]", "uv"}
+    use_uv = find_uv() is not None
     version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
     dependency_constraint = build_options.dependency_constraints.get_for_python_version(
         version=version, tmp_dir=tmp_dir
