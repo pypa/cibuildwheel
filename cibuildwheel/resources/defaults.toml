@@ -6,7 +6,7 @@ enable = []
 
 archs = ["auto"]
 audit-requires = ["abi3audit"]
-audit-command = "abi3audit --strict --report {abi3wheel}"
+audit-command = "abi3audit --strict --report {abi3_wheel}"
 build-frontend = "default"
 config-settings = {}
 dependency-versions = "pinned"

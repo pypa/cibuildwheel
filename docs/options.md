@@ -1354,11 +1354,11 @@ If you leave this as the default, the versions of abit3audit and libraries are p
 
 > Use a tool to check wheels before the end of the run
 
-Default: `abi3audit --strict --report {abi3wheel}`
+Default: `abi3audit --strict --report {abi3_wheel}`
 
 Run shell commands to verify your wheels once they are built. Multiple commands can be passed, they should be separated with ` && `. In each command, you must use one of the following placeholders:
 
-- `{abi3wheel}`: if your build produces an [ABI3 wheel](https://docs.python.org/3/c-api/stable.html#limited-c-api), as determined by the presence of an ABI3 tag in the filename, the command is run and this placeholder is substituted for the wheel path.
+- `{abi3_wheel}`: if your build produces an [ABI3 wheel](https://docs.python.org/3/c-api/stable.html#limited-c-api), as determined by the presence of an ABI3 tag in the filename, the command is run and this placeholder is substituted for the wheel path.
 - `{wheel}`: inserts the wheel path for all wheels that were built.
 
 #### Examples
@@ -1373,7 +1373,7 @@ Run shell commands to verify your wheels once they are built. Multiple commands 
     # Run multiple audit commands, one for abi3 wheels only and one for all wheels
     [tool.cibuildwheel]
     audit-command = [
-      "./my-audit-tool --check-abi3 {abi3wheel}",
+      "./my-audit-tool --check-abi3 {abi3_wheel}",
       "./my-audit-tool --check {wheel}",
     ]
 
@@ -1396,7 +1396,7 @@ Run shell commands to verify your wheels once they are built. Multiple commands 
     CIBW_AUDIT_COMMAND: "my-audit-tool --check {wheel}"
 
     # Run multiple audit commands
-    CIBW_AUDIT_COMMAND: "./my-audit-tool --check-abi3 {abi3wheel} && ./my-audit-tool --check {wheel}"
+    CIBW_AUDIT_COMMAND: "./my-audit-tool --check-abi3 {abi3_wheel} && ./my-audit-tool --check {wheel}"
 
     # Use twine check to validate wheel metadata
     CIBW_AUDIT_REQUIRES: "twine"
