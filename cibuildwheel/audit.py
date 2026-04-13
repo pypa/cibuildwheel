@@ -36,12 +36,13 @@ def run_audit(
         audit_venv_dir.mkdir(parents=True, exist_ok=True)
 
         use_uv = build_options.build_frontend.name in {"uv", "build[uv]"}
+        version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
         dependency_constraint = build_options.dependency_constraints.get_for_python_version(
-            version=sys.version, tmp_dir=tmp_dir
+            version=version, tmp_dir=tmp_dir
         )
 
         env = virtualenv(
-            sys.version,
+            version,
             Path(sys.executable),
             audit_venv_dir,
             dependency_constraint=dependency_constraint,
