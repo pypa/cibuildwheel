@@ -89,7 +89,7 @@ def test_abi3audit_runs_on_abi3_wheel(tmp_path: Path, capfd: pytest.CaptureFixtu
     assert len(actual_wheels) >= 1
 
     captured = capfd.readouterr()
-    assert "Running abi3audit" in captured.out
+    assert "Running audit command: abi3audit" in captured.out
 
 
 @utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
@@ -112,7 +112,7 @@ def test_abi3audit_skipped_for_non_abi3_wheel(
     assert len(actual_wheels) >= 1
 
     captured = capfd.readouterr()
-    assert "Running abi3audit" not in captured.out
+    assert "Running audit command: abi3audit" not in captured.out
 
 
 @utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
@@ -135,7 +135,7 @@ def test_abi3audit_detects_violation(tmp_path: Path, capfd: pytest.CaptureFixtur
         )
 
     captured = capfd.readouterr()
-    assert "Running abi3audit" in captured.out
+    assert "Running audit command: abi3audit" in captured.out
 
 
 def test_custom_audit_command(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
