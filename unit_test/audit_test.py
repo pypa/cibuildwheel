@@ -46,6 +46,10 @@ class TestNeedsAudit:
         # non-abi3 wheel still needs audit because of the {wheel} command
         assert needs_audit(commands, "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl")
 
+    def test_command_without_placeholder_raises(self) -> None:
+        with pytest.raises(errors.ConfigurationError, match="must contain either"):
+            needs_audit(["my-tool"], "example-1.0.0-cp310-cp310-manylinux_2_17_x86_64.whl")
+
 
 class TestRunAudit:
     @pytest.fixture

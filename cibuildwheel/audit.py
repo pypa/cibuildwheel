@@ -106,6 +106,13 @@ def run_audit(
 def needs_audit(audit_commands: list[str], wheel_name: str) -> bool:
     saw_abi3_placeholder = False
     for audit_command in audit_commands:
+        if "{abi3_wheel}" not in audit_command and "{wheel}" not in audit_command:
+            msg = (
+                f"Invalid audit command {audit_command!r}: must contain either "
+                "{{abi3_wheel}} or {{wheel}} placeholder"
+            )
+            raise errors.ConfigurationError(msg)
+
         if "{abi3_wheel}" in audit_command:
             saw_abi3_placeholder = True
             if is_abi3_wheel(wheel_name):
