@@ -698,7 +698,7 @@ class Options:
         )
         test_selector = TestSelector(skip_config=test_skip)
 
-        audit_command = self.reader.get("audit", option_format=ListFormat(sep=" && "))
+        audit_command = self.reader.get("audit-command", option_format=ListFormat(sep=" && "))
 
         return GlobalOptions(
             package_dir=package_dir,
