@@ -31,6 +31,8 @@ from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
 from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
+RESOURCES_ANDROID = resources.PATH / "android"
+
 ANDROID_TRIPLET = {
     "arm64_v8a": "aarch64-linux-android",
     "x86_64": "x86_64-linux-android",
@@ -189,6 +191,10 @@ def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
     python_dir = build_path / "python"
     python_dir.mkdir()
     shutil.unpack_archive(python_tgz, python_dir)
+
+    # Patch a testbed bug. This code and the patch file can both be removed once we've
+    # updated to Python versions that include the fix.
+    call("patch", "-p1", "-i", RESOURCES_ANDROID / "android.patch", cwd=python_dir)
 
     # Work around https://github.com/python/cpython/issues/138800. This can be removed
     # once we've updated to Python versions that include the fix.
@@ -370,7 +376,7 @@ def setup_android_env(
 ) -> dict[str, str]:
     site_packages = find_site_packages(build_env)
     for suffix in ["pth", "py"]:
-        shutil.copy(resources.PATH / f"android/_cross_venv.{suffix}", site_packages)
+        shutil.copy(RESOURCES_ANDROID / f"_cross_venv.{suffix}", site_packages)
 
     sysconfigdata_path = Path(
         shutil.copy(
@@ -450,14 +456,14 @@ def setup_rust(config: PythonConfiguration, python_dir: Path, env: dict[str, str
     venv_bin = Path(env["VIRTUAL_ENV"]) / "bin"
     for tool in ["cargo", "rustup"]:
         shim_path = venv_bin / tool
-        shutil.copy(resources.PATH / "android/rust_shim.py", shim_path)
+        shutil.copy(RESOURCES_ANDROID / "rust_shim.py", shim_path)
         shim_path.chmod(0o755)
 
 
 def setup_fortran(env: dict[str, str]) -> None:
     # In case there's any autodetection based on the executable name, use the same name
     # as the real executable (see fortran_shim.run_flang)
-    shim_in = resources.PATH / "android/fortran_shim.py"
+    shim_in = RESOURCES_ANDROID / "fortran_shim.py"
     shim_out = Path(env["VIRTUAL_ENV"]) / "bin/flang-new"
 
     # The hashbang line runs the shim in cibuildwheel's own virtual environment, so it

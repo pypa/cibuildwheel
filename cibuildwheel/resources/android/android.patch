@@ -1,0 +1,11 @@
+--- a/android.py
++++ b/android.py
+@@ -1021,7 +1021,7 @@ def main():
+     context = parse_args()
+ 
+     # Set the CROSS_BUILD_DIR if an argument was provided
+-    if context.cross_build_dir:
++    if getattr(context, "cross_build_dir", None):
+         global CROSS_BUILD_DIR
+         CROSS_BUILD_DIR = context.cross_build_dir.resolve()
+ 
