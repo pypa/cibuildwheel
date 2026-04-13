@@ -1212,7 +1212,7 @@ Platform-specific environment variables are also available:<br/>
     dependency versions on Linux, use the [`manylinux-*` / `musllinux-*`](#linux-image)
     options.
 
-    There is one exception to this rule - if `audit-requires` specifies `abi3audit`, its version is govenered by this option, because audits take place outside of the build container.
+    There is one exception to this rule - if `audit-requires` specifies `abi3audit`, its version is governed by this option, because audits take place outside of the build container.
 
 #### Examples
 
@@ -1322,7 +1322,7 @@ These are installed into an isolated environment before running the
 
 If no audit command is specified, or no audit is required (i.e. your project builds non-abi3 wheels and the command refers only to abi3 wheels), then the audit environment won't be created and this option is ignored.
 
-If you leave this as the default, the versions of abit3audit and libraries are pinned according to [`dependency-versions`](#dependency-versions), even on Linux.
+If you leave this as the default, the versions of abi3audit and libraries are pinned according to [`dependency-versions`](#dependency-versions), even on Linux.
 
 #### Examples
 
