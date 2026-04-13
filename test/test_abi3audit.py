@@ -166,9 +166,7 @@ def test_custom_audit_requires(tmp_path: Path, capfd: pytest.CaptureFixture[str]
         project_dir,
         add_env={
             "CIBW_AUDIT_REQUIRES": "pycowsay",
-            "CIBW_AUDIT_COMMAND": (
-                "python -c \"import pycowsay; print(pycowsay.cow('moo'))\" {wheel}"
-            ),
+            "CIBW_AUDIT_COMMAND": "pycowsay moo {wheel}",
             "CIBW_ARCHS": "native",
         },
         single_python=True,
