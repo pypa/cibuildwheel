@@ -40,7 +40,7 @@ description: cibuildwheel's settings.
 type: object
 properties:
   audit-command:
-    description: Execute a shell command to audit each wheel after all builds complete. Use {wheel} for each wheel path, or {abi3_wheel} to only audit abi3 wheels.
+    description: Execute a shell command to audit each wheel after it is repaired. Use {wheel} for each wheel path, or {abi3_wheel} to only audit abi3 wheels.
     type: string_array
   audit-requires:
     description: Install Python dependencies for the audit step.
