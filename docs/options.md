@@ -1370,12 +1370,10 @@ Run shell commands to verify your wheels once they are built. Multiple commands 
     [tool.cibuildwheel]
     audit-command = "my-audit-tool --check {wheel}"
 
-    # Run multiple audit commands
+    # Run multiple audit commands, one for abi3 wheels only and one for all wheels
     [tool.cibuildwheel]
     audit-command = [
-      # this command will only run on abi3 wheels
       "./my-audit-tool --check-abi3 {abi3wheel}",
-      # this command will run on all wheels
       "./my-audit-tool --check {wheel}",
     ]
 
@@ -1384,8 +1382,9 @@ Run shell commands to verify your wheels once they are built. Multiple commands 
     audit-requires = ["twine"]
     audit-command = "twine check {wheel}"
 
-    # Add an additional audit command using overrides, keeping the default
-    # abi3audit check
+    # Add an additional audit command using overrides, keeping the default abi3audit check
+    [[tool.cibuildwheel.overrides]]
+    select = "*"
     inherit.audit-command = "append"
     audit-command = "twine check {wheel}"
     ```
