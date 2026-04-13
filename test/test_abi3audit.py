@@ -92,7 +92,6 @@ def test_abi3audit_runs_on_abi3_wheel(tmp_path: Path, capfd: pytest.CaptureFixtu
     assert "Running audit command: abi3audit" in captured.out
 
 
-@utils.skip_if_pyodide("Pyodide doesn't build abi3 wheels, so abi3audit is not relevant")
 def test_abi3audit_skipped_for_non_abi3_wheel(
     tmp_path: Path, capfd: pytest.CaptureFixture[str]
 ) -> None:
