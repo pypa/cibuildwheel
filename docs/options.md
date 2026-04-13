@@ -1212,7 +1212,9 @@ Platform-specific environment variables are also available:<br/>
     dependency versions on Linux, use the [`manylinux-*` / `musllinux-*`](#linux-image)
     options.
 
-    There is one exception to this rule - if `audit-requires` specifies `abi3audit`, its version is governed by this option, because audits take place outside of the build container.
+    There is one exception to this rule - when `audit-requires` is left as the
+    default `["abi3audit"]`, the `abi3audit` version is governed by this option,
+    because audits take place outside of the build container.
 
 #### Examples
 
