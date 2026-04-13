@@ -125,7 +125,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: pypa/cibuildwheel@v3.4.0
+uses: pypa/cibuildwheel@v3.4.1
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
@@ -150,7 +150,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==3.4.0
+cibuildwheel==3.4.1
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
@@ -315,7 +315,7 @@ Solutions to this vary, but the simplest is to use pipx:
 # most runners have pipx preinstalled, but in case you don't
 python3 -m pip install pipx
 
-pipx run cibuildwheel==3.4.0 --output-dir wheelhouse
+pipx run cibuildwheel==3.4.1 --output-dir wheelhouse
 pipx run twine upload wheelhouse/*.whl
 ```
 

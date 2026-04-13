@@ -14,7 +14,6 @@ class CIProvider(Enum):
     azure_pipelines = "azure_pipelines"
     github_actions = "github_actions"
     gitlab = "gitlab"
-    cirrus_ci = "cirrus_ci"
 
     # unofficial support
     appveyor = "appveyor"
@@ -35,8 +34,6 @@ def detect_ci_provider() -> CIProvider | None:
         return CIProvider.github_actions
     elif "GITLAB_CI" in os.environ:
         return CIProvider.gitlab
-    elif "CIRRUS_CI" in os.environ:
-        return CIProvider.cirrus_ci
     elif strtobool(os.environ.get("CI", "false")):
         return CIProvider.other
     else:

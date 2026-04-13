@@ -42,11 +42,7 @@ if "ANDROID_HOME" not in os.environ:
 
     # Fail if we're on a CI service which is supposed to have the Android SDK
     # pre-installed; otherwise skip the module.
-    if (
-        ("CIRRUS_CI" in os.environ and platform.system() == "Darwin")
-        or "GITHUB_ACTIONS" in os.environ
-        or "TF_BUILD" in os.environ
-    ):
+    if "GITHUB_ACTIONS" in os.environ or "TF_BUILD" in os.environ:
         pytest.fail(msg)
     else:
         pytest.skip(msg, allow_module_level=True)

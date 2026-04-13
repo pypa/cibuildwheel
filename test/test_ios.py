@@ -7,8 +7,6 @@ from pathlib import Path
 
 import pytest
 
-from cibuildwheel.ci import CIProvider, detect_ci_provider
-
 from . import test_projects, utils
 
 pytestmark = pytest.mark.ios
@@ -36,11 +34,6 @@ def skip_if_ios_testing_not_supported() -> None:
         pytest.skip("this test can only run on macOS")
     if utils.get_xcode_version() < (13, 0):
         pytest.skip("this test only works with Xcode 13.0 or greater")
-    if detect_ci_provider() == CIProvider.cirrus_ci:
-        pytest.skip(
-            "iOS testing not currently supported on Cirrus CI due to a failure "
-            "to start the simulator."
-        )
 
 
 # iOS tests shouldn't be run in parallel, because they're dependent on calling

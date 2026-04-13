@@ -17,7 +17,7 @@ jobs:
           persist-credentials: false
 
       - name: Build wheels
-        uses: pypa/cibuildwheel@v3.4.0
+        uses: pypa/cibuildwheel@v3.4.1
         # env:
         #   CIBW_SOME_OPTION: value
         #   ...

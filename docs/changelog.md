@@ -4,6 +4,16 @@ title: Changelog
 
 # Changelog
 
+### v3.4.1
+
+_2 April 2026_
+
+- ⚠️ Building for the experimental CPython 3.13 free-threading variant is now deprecated. That functionality will be removed in the next minor release. The [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) option `cpython-freethreading` is therefore also deprecated. Builds specifying `enable = "all"` no longer select `cpython-freethreading`. CPython 3.14 free-threading support remains available without the `enable` flag. (#2787)
+- 🐛 iOS builds will no longer skip `repair-wheel-command` if it's defined in config (#2761)
+- 🐛 Fix bug causing `uv` to fail when environments define PYTHON_VERSION or UV_PYTHON, conflicting with our venvs (#2795)
+- ✨ cibuildwheel prints the selected build identifiers at the start of the build. (#2785)
+- 🔐 The GitHub Action now references other actions with a full SHA (#2744)
+
 ### v3.4.0
 
 _5 March 2026_
@@ -11,6 +21,7 @@ _5 March 2026_
 - 🌟 You can now build wheels using `uv` as a build frontend. This should improve performance, especially if your project has lots of build dependencies. To use, set [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) to `uv`. (#2322)
 - ⚠️ We no longer support running on Travis CI. It may continue working but we don't run tests there anymore so we can't be sure. (#2682)
 - ✨ Improvements to building rust wheels on Android (#2650)
+- 🛠 Update Pyodide to 0.29.3 (#2719, #2733)
 - 🐛 Fix bug with the GitHub Action on Windows, where PATH was getting unnecessarily changed, causing issues with meson builds. (#2723)
 - ✨ Add support for quiet setting on `build` and `uv` from the cibuildwheel `build-verbosity` setting. (#2737)
 - 📚 Docs updates, including guidance on using Meson on Windows (#2718)
