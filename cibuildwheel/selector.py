@@ -96,17 +96,19 @@ class BuildSelector:
             return False
         if EnableGroup.GraalPy not in self.enable and fnmatch(build_id, "gp*"):
             return False
-        # TODO: Re-enable this when we have Pyodide prereleases again (e.g., 0.29.0a1+)
-        # Python 3.13 support became stable in Pyodide 0.28.0, so it no longer needs a prerelease
-        # flag.
-        # Also update Pyodide tests in unit_test/build_selector_test.py accordingly.
-        # When re-enabling, update the pattern to match the experimental Python version in case
-        # it is bumped to Python 3.14 (likely cp314-pyodide_* but could remain as 3.13 as well).
+        # NOTE: Disable this when we don't have any Pyodide prereleases (e.g., 314.0.0a1+)
+        # When doing this, also:
+        #   1. update Pyodide tests in unit_test/build_selector_test.py and unit_test/options_test.py accordingly.
+        #   2. update Python versions for Pyodide identifiers in cibuildwheel/selector.py.
+        #   3. update constraints as necessary via bin/generate_pyodide_constraints.py and add/delete
+        #      Pyodide constraints files in cibuildwheel/resources/constraints/ as necessary.
+        # When disabling, update the pattern to match the experimental Python version in case
+        # it is bumped to Python 3.15 (likely cp315-pyodide_* but could remain as 3.14 as well).
         # This depends on the CPython version being used in the Pyodide runtime at the time.
-        # if EnableGroup.PyodidePrerelease not in self.enable and fnmatch(
-        #     build_id, "cp313-pyodide_*"
-        # ):
-        #     return False
+        if EnableGroup.PyodidePrerelease not in self.enable and fnmatch(
+            build_id, "cp314-pyodide_*"
+        ):
+            return False
 
         should_build = selector_matches(self.build_config, build_id)
         should_skip = selector_matches(self.skip_config, build_id)

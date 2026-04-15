@@ -2,15 +2,15 @@
 #    nox -s update_constraints
 annotated-types==0.7.0
     # via pydantic
-auditwheel-emscripten==0.2.3
+auditwheel-emscripten==0.2.4
     # via pyodide-build
-build==1.2.2.post1
+build==1.4.2
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
 certifi==2026.2.25
     # via requests
-charset-normalizer==3.4.6
+charset-normalizer==3.4.7
     # via requests
 click==8.1.8
     # via
@@ -39,7 +39,7 @@ packaging==26.0
     #   wheel
 pip==26.0.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.9.4
+platformdirs==4.9.6
     # via
     #   pyodide-build
     #   python-discovery
@@ -50,9 +50,9 @@ pydantic==2.12.5
     #   pyodide-lock
 pydantic-core==2.41.5
     # via pydantic
-pygments==2.19.2
+pygments==2.20.0
     # via rich
-pyodide-build==0.33.0
+pyodide-build==0.34.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.5.0
     # via
@@ -62,9 +62,9 @@ pyodide-lock==0.1.2
     # via pyodide-build
 pyproject-hooks==1.2.0
     # via build
-python-discovery==1.2.0
+python-discovery==1.2.2
     # via virtualenv
-requests==2.32.5
+requests==2.33.1
     # via pyodide-build
 rich==14.3.3
     # via
@@ -81,7 +81,7 @@ typing-inspection==0.4.2
     # via pydantic
 urllib3==2.6.3
     # via requests
-virtualenv==21.2.0
+virtualenv==21.2.1
     # via
     #   build
     #   pyodide-build

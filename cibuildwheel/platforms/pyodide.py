@@ -94,20 +94,19 @@ def ensure_node(major_version: str) -> Path:
     return path
 
 
-def install_emscripten(
-    env: dict[str, str], version: str, xbuildenv_cache_path: Path, pyodide_version: str
-) -> Path:
+def install_emscripten(env: dict[str, str], version: str, xbuildenv_cache_path: Path) -> Path:
     """Install Emscripten via pyodide-build, which also applies Pyodide-specific patches."""
-    emcc_path = (
-        xbuildenv_cache_path / pyodide_version / "emsdk" / "upstream" / "emscripten" / "emcc"
+    emscripten_dir = Path(
+        call("pyodide", "config", "get", "emscripten_dir", env=env, capture_stdout=True).strip()
     )
     with FileLock(CIBW_CACHE_PATH / "emscripten.lock"):
-        if emcc_path.exists():
-            return emcc_path
+        if emscripten_dir.exists():
+            return emscripten_dir
         call(
             "pyodide",
             "xbuildenv",
             "install-emscripten",
+            "--force",
             "--version",
             version,
             "--path",
@@ -115,8 +114,8 @@ def install_emscripten(
             env=env,
             cwd=CIBW_CACHE_PATH,
         )
-    assert emcc_path.exists()
-    return emcc_path
+    assert emscripten_dir.exists()
+    return emscripten_dir
 
 
 def get_all_xbuildenv_version_info(env: dict[str, str]) -> list[PyodideXBuildEnvInfo]:
@@ -315,9 +314,9 @@ def setup_python(
     log.step(
         f"Installing Emscripten {emscripten_version} and applying Pyodide-specific patches ..."
     )
-    emcc_path = install_emscripten(env, emscripten_version, xbuildenv_cache_path, pyodide_version)
+    emscripten_dir = install_emscripten(env, emscripten_version, xbuildenv_cache_path)
 
-    env["PATH"] = os.pathsep.join([str(emcc_path.parent), env["PATH"]])
+    env["PATH"] = os.pathsep.join([str(emscripten_dir), env["PATH"]])
 
     return env
 
