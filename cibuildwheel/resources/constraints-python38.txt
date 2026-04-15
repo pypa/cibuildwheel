@@ -28,7 +28,7 @@ platformdirs==4.3.6
     #   virtualenv
 pyproject-hooks==1.2.0
     # via build
-python-discovery==1.2.1
+python-discovery==1.2.2
     # via virtualenv
 tomli==2.4.1
     # via build
@@ -36,7 +36,7 @@ typing-extensions==4.13.2
     # via
     #   delocate
     #   virtualenv
-virtualenv==21.2.0
+virtualenv==21.2.1
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.20.2
     # via importlib-metadata
