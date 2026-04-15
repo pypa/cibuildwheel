@@ -370,6 +370,30 @@ def test_test_requires(
     assert build_options.test_requires == (test_requires or "").split()
 
 
+@pytest.mark.parametrize("audit_requires", [None, "abi3audit", "abi3audit custom-audit-tool"])
+@pytest.mark.parametrize("platform_specific", [False, True])
+def test_audit_requires(
+    audit_requires: str | None,
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    if audit_requires is not None:
+        if platform_specific:
+            monkeypatch.setenv("CIBW_AUDIT_REQUIRES_" + platform.upper(), audit_requires)
+            monkeypatch.setenv("CIBW_AUDIT_REQUIRES", "overwritten")
+        else:
+            monkeypatch.setenv("CIBW_AUDIT_REQUIRES", audit_requires)
+
+    main()
+
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+
+    expected = (audit_requires or "abi3audit").split()
+    assert build_options.audit_requires == expected
+
+
 @pytest.mark.parametrize("test_extras", [None, "extras"])
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_test_extras(

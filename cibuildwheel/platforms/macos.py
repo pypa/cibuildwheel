@@ -17,6 +17,7 @@ from packaging.version import Version
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
+from cibuildwheel.audit import run_audit
 from cibuildwheel.ci import detect_ci_provider
 from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import BuildFrontendName, get_build_frontend_extra_flags
@@ -568,6 +569,8 @@ def build(options: Options, tmp_path: Path) -> None:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
 
                 log.step_end()
+
+                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 machine_arch = platform.machine()

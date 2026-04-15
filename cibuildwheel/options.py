@@ -125,6 +125,8 @@ class BuildOptions:
     test_groups: list[str]
     test_environment: ParsedEnvironment
     test_runtime: TestRuntimeConfig
+    audit_requires: list[str]
+    audit_command: list[str]
     build_verbosity: int
     build_frontend: BuildFrontendConfig
     config_settings: str
@@ -894,6 +896,15 @@ class Options:
 
             pyodide_version = self.reader.get("pyodide-version", env_plat=False)
 
+            audit_command_str = self.reader.get(
+                "audit-command", option_format=ListFormat(sep=" && ")
+            )
+            audit_command = audit_command_str.split(" && ") if audit_command_str else []
+
+            audit_requires = self.reader.get(
+                "audit-requires", option_format=ListFormat(sep=" ")
+            ).split()
+
             return BuildOptions(
                 globals=self.globals,
                 test_command=test_command,
@@ -917,6 +928,8 @@ class Options:
                 config_settings=config_settings,
                 container_engine=container_engine,
                 pyodide_version=pyodide_version or None,
+                audit_command=audit_command,
+                audit_requires=audit_requires,
             )
 
     def check_for_invalid_configuration(self, identifiers: Iterable[str]) -> None:
