@@ -43,14 +43,12 @@ jobs:
       with:
         persist-credentials: false
     - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
-      id: python
       with:
         python-version: "3.x"
+    - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
     - uses: j178/prek-action@53276d8b0d10f8b6672aa85b4588c6921d0370cc # v2.0.1
     - name: PyLint checks
-      run: pipx run --python "${STEPS_PYTHON_OUTPUTS_PYTHON_PATH}" nox -s pylint -- --output-format=github
-      env:
-        STEPS_PYTHON_OUTPUTS_PYTHON_PATH: ${{ steps.python.outputs.python-path }}
+      run: uvx nox -s pylint -- --output-format=github
 
   sample:
     name: Generate a sample project

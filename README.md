@@ -196,7 +196,7 @@ Here are some repos that use cibuildwheel.
 | [Tornado][]                       | ![github icon][] | ![linux icon][] ![apple icon][] ![windows icon][] | Tornado is a Python web framework and asynchronous networking library. Uses stable ABI for a small C extension. |
 | [MyPy][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | The compiled version of MyPy using MyPyC. |
 | [Prophet][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Tool for producing high quality forecasts for time series data that has multiple seasonality with linear or non-linear growth. |
-| [Kivy][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Open source UI framework written in Python, running on Windows, Linux, macOS, Android and iOS |
+| [Triton][]                        | ![github icon][] | ![linux icon][] | Self hosted runners |
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
 [duckdb]: https://github.com/duckdb/duckdb
@@ -207,7 +207,7 @@ Here are some repos that use cibuildwheel.
 [Tornado]: https://github.com/tornadoweb/tornado
 [MyPy]: https://github.com/mypyc/mypy_mypyc-wheels
 [Prophet]: https://github.com/facebook/prophet
-[Kivy]: https://github.com/kivy/kivy
+[Triton]: https://github.com/openai/triton
 
 [github icon]: docs/data/readme_icons/github.svg
 [azurepipelines icon]: docs/data/readme_icons/azurepipelines.svg
