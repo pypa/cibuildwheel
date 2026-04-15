@@ -22,7 +22,7 @@ delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.0
     # via virtualenv
-filelock==3.25.2
+filelock==3.28.0
     # via
     #   python-discovery
     #   virtualenv
@@ -38,7 +38,7 @@ markdown-it-py==4.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-packaging==26.0
+packaging==26.1
     # via
     #   abi3audit
     #   build
@@ -78,5 +78,5 @@ urllib3==2.6.3
     # via
     #   requests
     #   requests-cache
-virtualenv==21.2.1
+virtualenv==21.2.4
     # via -r cibuildwheel/resources/constraints.in

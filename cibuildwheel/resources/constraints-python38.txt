@@ -87,7 +87,7 @@ urllib3==2.2.3
     # via
     #   requests
     #   requests-cache
-virtualenv==21.2.1
+virtualenv==21.2.4
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.20.2
     # via importlib-metadata
