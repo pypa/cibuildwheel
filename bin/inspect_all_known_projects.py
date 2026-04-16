@@ -1,4 +1,17 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+
+# /// script
+# dependencies = [
+#   "click",
+#   "pygithub",
+#   "pyyaml",
+#   "rich",
+#   "cibuildwheel",
+# ]
+#
+# [tool.uv.sources]
+# cibuildwheel = { path = ".." }
+# ///
 
 """
 Check known projects for usage of requires-python.

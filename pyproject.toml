@@ -64,15 +64,6 @@ Documentation = "https://cibuildwheel.pypa.io"
 Homepage = "https://github.com/pypa/cibuildwheel"
 
 [dependency-groups]
-bin = [
-    "click",
-    "packaging>=21.0",
-    "pip-tools",
-    "pygithub",
-    "pyyaml",
-    "requests",
-    "rich>=9.6",
-]
 docs = [
     "jinja2>=3.1.2",
     "mkdocs-include-markdown-plugin==6.2.2",
@@ -95,7 +86,6 @@ test = [
     "xdoctest",
 ]
 dev = [
-    {include-group = "bin"},
     {include-group = "docs"},
     {include-group = "test"},
 ]
