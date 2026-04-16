@@ -516,6 +516,56 @@ def test_libcxx(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
         assert ".libs" not in name
 
 
+@needs_emulator
+def test_repair_none(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    new_c_project(setup_py_extension_args_add="language='c++'").generate(tmp_path)
+    with pytest.raises(CalledProcessError):
+        cibuildwheel_run(
+            tmp_path,
+            add_env={
+                **cp313_env,
+                "CIBW_REPAIR_WHEEL_COMMAND": "",
+                "CIBW_TEST_COMMAND": "python -c 'import spam'",
+            },
+        )
+    assert 'dlopen failed: library "libc++_shared.so" not found' in capfd.readouterr().err
+
+
+def test_repair_ldpaths(tmp_path: Path) -> None:
+    new_c_project().generate(tmp_path)
+    repair_path = tmp_path / "repair.py"
+    repair_path.write_text(
+        dedent(
+            """\
+            #!/usr/bin/env python
+            import shutil
+            import sys
+            from pathlib import Path
+
+            assert len(sys.argv) == 4, sys.argv
+            ldpaths = list(map(Path, sys.argv[1].split(":")))
+            dest_dir = sys.argv[2]
+            wheel = sys.argv[3]
+
+            for name in ["libc++_shared.so", "libomp.so"]:
+                assert any((lp / name).exists() for lp in ldpaths), (name, ldpaths)
+
+            shutil.copy(wheel, dest_dir)
+            """
+        )
+    )
+    repair_path.chmod(0o755)
+
+    wheels = cibuildwheel_run(
+        tmp_path,
+        add_env={
+            **cp313_env,
+            "CIBW_REPAIR_WHEEL_COMMAND": f"{repair_path} {{ldpaths}} {{dest_dir}} {{wheel}}",
+        },
+    )
+    assert wheels == [f"spam-0.1.0-cp313-cp313-android_24_{native_arch.android_abi}.whl"]
+
+
 @pytest.mark.parametrize(
     ("script", "error"),
     [

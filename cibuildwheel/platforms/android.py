@@ -93,14 +93,6 @@ def shell_prepared(command: str, *, build_options: BuildOptions, env: dict[str, 
     )
 
 
-def glob1(base: Path, pattern: str) -> Path:
-    results = list(base.glob(pattern))
-    if len(results) != 1:
-        msg = f"{base} contains {len(results)} paths matching '{pattern}'; expected 1"
-        raise errors.FatalError(msg)
-    return results[0]
-
-
 def before_all(options: Options, python_configurations: list[PythonConfiguration]) -> None:
     before_all_options = options.build_options(python_configurations[0].identifier)
     if before_all_options.before_all:
@@ -514,6 +506,14 @@ def pip_install_android(state: BuildState, target: Path, *args: PathOrStr) -> No
 
 def find_site_packages(env: dict[str, str]) -> Path:
     return glob1(Path(env["VIRTUAL_ENV"]), "lib/python*/site-packages")
+
+
+def glob1(base: Path, pattern: str) -> Path:
+    results = list(base.glob(pattern))
+    if len(results) != 1:
+        msg = f"{base} contains {len(results)} paths matching '{pattern}'; expected 1"
+        raise errors.FatalError(msg)
+    return results[0]
 
 
 def find_pip(build_options: BuildOptions) -> tuple[bool, list[str]]:
