@@ -221,6 +221,9 @@ def setup_env(
     )
     create_cmake_toolchain(config, build_path, python_dir, build_env)
 
+    # See platforms.md for the reason why we use this default API level.
+    build_env.setdefault("ANDROID_API_LEVEL", "24")
+
     # Apply custom environment variables, and check environment is still valid
     build_env = build_options.environment.as_dictionary(build_env)
     build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
@@ -339,9 +342,8 @@ def localized_vars(
         if isinstance(final, str):
             final = final.replace(orig_prefix, str(prefix))
 
-        # See platforms.md for the reason why we use this default API level.
         if key == "ANDROID_API_LEVEL":
-            final = int(build_env.get(key, "24"))
+            final = int(build_env[key])
 
         # Build systems vary in whether FLAGS variables are read from sysconfig, and if so,
         # whether they're replaced by environment variables or combined with them. Even

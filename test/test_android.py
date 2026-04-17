@@ -438,13 +438,24 @@ def test_verbosity(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
 
 @needs_emulator
 def test_api_level(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
-    project = new_c_project()
+    project = new_c_project(
+        # Check that the the compiler options are set correctly.
+        spam_c_top_level_add=dedent(
+            """\
+            #if __ANDROID_API__ != 33
+            #error Wrong API level
+            #endif
+            """
+        )
+    )
     project.files["pyproject.toml"] = dedent(
         """\
         [build-system]
         requires = ["setuptools"]
 
         [tool.cibuildwheel]
+        # Test setting API level in pyproject.toml (test_libcxx covers setting
+        # it in the outer environment.)
         android.environment.ANDROID_API_LEVEL = "33"
         android.environment.PIP_EXTRA_INDEX_URL = "https://chaquo.com/pypi-13.1"
         """
@@ -490,7 +501,12 @@ def test_libcxx(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     }
 
     # Including external libraries requires API level 24. This is enforced by auditwheel.
-    cp313_android_21_env = {**cp313_test_env, "ANDROID_API_LEVEL": "21"}
+    cp313_android_21_env = {
+        **cp313_test_env,
+        # Test setting API level in the outer environment (test_api_level covers setting
+        # it in pyproject.toml.)
+        "ANDROID_API_LEVEL": "21",
+    }
     with pytest.raises(CalledProcessError):
         cibuildwheel_run(project_dir, add_env=cp313_android_21_env, output_dir=output_dir)
     assert (
@@ -632,12 +648,53 @@ def test_meson(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
         )
     )
 
-    script = 'import spam; print(f"fortran_func: {spam.filter("")}")'
+    script = 'import spam; print(f"result: {spam.filter("")}")'
     cibuildwheel_run(
         tmp_path,
         add_env={**cp313_env, "CIBW_TEST_COMMAND": f"python -c '{script}'"},
     )
-    assert "fortran_func: 42" in capfd.readouterr().out
+    assert "result: 42" in capfd.readouterr().out
+
+
+@needs_emulator
+def test_cross_build_files(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    # Verify that we've replaced the correct files by compiling against a non-trivial
+    # function from libnpymath.a.
+    new_c_project(
+        setup_py_add=dedent(
+            """\
+            import numpy as np
+            np_include = np.get_include()
+            np_lib = f"{np_include}/../lib"
+            libraries.append("npymath")
+            """
+        ),
+        setup_py_extension_args_add="include_dirs=[np_include], library_dirs=[np_lib]",
+        spam_c_top_level_add="#include <numpy/halffloat.h>",
+        spam_c_function_add="sts = npy_float_to_half(42);",
+    ).generate(tmp_path)
+
+    (tmp_path / "pyproject.toml").write_text(
+        dedent(
+            """\
+            [build-system]
+            requires = ["setuptools", "numpy==2.3.2"]
+            """
+        )
+    )
+
+    script = 'import spam; print(f"result: {spam.filter(""):#x}")'
+    cibuildwheel_run(
+        tmp_path,
+        add_env={
+            **cp313_env,
+            # TODO: remove this once there are official Android NumPy wheels on PyPI.
+            "PIP_EXTRA_INDEX_URL": "https://chaquo.com/pypi-test",
+            "CIBW_ARCHS": "all",  # Include both native and non-native archs.
+            "CIBW_TEST_COMMAND": f"python -c '{script}'",
+        },
+    )
+    assert "result: 0x5140" in capfd.readouterr().out
 
 
 @needs_emulator
