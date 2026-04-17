@@ -909,8 +909,7 @@ Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
-- on Android: There is no default command, but cibuildwheel will add `libc++` to the
-  wheel if anything links against it. Setting a command will replace this behavior.
+- on Android: `'auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}'`
 - on Pyodide: You can use `pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}` command to repair the wheel.
   Unlike other platforms, this command is not set by default as you need to explicitly
   specify the library directory. You might not want to use the libraries in the system
@@ -925,6 +924,7 @@ The following placeholders must be used inside the command and will be replaced 
 - `{wheel}` for the absolute path to the built wheel
 - `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
 - `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
+- `{ldpaths}` (Android only) colon-separated list of directories to search for external libraries. cibuildwheel will set this to include any necessary locations in the NDK. To add your own locations, use the `LD_LIBRARY_PATH` environment variable.
 
 You can use the `{package}` or `{project}` placeholders in your `repair-wheel-command` to refer to the package being built or the project root, respectively.
 

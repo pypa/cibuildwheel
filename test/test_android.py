@@ -13,7 +13,7 @@ from zipfile import ZipFile
 
 import pytest
 
-from .test_projects import new_c_project
+from .test_projects import new_c_project, new_meson_project
 from .utils import cibuildwheel_run, expected_wheels
 
 pytestmark = pytest.mark.android
@@ -125,7 +125,7 @@ def test_frontend_good(tmp_path: Path, build_frontend_env: dict[str, str]) -> No
         tmp_path,
         add_env={**cp313_env, **build_frontend_env, "CIBW_TEST_COMMAND": "python -m site"},
     )
-    assert wheels == [f"spam-0.1.0-cp313-cp313-android_21_{native_arch.android_abi}.whl"]
+    assert wheels == [f"spam-0.1.0-cp313-cp313-android_24_{native_arch.android_abi}.whl"]
 
 
 @pytest.mark.parametrize("frontend", ["pip"])
@@ -136,7 +136,10 @@ def test_frontend_bad(frontend: str, tmp_path: Path, capfd: pytest.CaptureFixtur
             tmp_path,
             add_env={**cp313_env, "CIBW_BUILD_FRONTEND": frontend},
         )
-    assert "Android requires the build frontend to be 'build'" in capfd.readouterr().err
+    assert (
+        f"Android requires the build frontend to be 'build' or 'uv', not '{frontend}'"
+        in capfd.readouterr().err
+    )
 
 
 @needs_emulator
@@ -162,7 +165,7 @@ def test_archs(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
             ),
         },
     )
-    assert wheels == [f"spam-0.1.0-cp313-cp313-android_21_{arch.android_abi}.whl" for arch in archs]
+    assert wheels == [f"spam-0.1.0-cp313-cp313-android_24_{arch.android_abi}.whl" for arch in archs]
 
     stdout, stderr = capfd.readouterr()
     lines = (line for line in stdout.splitlines() if line.startswith("Hello from"))
@@ -435,13 +438,24 @@ def test_verbosity(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
 
 @needs_emulator
 def test_api_level(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
-    project = new_c_project()
+    project = new_c_project(
+        # Check that the the compiler options are set correctly.
+        spam_c_top_level_add=dedent(
+            """\
+            #if __ANDROID_API__ != 33
+            #error Wrong API level
+            #endif
+            """
+        )
+    )
     project.files["pyproject.toml"] = dedent(
         """\
         [build-system]
         requires = ["setuptools"]
 
         [tool.cibuildwheel]
+        # Test setting API level in pyproject.toml (test_libcxx covers setting
+        # it in the outer environment.)
         android.environment.ANDROID_API_LEVEL = "33"
         android.environment.PIP_EXTRA_INDEX_URL = "https://chaquo.com/pypi-13.1"
         """
@@ -486,17 +500,21 @@ def test_libcxx(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
         "PATH": non_venv_path,
     }
 
-    # Including external libraries requires API level 24.
+    # Including external libraries requires API level 24. This is enforced by auditwheel.
+    cp313_android_21_env = {
+        **cp313_test_env,
+        # Test setting API level in the outer environment (test_api_level covers setting
+        # it in pyproject.toml.)
+        "ANDROID_API_LEVEL": "21",
+    }
     with pytest.raises(CalledProcessError):
-        cibuildwheel_run(project_dir, add_env=cp313_test_env, output_dir=output_dir)
-    assert "libc++_shared.so requires ANDROID_API_LEVEL to be at least 24" in capfd.readouterr().err
-
-    wheels = cibuildwheel_run(
-        project_dir,
-        add_env={**cp313_test_env, "ANDROID_API_LEVEL": "24"},
-        output_dir=output_dir,
+        cibuildwheel_run(project_dir, add_env=cp313_android_21_env, output_dir=output_dir)
+    assert (
+        "Grafting libraries with RUNPATH requires API level 24 or higher" in capfd.readouterr().err
     )
-    assert len(wheels) == 1
+
+    wheels = cibuildwheel_run(project_dir, add_env=cp313_test_env, output_dir=output_dir)
+    assert wheels == [f"spam-0.1.0-cp313-cp313-android_24_{native_arch.android_abi}.whl"]
     names = ZipFile(output_dir / wheels[0]).namelist()
     libcxx_names = [
         name for name in names if re.fullmatch(r"spam\.libs/libc\+\+_shared-[0-9a-f]{8}\.so", name)
@@ -504,14 +522,179 @@ def test_libcxx(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     assert len(libcxx_names) == 1
     assert "ham: 1, spam: 0" in capfd.readouterr().out
 
-    # A C package should not include libc++.
+    # A C package should not include libc++, and can therefore use an older API level.
     rmtree(project_dir)
     rmtree(output_dir)
     new_c_project().generate(project_dir)
-    wheels = cibuildwheel_run(project_dir, add_env=cp313_env, output_dir=output_dir)
-    assert len(wheels) == 1
+    wheels = cibuildwheel_run(project_dir, add_env=cp313_android_21_env, output_dir=output_dir)
+    assert wheels == [f"spam-0.1.0-cp313-cp313-android_21_{native_arch.android_abi}.whl"]
     for name in ZipFile(output_dir / wheels[0]).namelist():
         assert ".libs" not in name
+
+
+@needs_emulator
+def test_repair_none(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    new_c_project(setup_py_extension_args_add="language='c++'").generate(tmp_path)
+    with pytest.raises(CalledProcessError):
+        cibuildwheel_run(
+            tmp_path,
+            add_env={
+                **cp313_env,
+                "CIBW_REPAIR_WHEEL_COMMAND": "",
+                "CIBW_TEST_COMMAND": "python -c 'import spam'",
+            },
+        )
+    assert 'dlopen failed: library "libc++_shared.so" not found' in capfd.readouterr().err
+
+
+def test_repair_ldpaths(tmp_path: Path) -> None:
+    new_c_project().generate(tmp_path)
+    repair_path = tmp_path / "repair.py"
+    repair_path.write_text(
+        dedent(
+            """\
+            #!/usr/bin/env python
+            import shutil
+            import sys
+            from pathlib import Path
+
+            assert len(sys.argv) == 4, sys.argv
+            ldpaths = list(map(Path, sys.argv[1].split(":")))
+            dest_dir = sys.argv[2]
+            wheel = sys.argv[3]
+
+            for name in ["libc++_shared.so", "libomp.so"]:
+                assert any((lp / name).exists() for lp in ldpaths), (name, ldpaths)
+
+            shutil.copy(wheel, dest_dir)
+            """
+        )
+    )
+    repair_path.chmod(0o755)
+
+    wheels = cibuildwheel_run(
+        tmp_path,
+        add_env={
+            **cp313_env,
+            "CIBW_REPAIR_WHEEL_COMMAND": f"{repair_path} {{ldpaths}} {{dest_dir}} {{wheel}}",
+        },
+    )
+    assert wheels == [f"spam-0.1.0-cp313-cp313-android_24_{native_arch.android_abi}.whl"]
+
+
+@pytest.mark.parametrize(
+    ("script", "error"),
+    [
+        ("", "did not produce a wheel"),
+        ("touch $dest_dir/one.whl $dest_dir/two.whl", "produced multiple wheels"),
+        ("touch $dest_dir/one-0.0.1-py3-none-any.whl", "pure Python wheel was generated"),
+    ],
+)
+def test_repair_error(
+    script: str, error: str, tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
+    new_c_project().generate(tmp_path)
+    repair_path = tmp_path / "repair.sh"
+    repair_path.write_text(
+        dedent(
+            f"""\
+            #!/bin/sh
+            dest_dir=$1
+            {script}
+            """
+        )
+    )
+    repair_path.chmod(0o755)
+
+    with pytest.raises(CalledProcessError):
+        cibuildwheel_run(
+            tmp_path,
+            add_env={**cp313_env, "CIBW_REPAIR_WHEEL_COMMAND": f"{repair_path} {{dest_dir}}"},
+        )
+    assert error in capfd.readouterr().err
+
+
+# This also tests integration with pkgconf, because Meson uses it to find Python.
+@needs_emulator
+def test_meson(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    # Alter spam.filter to return the value of a Fortran function.
+    new_meson_project(
+        spam_c_top_level_add="int fortran_func_();",
+        spam_c_function_add="sts = fortran_func_();",
+    ).generate(tmp_path)
+
+    # TODO: remove once meson-python has a release with Android support.
+    pyproject_path = tmp_path / "pyproject.toml"
+    pyproject_path.write_text(
+        pyproject_path.read_text().replace(
+            "meson-python", "meson-python @ git+https://github.com/mesonbuild/meson-python@main"
+        )
+    )
+
+    # Add Fortran code.
+    meson_build_path = tmp_path / "meson.build"
+    meson_build_path.write_text(
+        meson_build_path.read_text()
+        .replace("'c'", "'c', 'fortran'")
+        .replace("'spam.c'", "'spam.c', 'fortran.f90', link_language: 'fortran'")
+    )
+    (tmp_path / "fortran.f90").write_text(
+        dedent(
+            """\
+            integer*4 function fortran_func()
+                fortran_func = 42
+            end
+            """
+        )
+    )
+
+    script = 'import spam; print(f"result: {spam.filter("")}")'
+    cibuildwheel_run(
+        tmp_path,
+        add_env={**cp313_env, "CIBW_TEST_COMMAND": f"python -c '{script}'"},
+    )
+    assert "result: 42" in capfd.readouterr().out
+
+
+@needs_emulator
+def test_cross_build_files(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    # Verify that we've replaced the correct files by compiling against a non-trivial
+    # function from libnpymath.a.
+    new_c_project(
+        setup_py_add=dedent(
+            """\
+            import numpy as np
+            np_include = np.get_include()
+            np_lib = f"{np_include}/../lib"
+            libraries.append("npymath")
+            """
+        ),
+        setup_py_extension_args_add="include_dirs=[np_include], library_dirs=[np_lib]",
+        spam_c_top_level_add="#include <numpy/halffloat.h>",
+        spam_c_function_add="sts = npy_float_to_half(42);",
+    ).generate(tmp_path)
+
+    (tmp_path / "pyproject.toml").write_text(
+        dedent(
+            """\
+            [build-system]
+            requires = ["setuptools", "numpy==2.3.2"]
+            """
+        )
+    )
+
+    script = 'import spam; print(f"result: {spam.filter(""):#x}")'
+    cibuildwheel_run(
+        tmp_path,
+        add_env={
+            **cp313_env,
+            # TODO: remove this once there are official Android NumPy wheels on PyPI.
+            "PIP_EXTRA_INDEX_URL": "https://chaquo.com/pypi-test",
+            "CIBW_ARCHS": "all",  # Include both native and non-native archs.
+            "CIBW_TEST_COMMAND": f"python -c '{script}'",
+        },
+    )
+    assert "result: 0x5140" in capfd.readouterr().out
 
 
 @needs_emulator

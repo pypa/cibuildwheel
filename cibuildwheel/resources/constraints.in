@@ -1,4 +1,10 @@
 pip
 build
-delocate
 virtualenv
+
+# Android
+patchelf
+pkgconf
+
+# macOS
+delocate
