@@ -13,7 +13,7 @@ from zipfile import ZipFile
 
 import pytest
 
-from .test_projects import new_c_project
+from .test_projects import new_c_project, new_meson_project
 from .utils import cibuildwheel_run, expected_wheels
 
 pytestmark = pytest.mark.android
@@ -596,6 +596,48 @@ def test_repair_error(
             add_env={**cp313_env, "CIBW_REPAIR_WHEEL_COMMAND": f"{repair_path} {{dest_dir}}"},
         )
     assert error in capfd.readouterr().err
+
+
+# This also tests integration with pkgconf, because Meson uses it to find Python.
+@needs_emulator
+def test_meson(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    # Alter spam.filter to return the value of a Fortran function.
+    new_meson_project(
+        spam_c_top_level_add="int fortran_func_();",
+        spam_c_function_add="sts = fortran_func_();",
+    ).generate(tmp_path)
+
+    # TODO: remove once meson-python has a release with Android support.
+    pyproject_path = tmp_path / "pyproject.toml"
+    pyproject_path.write_text(
+        pyproject_path.read_text().replace(
+            "meson-python", "meson-python @ git+https://github.com/mesonbuild/meson-python@main"
+        )
+    )
+
+    # Add Fortran code.
+    meson_build_path = tmp_path / "meson.build"
+    meson_build_path.write_text(
+        meson_build_path.read_text()
+        .replace("'c'", "'c', 'fortran'")
+        .replace("'spam.c'", "'spam.c', 'fortran.f90', link_language: 'fortran'")
+    )
+    (tmp_path / "fortran.f90").write_text(
+        dedent(
+            """\
+            integer*4 function fortran_func()
+                fortran_func = 42
+            end
+            """
+        )
+    )
+
+    script = 'import spam; print(f"fortran_func: {spam.filter("")}")'
+    cibuildwheel_run(
+        tmp_path,
+        add_env={**cp313_env, "CIBW_TEST_COMMAND": f"python -c '{script}'"},
+    )
+    assert "fortran_func: 42" in capfd.readouterr().out
 
 
 @needs_emulator

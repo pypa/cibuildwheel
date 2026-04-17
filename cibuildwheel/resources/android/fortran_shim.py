@@ -5,7 +5,6 @@ import os
 import re
 import shutil
 import sys
-from itertools import chain
 from pathlib import Path
 
 from filelock import FileLock
@@ -88,21 +87,18 @@ def run_flang(cache_dir: Path) -> None:
 
     # In a future Flang version the executable name will change to "flang"
     # (https://blog.llvm.org/posts/2025-03-11-flang-new/).
-    args = [f"{cache_dir}/bin/flang-new", f"--target={target}", *sys.argv[1:]]
+    flang_args = [f"{cache_dir}/bin/flang-new", f"--target={target}", *sys.argv[1:]]
 
     if sys.platform == "linux":
-        pass
+        args = flang_args
     elif sys.platform == "darwin":
-        args = [
-            *["docker", "run", "--rm", "--platform", "linux/amd64"],
-            *chain.from_iterable(
-                # Docker on macOS only allows certain directories to be mounted as volumes
-                # by default, but they include all the locations we're likely to need.
-                ["-v", f"{path}:{path}"]
-                for path in ["/private", "/Users", "/tmp"]
-            ),
-            *["-w", str(Path.cwd()), "--entrypoint", args[0], DOCKER_IMAGE, *args[1:]],
-        ]
+        args = ["docker", "run", "--rm", "--platform", "linux/amd64"]
+        for path in ["/private", "/Users", "/tmp"]:
+            # Docker on macOS only allows certain directories to be mounted as volumes
+            # by default, but they include all the locations we're likely to need.
+            args += ["-v", f"{path}:{path}"]
+        args += ["--workdir", str(Path.cwd())]
+        args += ["--entrypoint", flang_args[0], DOCKER_IMAGE, *flang_args[1:]]
     else:
         msg = f"unknown platform: {sys.platform}"
         raise ValueError(msg)
