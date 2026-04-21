@@ -26,12 +26,30 @@ install(TARGETS spam DESTINATION .)
 
 PKG_B_PYPROJECT_TEMPLATE = r"""
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["meson-python"]
+build-backend = "mesonpy"
 
 [project]
 name = "eggs"
 version = "0.1.0"
+
+[tool.cibuildwheel.windows]
+config-settings = { "setup-args" = "--vsenv" }
+archs = ["auto64"]
+"""
+
+PKG_B_MESON_BUILD = r"""
+project('eggs', 'c',
+  version: '0.1.0',
+  default_options: ['warning_level=2'],
+)
+
+py = import('python').find_installation(pure: false)
+
+py.extension_module('spam',
+  'spam.c',
+  install: true,
+)
 """
 
 TOPLEVEL_PYPROJECT = r"""
@@ -47,7 +65,7 @@ def new_uv_workspace_project() -> TestProject:
     """Create a TestProject representing a uv workspace with two members.
 
     - pkg_a: a minimal package built with `scikit-build-core` (produces "spam" wheel).
-    - pkg_b: a package using `hatchling` as its build backend (produces "eggs" wheel).
+    - pkg_b: a package using `meson-python` as its build backend (produces "eggs" wheel).
     The top-level project declares the uv workspace.
     """
     project = TestProject()
@@ -59,9 +77,12 @@ def new_uv_workspace_project() -> TestProject:
     )
     project.files["pkg_a/CMakeLists.txt"] = jinja2.Template(PKG_A_CMAKELISTS)
 
-    # pkg_b: uses hatchling
+    # pkg_b: uses meson-python
     project.files["pkg_b/pyproject.toml"] = jinja2.Template(PKG_B_PYPROJECT_TEMPLATE)
-    project.files["pkg_b/eggs/__init__.py"] = "__version__ = '0.1.0'\n"
+    project.files["pkg_b/spam.c"] = jinja2.Template(SPAM_C_TEMPLATE).render(
+        spam_c_top_level_add="", spam_c_function_add=""
+    )
+    project.files["pkg_b/meson.build"] = jinja2.Template(PKG_B_MESON_BUILD)
 
     # top-level workspace pyproject declares uv workspace
     project.files["pyproject.toml"] = jinja2.Template(TOPLEVEL_PYPROJECT)
