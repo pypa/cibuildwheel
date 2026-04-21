@@ -9,7 +9,7 @@ import re
 import sys
 import textwrap
 import time
-from collections.abc import Generator
+from collections.abc import Generator, Sequence
 from pathlib import Path
 from typing import IO, TYPE_CHECKING, AnyStr, Final, Literal
 
@@ -166,7 +166,7 @@ class Logger:
         self.build_start_time = time.time()
         self.active_build_identifier = identifier
 
-    def build_end(self, filename: Path | None) -> None:
+    def build_end(self, filename: Path | Sequence[Path] | None) -> None:
         assert self.build_start_time is not None
         assert self.active_build_identifier is not None
         self.step_end()
@@ -178,9 +178,33 @@ class Logger:
 
         print()
         print(f"{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration_str}")
-        self.summary.append(
-            BuildInfo(identifier=self.active_build_identifier, filename=filename, duration=duration)
-        )
+
+        if isinstance(filename, Sequence):
+            if not filename:
+                self.summary.append(
+                    BuildInfo(
+                        identifier=self.active_build_identifier,
+                        filename=None,
+                        duration=duration,
+                    )
+                )
+            else:
+                for f in filename:
+                    self.summary.append(
+                        BuildInfo(
+                            identifier=self.active_build_identifier,
+                            filename=f,
+                            duration=duration,
+                        )
+                    )
+        else:
+            self.summary.append(
+                BuildInfo(
+                    identifier=self.active_build_identifier,
+                    filename=filename,
+                    duration=duration,
+                )
+            )
 
         self.build_start_time = None
         self.active_build_identifier = None

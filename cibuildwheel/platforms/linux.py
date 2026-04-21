@@ -18,7 +18,10 @@ from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.file import copy_test_sources
 from cibuildwheel.util.helpers import prepare_command, unwrap
-from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.util.packaging import (
+    find_all_compatible_wheels,
+    should_skip_build,
+)
 
 if TYPE_CHECKING:
     from cibuildwheel.typing import PathOrStr
@@ -249,13 +252,15 @@ def build_in_container(
                 msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
                 raise errors.FatalError(msg)
 
-        compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
-        if compatible_wheel:
+        skip_build = should_skip_build(built_wheels, config.identifier)
+        repaired_wheels: list[PurePosixPath]
+        if skip_build:
+            compatible_wheels = find_all_compatible_wheels(built_wheels, config.identifier)
             log.step_end()
             print(
-                f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
+                f"\nFound previously built wheels {[p.name for p in compatible_wheels]}, that's compatible with {config.identifier}. Skipping build step..."
             )
-            repaired_wheel = compatible_wheel
+            repaired_wheels = compatible_wheels
         else:
             if build_options.before_build:
                 log.step("Running before_build...")
@@ -326,38 +331,48 @@ def build_in_container(
                 case _:
                     assert_never(build_frontend)
 
-            built_wheel = container.glob(built_wheel_dir, "*.whl")[0]
+            built_wheels_list = container.glob(built_wheel_dir, "*.whl")
+            if not built_wheels_list:
+                msg = "Build step did not produce any wheels"
+                raise errors.FatalError(msg)
 
-            repaired_wheel_dir = temp_dir / "repaired_wheel"
-            container.call(["rm", "-rf", repaired_wheel_dir])
-            container.call(["mkdir", "-p", repaired_wheel_dir])
+            for built_wheel in built_wheels_list:
+                if built_wheel.name.endswith("none-any.whl"):
+                    raise errors.NonPlatformWheelError()
 
-            if built_wheel.name.endswith("none-any.whl"):
-                raise errors.NonPlatformWheelError()
+            repaired_wheels = []
+            for built_wheel in built_wheels_list:
+                repaired_wheel_dir = temp_dir / "repaired_wheel"
+                container.call(["rm", "-rf", repaired_wheel_dir])
+                container.call(["mkdir", "-p", repaired_wheel_dir])
 
-            if build_options.repair_command:
-                log.step("Repairing wheel...")
-                repair_command_prepared = prepare_command(
-                    build_options.repair_command,
-                    wheel=built_wheel,
-                    dest_dir=repaired_wheel_dir,
-                    package=container_package_dir,
-                    project=container_project_path,
-                )
-                container.call(["sh", "-c", repair_command_prepared], env=env)
-            else:
-                container.call(["mv", built_wheel, repaired_wheel_dir])
+                if build_options.repair_command:
+                    log.step("Repairing wheel...")
+                    repair_command_prepared = prepare_command(
+                        build_options.repair_command,
+                        wheel=built_wheel,
+                        dest_dir=repaired_wheel_dir,
+                        package=container_package_dir,
+                        project=container_project_path,
+                    )
+                    container.call(["sh", "-c", repair_command_prepared], env=env)
+                else:
+                    container.call(["mv", built_wheel, repaired_wheel_dir])
 
-            match container.glob(repaired_wheel_dir, "*.whl"):
-                case []:
-                    raise errors.RepairStepProducedNoWheelError()
-                case [repaired_wheel]:
-                    pass
-                case too_many:
-                    raise errors.RepairStepProducedMultipleWheelsError([p.name for p in too_many])
+                match container.glob(repaired_wheel_dir, "*.whl"):
+                    case []:
+                        raise errors.RepairStepProducedNoWheelError()
+                    case [repaired_wheel]:
+                        pass
+                    case too_many:
+                        raise errors.RepairStepProducedMultipleWheelsError(
+                            [p.name for p in too_many]
+                        )
 
-            if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
-                raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                    raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+
+                repaired_wheels.append(repaired_wheel)
 
         if build_options.test_command and build_options.test_selector(config.identifier):
             log.step("Testing wheel...")
@@ -398,11 +413,12 @@ def build_in_container(
                 )
                 container.call(["sh", "-c", before_test_prepared], env=virtualenv_env)
 
-            # Install the wheel we just built
-            container.call(
-                [*pip, "install", str(repaired_wheel) + build_options.test_extras],
-                env=virtualenv_env,
-            )
+            # Install all the wheels we just built
+            for repaired_wheel in repaired_wheels:
+                container.call(
+                    [*pip, "install", str(repaired_wheel) + build_options.test_extras],
+                    env=virtualenv_env,
+                )
 
             # Install any requirements to run the tests
             if build_options.test_requires:
@@ -413,7 +429,7 @@ def build_in_container(
                 build_options.test_command,
                 project=container_project_path,
                 package=container_package_dir,
-                wheel=repaired_wheel,
+                wheel=repaired_wheels[0],
             )
 
             test_cwd = testing_temp_dir / "test_cwd"
@@ -436,15 +452,16 @@ def build_in_container(
             # clean up test environment
             container.call(["rm", "-rf", testing_temp_dir])
 
-        # move repaired wheel to output
-        output_wheel: Path | None = None
-        if compatible_wheel is None:
+        # move repaired wheels to output
+        output_wheels: list[Path] = []
+        if not skip_build:
             container.call(["mkdir", "-p", container_output_dir])
-            container.call(["mv", repaired_wheel, container_output_dir])
-            built_wheels.append(container_output_dir / repaired_wheel.name)
-            output_wheel = options.globals.output_dir / repaired_wheel.name
+            for repaired_wheel in repaired_wheels:
+                container.call(["mv", repaired_wheel, container_output_dir])
+                built_wheels.append(container_output_dir / repaired_wheel.name)
+                output_wheels.append(options.globals.output_dir / repaired_wheel.name)
 
-        log.build_end(output_wheel)
+        log.build_end(output_wheels or None)
 
     log.step("Copying wheels back to host...")
     # copy the output back into the host

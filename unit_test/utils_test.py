@@ -15,7 +15,11 @@ from cibuildwheel.util.helpers import (
     unwrap,
     unwrap_preserving_paragraphs,
 )
-from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.util.packaging import (
+    find_all_compatible_wheels,
+    find_compatible_wheel,
+    should_skip_build,
+)
 
 
 def test_format_safe() -> None:
@@ -101,6 +105,55 @@ def test_find_compatible_wheel_found(wheel: str, identifier: str) -> None:
 )
 def test_find_compatible_wheel_not_found(wheel: str, identifier: str) -> None:
     assert find_compatible_wheel([PurePath(wheel)], identifier) is None
+
+
+@pytest.mark.parametrize(
+    ("wheels", "identifier", "expected_count"),
+    [
+        (["foo-0.1-cp38-abi3-win_amd64.whl"], "cp310-win_amd64", 1),
+        (
+            ["foo-0.1-cp38-abi3-win_amd64.whl", "bar-0.1-cp38-abi3-win_amd64.whl"],
+            "cp310-win_amd64",
+            2,
+        ),
+        (["foo-0.1-cp38-cp38-win_amd64.whl"], "cp310-win_amd64", 0),
+        ([], "cp310-win_amd64", 0),
+        (
+            [
+                "foo-0.1-cp38-abi3-win_amd64.whl",
+                "bar-0.1-cp38-cp38-win_amd64.whl",
+            ],
+            "cp310-win_amd64",
+            1,
+        ),
+    ],
+)
+def test_find_all_compatible_wheels(
+    wheels: list[str], identifier: str, expected_count: int
+) -> None:
+    result = find_all_compatible_wheels([PurePath(w) for w in wheels], identifier)
+    assert len(result) == expected_count
+
+
+@pytest.mark.parametrize(
+    ("wheels", "identifier", "expected"),
+    [
+        ([], "cp310-win_amd64", False),
+        (["foo-0.1-cp38-abi3-win_amd64.whl"], "cp310-win_amd64", True),
+        (["foo-0.1-py3-none-win_amd64.whl"], "cp310-win_amd64", True),
+        (["foo-0.1-cp38-cp38-win_amd64.whl"], "cp310-win_amd64", False),
+        (
+            [
+                "foo-0.1-cp38-abi3-win_amd64.whl",
+                "bar-0.1-cp38-cp38-win_amd64.whl",
+            ],
+            "cp310-win_amd64",
+            False,
+        ),
+    ],
+)
+def test_should_skip_build(wheels: list[str], identifier: str, expected: bool) -> None:
+    assert should_skip_build([PurePath(w) for w in wheels], identifier) == expected
 
 
 def test_fix_ansi_codes_for_github_actions() -> None:

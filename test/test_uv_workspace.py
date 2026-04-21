@@ -62,10 +62,6 @@ def test_uv_workspace_pkg_b_meson_python(
         "eggs", "0.1.0", single_python=True, single_arch=is_windows
     )
 
-    actual_wheels_normalized = {
-        packaging.utils.parse_wheel_filename(w) for w in actual_wheels
-    }
-    expected_wheels_normalized = {
-        packaging.utils.parse_wheel_filename(w) for w in expected_wheels
-    }
+    actual_wheels_normalized = {packaging.utils.parse_wheel_filename(w) for w in actual_wheels}
+    expected_wheels_normalized = {packaging.utils.parse_wheel_filename(w) for w in expected_wheels}
     assert actual_wheels_normalized == expected_wheels_normalized

@@ -32,7 +32,11 @@ from cibuildwheel.util.file import (
     move_file,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
-from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
+from cibuildwheel.util.packaging import (
+    find_all_compatible_wheels,
+    get_pip_version,
+    should_skip_build,
+)
 from cibuildwheel.util.python_build_standalone import (
     PythonBuildStandaloneError,
     create_python_build_standalone_environment,
@@ -404,13 +408,16 @@ def build(options: Options, tmp_path: Path) -> None:
                 oldmounts = env["_PYODIDE_EXTRA_MOUNTS"] + ":"
             env["_PYODIDE_EXTRA_MOUNTS"] = oldmounts + ":".join(extra_mounts)
 
-            compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
-            if compatible_wheel:
+            skip_build = should_skip_build(built_wheels, config.identifier)
+            repaired_wheels: list[Path]
+            if skip_build:
+                compatible_wheels = find_all_compatible_wheels(built_wheels, config.identifier)
                 log.step_end()
                 print(
-                    f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
+                    f"\nFound previously built wheels {[p.name for p in compatible_wheels]}, "
+                    f"that's compatible with {config.identifier}. Skipping build step..."
                 )
-                built_wheel = compatible_wheel
+                repaired_wheels = compatible_wheels
             else:
                 if build_options.before_build:
                     log.step("Running before_build...")
@@ -436,30 +443,41 @@ def build(options: Options, tmp_path: Path) -> None:
                     *extra_flags,
                     env=env,
                 )
-                built_wheel = next(built_wheel_dir.glob("*.whl"))
+                built_wheels_list = list(built_wheel_dir.glob("*.whl"))
+                if not built_wheels_list:
+                    msg = "Build step did not produce any wheels"
+                    raise errors.FatalError(msg)
 
-                if built_wheel.name.endswith("none-any.whl"):
-                    raise errors.NonPlatformWheelError()
+                for built_wheel in built_wheels_list:
+                    if built_wheel.name.endswith("none-any.whl"):
+                        raise errors.NonPlatformWheelError()
 
-                if build_options.repair_command:
-                    log.step("Repairing wheel...")
+                repaired_wheels = []
+                for wheel_idx, built_wheel in enumerate(built_wheels_list):
+                    this_repaired_dir = identifier_tmp_dir / f"repaired_wheel_{wheel_idx}"
+                    this_repaired_dir.mkdir()
 
-                    repair_command_prepared = prepare_command(
-                        build_options.repair_command,
-                        wheel=built_wheel,
-                        dest_dir=repaired_wheel_dir,
-                        package=build_options.package_dir,
-                        project=".",
-                    )
-                    shell(repair_command_prepared, env=env)
-                    log.step_end()
-                else:
-                    shutil.move(str(built_wheel), repaired_wheel_dir)
+                    if build_options.repair_command:
+                        log.step("Repairing wheel...")
 
-                repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+                        repair_command_prepared = prepare_command(
+                            build_options.repair_command,
+                            wheel=built_wheel,
+                            dest_dir=this_repaired_dir,
+                            package=build_options.package_dir,
+                            project=".",
+                        )
+                        shell(repair_command_prepared, env=env)
+                        log.step_end()
+                    else:
+                        shutil.move(str(built_wheel), this_repaired_dir)
 
-                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
-                    raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+                    repaired_wheel = next(this_repaired_dir.glob("*.whl"))
+
+                    if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                        raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+
+                    repaired_wheels.append(repaired_wheel)
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 log.step("Testing wheel...")
@@ -504,17 +522,18 @@ def build(options: Options, tmp_path: Path) -> None:
                         build_options.before_test,
                         project=".",
                         package=build_options.package_dir,
-                        wheel=repaired_wheel,
+                        wheel=repaired_wheels[0],
                     )
                     shell(before_test_prepared, env=virtualenv_env)
 
-                # install the wheel
-                call(
-                    "pip",
-                    "install",
-                    f"{repaired_wheel}{build_options.test_extras}",
-                    env=virtualenv_env,
-                )
+                # install the wheels
+                for repaired_wheel in repaired_wheels:
+                    call(
+                        "pip",
+                        "install",
+                        f"{repaired_wheel}{build_options.test_extras}",
+                        env=virtualenv_env,
+                    )
 
                 # test the wheel
                 if build_options.test_requires:
@@ -545,17 +564,19 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
-            # we're all done here; move it to output (overwrite existing)
-            output_wheel: Path | None = None
-            if compatible_wheel is None:
-                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
-                moved_wheel = move_file(repaired_wheel, output_wheel)
-                if moved_wheel != output_wheel.resolve():
-                    log.warning(
-                        f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
-                    )
-                built_wheels.append(output_wheel)
-            log.build_end(output_wheel)
+            # we're all done here; move wheels to output (overwrite existing)
+            output_wheels: list[Path] = []
+            if not skip_build:
+                for repaired_wheel in repaired_wheels:
+                    output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
+                    moved_wheel = move_file(repaired_wheel, output_wheel)
+                    if moved_wheel != output_wheel.resolve():
+                        log.warning(
+                            f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                        )
+                    built_wheels.append(output_wheel)
+                    output_wheels.append(output_wheel)
+            log.build_end(output_wheels or None)
 
     except subprocess.CalledProcessError as error:
         msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"

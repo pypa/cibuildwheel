@@ -128,52 +128,81 @@ def get_pip_version(env: Mapping[str, str]) -> str:
 T = TypeVar("T", bound=PurePath)
 
 
-def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
-    """
-    Finds a wheel with an abi3 or a none ABI tag in `wheels` compatible with the Python interpreter
-    specified by `identifier` that is previously built.
-    """
-
+def _wheel_is_compatible(wheel_name: str, identifier: str) -> bool:
     interpreter, platform = identifier.split("-", 1)
     interpreter = interpreter.split("_")[0]
     free_threaded = interpreter.endswith("t")
     if free_threaded:
         interpreter = interpreter[:-1]
+
+    _, _, _, tags = parse_wheel_filename(wheel_name)
+    for tag in tags:
+        if tag.abi == "abi3" and not free_threaded:
+            # ABI3 wheels must start with cp3 for impl and tag
+            if not (interpreter.startswith("cp3") and tag.interpreter.startswith("cp3")):
+                continue
+        elif tag.abi == "none":
+            # CPythonless wheels must include py3 tag
+            if tag.interpreter[:3] != "py3":
+                continue
+        else:
+            # Other types of wheels are not compatible.
+            return False
+
+        if tag.interpreter != "py3" and int(tag.interpreter[3:]) > int(interpreter[3:]):
+            # If a minor version number is given, it has to be lower than the current one.
+            continue
+
+        if platform.startswith(("manylinux", "musllinux", "macosx", "android", "ios")):
+            # On these platforms the wheel tag includes a platform version number, which we
+            # should ignore.
+            os_, arch = platform.split("_", 1)
+            if not tag.platform.startswith(os_):
+                continue
+            if not tag.platform.endswith(f"_{arch}"):
+                continue
+        elif platform.startswith("pyodide"):
+            # each Pyodide version has its own platform tag
+            continue
+        # Windows should exactly match
+        elif tag.platform != platform:
+            continue
+
+        # If all the filters above pass, then the wheel is a previously built compatible wheel.
+        return True
+
+    return False
+
+
+def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
+    """
+    Finds a wheel with an abi3 or a none ABI tag in `wheels` compatible with the Python interpreter
+    specified by `identifier` that is previously built.
+    """
     for wheel in wheels:
-        _, _, _, tags = parse_wheel_filename(wheel.name)
-        for tag in tags:
-            if tag.abi == "abi3" and not free_threaded:
-                # ABI3 wheels must start with cp3 for impl and tag
-                if not (interpreter.startswith("cp3") and tag.interpreter.startswith("cp3")):
-                    continue
-            elif tag.abi == "none":
-                # CPythonless wheels must include py3 tag
-                if tag.interpreter[:3] != "py3":
-                    continue
-            else:
-                # Other types of wheels are not detected, this is looking for previously built wheels.
-                continue
-
-            if tag.interpreter != "py3" and int(tag.interpreter[3:]) > int(interpreter[3:]):
-                # If a minor version number is given, it has to be lower than the current one.
-                continue
-
-            if platform.startswith(("manylinux", "musllinux", "macosx", "android", "ios")):
-                # On these platforms the wheel tag includes a platform version number, which we
-                # should ignore.
-                os_, arch = platform.split("_", 1)
-                if not tag.platform.startswith(os_):
-                    continue
-                if not tag.platform.endswith(f"_{arch}"):
-                    continue
-            elif platform.startswith("pyodide"):
-                # each Pyodide version has its own platform tag
-                continue
-            # Windows should exactly match
-            elif tag.platform != platform:
-                continue
-
-            # If all the filters above pass, then the wheel is a previously built compatible wheel.
+        if _wheel_is_compatible(wheel.name, identifier):
             return wheel
-
     return None
+
+
+def find_all_compatible_wheels(wheels: Sequence[T], identifier: str) -> list[T]:
+    """
+    Returns all wheels in `wheels` that are compatible with `identifier`
+    (i.e. have an abi3 or none ABI tag matching the platform).
+    """
+    return [wheel for wheel in wheels if _wheel_is_compatible(wheel.name, identifier)]
+
+
+def should_skip_build(wheels: Sequence[T], identifier: str) -> bool:
+    """
+    Returns True if we can skip the build for `identifier` because *all*
+    previously built wheels are compatible with it.
+
+    Empty `wheels` returns False (nothing to skip).
+    If any previously built wheel is not compatible, we must rebuild
+    (necessary for workspace builds where one wheel might be abi3 and
+    another might be platform-specific).
+    """
+    if not wheels:
+        return False
+    return all(_wheel_is_compatible(wheel.name, identifier) for wheel in wheels)

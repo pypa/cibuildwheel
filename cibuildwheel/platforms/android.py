@@ -32,7 +32,10 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
 from cibuildwheel.util.helpers import prepare_command
-from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.util.packaging import (
+    find_all_compatible_wheels,
+    should_skip_build,
+)
 from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
 from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
@@ -139,29 +142,32 @@ def build(options: Options, tmp_path: Path) -> None:
                 config, build_options, build_path, python_dir, build_env, android_env
             )
 
-            compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
-            if compatible_wheel:
+            skip_build = should_skip_build(built_wheels, config.identifier)
+            if skip_build:
+                compatible_wheels = find_all_compatible_wheels(built_wheels, config.identifier)
                 print(
-                    f"\nFound previously built wheel {compatible_wheel.name} that is "
-                    f"compatible with {config.identifier}. Skipping build step..."
+                    f"\nFound previously built wheels {[p.name for p in compatible_wheels]} "
+                    f"that are compatible with {config.identifier}. Skipping build step..."
                 )
-                repaired_wheel = compatible_wheel
+                repaired_wheels = compatible_wheels
             else:
                 before_build(state)
-                built_wheel = build_wheel(state)
-                repaired_wheel = repair_wheel(state, built_wheel)
+                built_wheels_list = build_wheels(state)
+                repaired_wheels = [repair_wheel(state, bw) for bw in built_wheels_list]
 
-            test_wheel(state, repaired_wheel, build_frontend=build_options.build_frontend.name)
+            test_wheels(state, repaired_wheels, build_frontend=build_options.build_frontend.name)
 
-            output_wheel: Path | None = None
-            if compatible_wheel is None:
-                output_wheel = move_file(
-                    repaired_wheel, build_options.output_dir / repaired_wheel.name
-                )
-                built_wheels.append(output_wheel)
+            output_wheels: list[Path] = []
+            if not skip_build:
+                for repaired_wheel in repaired_wheels:
+                    output_wheel = move_file(
+                        repaired_wheel, build_options.output_dir / repaired_wheel.name
+                    )
+                    built_wheels.append(output_wheel)
+                    output_wheels.append(output_wheel)
 
             shutil.rmtree(build_path)
-            log.build_end(output_wheel)
+            log.build_end(output_wheels or None)
 
     except subprocess.CalledProcessError as error:
         msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
@@ -446,7 +452,7 @@ def before_build(state: BuildState) -> None:
         )
 
 
-def build_wheel(state: BuildState) -> Path:
+def build_wheels(state: BuildState) -> list[Path]:
     log.step("Building wheel...")
     built_wheel_dir = state.build_path / "built_wheel"
     match state.options.build_frontend.name:
@@ -491,20 +497,20 @@ def build_wheel(state: BuildState) -> Path:
             raise AssertionError(msg)
 
     built_wheels = list(built_wheel_dir.glob("*.whl"))
-    if len(built_wheels) != 1:
-        msg = f"{built_wheel_dir} contains {len(built_wheels)} wheels; expected 1"
+    if not built_wheels:
+        msg = f"{built_wheel_dir} contains no wheels"
         raise errors.FatalError(msg)
-    built_wheel = built_wheels[0]
 
-    if built_wheel.name.endswith("none-any.whl"):
-        raise errors.NonPlatformWheelError()
-    return built_wheel
+    for built_wheel in built_wheels:
+        if built_wheel.name.endswith("none-any.whl"):
+            raise errors.NonPlatformWheelError()
+    return built_wheels
 
 
 def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     log.step("Repairing wheel...")
     repaired_wheel_dir = state.build_path / "repaired_wheel"
-    repaired_wheel_dir.mkdir()
+    repaired_wheel_dir.mkdir(parents=True, exist_ok=True)
 
     if state.options.repair_command:
         shell(
@@ -633,7 +639,7 @@ def soname_with_hash(src_path: Path) -> str:
         return src_name
 
 
-def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
+def test_wheels(state: BuildState, wheels: list[Path], *, build_frontend: str) -> None:
     test_command = state.options.test_command
     if not (test_command and state.options.test_selector(state.config.identifier)):
         return
@@ -670,20 +676,31 @@ def test_wheel(state: BuildState, wheel: Path, *, build_frontend: str) -> None:
         ]
     )
 
-    # Install the wheel and test-requires.
+    # Install the wheels and test-requires.
     site_packages_dir = state.build_path / "site-packages"
     site_packages_dir.mkdir()
-    call(
-        *pip,
-        "install",
-        "--only-binary=:all:",
-        *platform_args,
-        "--target",
-        site_packages_dir,
-        f"{wheel}{state.options.test_extras}",
-        *state.options.test_requires,
-        env=state.android_env,
-    )
+    for wheel in wheels:
+        call(
+            *pip,
+            "install",
+            "--only-binary=:all:",
+            *platform_args,
+            "--target",
+            site_packages_dir,
+            f"{wheel}{state.options.test_extras}",
+            env=state.android_env,
+        )
+    if state.options.test_requires:
+        call(
+            *pip,
+            "install",
+            "--only-binary=:all:",
+            *platform_args,
+            "--target",
+            site_packages_dir,
+            *state.options.test_requires,
+            env=state.android_env,
+        )
 
     # Copy test-sources.
     cwd_dir = state.build_path / "cwd"
