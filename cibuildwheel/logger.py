@@ -179,8 +179,8 @@ class Logger:
         print()
         print(f"{c.green}{s.done} {c.end}{self.active_build_identifier} finished in {duration_str}")
 
-        if isinstance(filename, Sequence):
-            if not filename:
+        match filename:
+            case []:
                 self.summary.append(
                     BuildInfo(
                         identifier=self.active_build_identifier,
@@ -188,7 +188,7 @@ class Logger:
                         duration=duration,
                     )
                 )
-            else:
+            case [*_]:
                 for f in filename:
                     self.summary.append(
                         BuildInfo(
@@ -197,14 +197,14 @@ class Logger:
                             duration=duration,
                         )
                     )
-        else:
-            self.summary.append(
-                BuildInfo(
-                    identifier=self.active_build_identifier,
-                    filename=filename,
-                    duration=duration,
+            case _:
+                self.summary.append(
+                    BuildInfo(
+                        identifier=self.active_build_identifier,
+                        filename=filename,
+                        duration=duration,
+                    )
                 )
-            )
 
         self.build_start_time = None
         self.active_build_identifier = None
