@@ -37,11 +37,15 @@ def run_audit(
         version=version, tmp_dir=tmp_dir
     )
 
+    # Use the base interpreter, not the venv python, to avoid nested-venv
+    # issues where pip can't be found (seen on Windows + Python 3.13).
+    host_python = Path(getattr(sys, "_base_executable", sys.executable))
+
     audit_venv_dir = tmp_dir / "audit_venv"
     if not (audit_venv_dir / "pyvenv.cfg").exists():
         env = virtualenv(
             version,
-            Path(sys.executable),
+            host_python,
             audit_venv_dir,
             dependency_constraint=dependency_constraint,
             use_uv=use_uv,
