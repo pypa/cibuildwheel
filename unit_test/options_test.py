@@ -697,3 +697,51 @@ def test_xbuild_tools_handling(tmp_path: Path, definition: str, expected: list[s
 
     local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
     assert local.xbuild_tools == expected
+
+
+DEFAULT_XBUILD_FILES = {
+    "numpy": [
+        "numpy/_core/include/numpy/_numpyconfig.h",
+        "numpy/_core/include/numpy/numpyconfig.h",
+        "numpy/_core/lib/libnpymath.a",
+        "numpy/random/lib/libnpyrandom.a",
+    ]
+}
+
+
+@pytest.mark.parametrize(
+    ("definition", "expected"),
+    [
+        ("", DEFAULT_XBUILD_FILES),
+        ('xbuild-files = ""', {}),
+        ('xbuild-files = "package1: file1"', {"package1": ["file1"]}),
+        (
+            "xbuild-files = \"package1: 'file1 with space'; package2: file2a file2b\"",
+            {"package1": ["file1 with space"], "package2": ["file2a", "file2b"]},
+        ),
+    ],
+)
+def test_xbuild_files(tmp_path: Path, definition: str, expected: dict[str, list[str]]) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {definition}
+            """
+        )
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+    assert options.build_options(None).xbuild_files == expected
+
+    pyproject_toml.write_text(
+        "[tool.cibuildwheel.xbuild-files]\n"
+        + "\n".join(f"{package} = {files}" for package, files in expected.items())
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+    assert options.build_options(None).xbuild_files == expected

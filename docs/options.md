@@ -902,6 +902,35 @@ Platform-specific environment variables are also available on platforms that use
     ```
 
 
+### `xbuild-files` {: #xbuild-files env-var toml}
+> Platform-specific files in the build environment
+
+When cross-compiling a package, any dependencies in its [`build-system.requires`](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) are installed for the build platform. However, some dependencies contain platform-specific files such as headers and static libraries, which must correspond to the target platform.
+
+This option maps a [normalized](https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization) package name to a list of paths within that package. If the package is present in the build environment, then a matching version will be downloaded for the target platform, and used to overwrite the given paths within the build environment.
+
+The default value of this option includes [paths from popular packages](configuration.md#configuration-file).
+
+Platform-specific environment variables are also available:<br/>
+ `CIBW_XBUILD_FILES_ANDROID`
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.xbuild-files]
+    package1 = ["some/header.h", "some/library.a"]
+    package2 = ["other/header.h"]
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_XBUILD_FILES: "package1: some/header.h some/library.a; package2: other/header.h"
+    ```
+
+
 ### `repair-wheel-command` {: #repair-wheel-command env-var toml}
 > Execute a shell command to repair each built wheel
 

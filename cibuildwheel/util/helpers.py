@@ -104,7 +104,7 @@ def parse_key_value_string(
     if kw_arg_names is None:
         kw_arg_names = []
 
-    all_field_names = [*positional_arg_names, *kw_arg_names]
+    all_field_names = None if ("*" in kw_arg_names) else [*positional_arg_names, *kw_arg_names]
 
     shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";")
     shlexer.commenters = ""
@@ -121,7 +121,7 @@ def parse_key_value_string(
         # check to see if the option name is specified
         field_name, sep, first_value = field[0].partition(":")
         if sep:
-            if field_name not in all_field_names:
+            if (all_field_names is not None) and (field_name not in all_field_names):
                 msg = f"Failed to parse {key_value_string!r}. Unknown field name {field_name!r}"
                 raise ValueError(msg)
 

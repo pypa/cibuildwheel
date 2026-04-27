@@ -15,6 +15,7 @@ from typing import Any
 from build import ProjectBuilder
 from build.env import IsolatedEnv
 from filelock import FileLock
+from packaging.utils import canonicalize_name
 
 from cibuildwheel import errors, platforms  # pylint: disable=cyclic-import
 from cibuildwheel.architecture import Architecture, arch_synonym
@@ -36,15 +37,6 @@ RESOURCES_ANDROID = resources.PATH / "android"
 ANDROID_TRIPLET = {
     "arm64_v8a": "aarch64-linux-android",
     "x86_64": "x86_64-linux-android",
-}
-
-CROSS_BUILD_FILES = {
-    "numpy": [
-        "numpy/_core/include/numpy/numpyconfig.h",
-        "numpy/_core/include/numpy/_numpyconfig.h",
-        "numpy/_core/lib/libnpymath.a",
-        "numpy/random/lib/libnpyrandom.a",
-    ]
 }
 
 
@@ -142,7 +134,7 @@ def build(options: Options, tmp_path: Path) -> None:
             state = BuildState(
                 config, build_options, build_path, python_dir, build_env, android_env
             )
-            setup_cross_build_files(state)
+            setup_xbuild_files(state)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -467,29 +459,25 @@ def setup_fortran(env: dict[str, str]) -> None:
     env["FC"] = str(shim_out)
 
 
-# Although the build environment must be installed for the build platform, some packages
-# contain platform-specific files which should be replaced with their Android
-# equivalents. We do this using a similar technique to Pyodide:
-#   * https://github.com/pyodide/pyodide-build/blob/v0.30.2/pyodide_build/recipe/builder.py#L638
-#   * https://github.com/pyodide/pyodide-recipes/blob/20250606/packages/numpy/meta.yaml#L28
-def setup_cross_build_files(state: BuildState) -> None:
+def setup_xbuild_files(state: BuildState) -> None:
     _, pip = find_pip(state.options)
-    cbf_dir = state.build_path / "cross_build_files"
-    cbf_dir.mkdir()
+    xbf_dir = state.build_path / "xbuild_files"
+    xbf_dir.mkdir()
 
     for requirement in call(*pip, "freeze", env=state.build_env, capture_stdout=True).splitlines():
         name, _, _ = requirement.strip().partition("==")
-        cross_build_files = CROSS_BUILD_FILES.get(name.lower(), [])
-        if cross_build_files:
-            pip_install_android(state, cbf_dir, "--no-deps", requirement)
-            for cbf in cross_build_files:
-                if (cbf_dir / cbf).exists():
+        xbuild_files = state.options.xbuild_files.get(canonicalize_name(name), [])
+        if xbuild_files:
+            log.step(f"Installing xbuild-files for {name}...")
+            pip_install_android(state, xbf_dir, "--no-deps", requirement)
+            for xbf in xbuild_files:
+                if (xbf_dir / xbf).exists():
                     shutil.copy(
-                        cbf_dir / cbf,
-                        find_site_packages(state.build_env) / cbf,
+                        xbf_dir / xbf,
+                        find_site_packages(state.build_env) / xbf,
                     )
                 else:
-                    log.warning(f"{cbf_dir / cbf} does not exist")
+                    log.warning(f"{xbf_dir / xbf} does not exist")
 
 
 def pip_install_android(state: BuildState, target: Path, *args: PathOrStr) -> None:

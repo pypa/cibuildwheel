@@ -658,7 +658,7 @@ def test_meson(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
 
 
 @needs_emulator
-def test_cross_build_files(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+def test_xbuild_files(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     # Verify that we've replaced the correct files by compiling against a non-trivial
     # function from libnpymath.a.
     new_c_project(

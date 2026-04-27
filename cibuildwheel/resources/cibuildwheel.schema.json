@@ -431,6 +431,34 @@
       ],
       "title": "CIBW_XBUILD_TOOLS"
     },
+    "xbuild-files": {
+      "description": "Platform-specific files in the build environment",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            ".+": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "title": "CIBW_XBUILD_FILES"
+    },
     "pyodide-version": {
       "type": "string",
       "description": "Specify the version of Pyodide to use",
@@ -644,6 +672,9 @@
               "xbuild-tools": {
                 "$ref": "#/$defs/inherit"
               },
+              "xbuild-files": {
+                "$ref": "#/$defs/inherit"
+              },
               "before-test": {
                 "$ref": "#/$defs/inherit"
               },
@@ -766,6 +797,9 @@
           "xbuild-tools": {
             "$ref": "#/properties/xbuild-tools"
           },
+          "xbuild-files": {
+            "$ref": "#/properties/xbuild-files"
+          },
           "pyodide-version": {
             "$ref": "#/properties/pyodide-version"
           },
@@ -884,6 +918,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
+        },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
         },
@@ -960,6 +997,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
+        },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
         },
@@ -1022,6 +1062,9 @@
         },
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
+        },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
         },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
@@ -1099,6 +1142,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
+        },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
         },
@@ -1161,6 +1207,9 @@
         },
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
+        },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
         },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
@@ -1237,6 +1286,9 @@
         },
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
+        },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
         },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
