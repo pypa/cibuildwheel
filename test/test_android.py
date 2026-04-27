@@ -443,7 +443,8 @@ def test_api_level(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
         spam_c_top_level_add=dedent(
             """\
             #if __ANDROID_API__ != 33
-            #error Wrong API level
+            #error Unexpected API level; the following syntax error will show the actual value:
+            __ANDROID_API__
             #endif
             """
         )
