@@ -5,7 +5,8 @@ from collections.abc import Sequence
 from typing import Literal, Self, get_args
 
 from cibuildwheel.logger import log
-from cibuildwheel.util.helpers import parse_key_value_string
+from cibuildwheel.typing import PathOrStr
+from cibuildwheel.util.helpers import parse_key_value_string, prepare_command
 
 BuildFrontendName = Literal["pip", "build", "build[uv]", "uv"]
 
@@ -56,6 +57,10 @@ def _get_verbosity_flags(level: int, frontend: BuildFrontendName, *, py38: bool)
 def _split_config_settings(config_settings: str) -> list[str]:
     config_settings_list = shlex.split(config_settings)
     return [f"-C{setting}" for setting in config_settings_list]
+
+
+def prepare_config_settings(config_settings: str, *, project: PathOrStr, package: PathOrStr) -> str:
+    return prepare_command(config_settings, project=project, package=package)
 
 
 # Based on build.__main__.main.
