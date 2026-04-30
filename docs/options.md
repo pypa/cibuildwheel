@@ -579,7 +579,7 @@ Platform-specific environment variables also available:<br/>
     ```
 
     ```yaml
-    CIBW_CONFIG_SETTINGS_WINDOWS: "setup-args=--cross-file={project}/meson_cross_files/windows-386.ini"
+    CIBW_CONFIG_SETTINGS_LINUX: "setup-args=--cross-file={project}/cross_file.txt"
     ```
 
     ```yaml
