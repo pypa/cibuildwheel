@@ -10,6 +10,23 @@ from . import test_projects, utils
 basic_project = test_projects.new_c_project()
 
 
+def test_delvewheel_default_on_windows(tmp_path: Path) -> None:
+    if utils.get_platform() != "windows":
+        pytest.skip("This test is only relevant to Windows")
+
+    skip_if_no_msvc()
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(project_dir, single_python=True)
+
+    assert len(actual_wheels) == 1
+    assert "none-any" not in actual_wheels[0]
+    tag = "cp{}{}".format(*utils.SINGLE_PYTHON_VERSION)
+    assert actual_wheels[0].startswith(f"spam-0.1.0-{tag}-{tag}-win_")
+
+
 def skip_if_no_msvc(arm64: bool = False) -> None:
     programfiles = os.getenv("PROGRAMFILES(X86)", "") or os.getenv("PROGRAMFILES", "")
     if not programfiles:

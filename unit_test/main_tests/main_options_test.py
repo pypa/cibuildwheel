@@ -288,7 +288,9 @@ def get_default_repair_command(platform: str) -> str:
         return "auditwheel repair -w {dest_dir} {wheel}"
     elif platform == "macos":
         return "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
-    elif platform in {"windows", "pyodide"}:
+    elif platform == "windows":
+        return "delvewheel repair -w {dest_dir} {wheel}"
+    elif platform == "pyodide":
         return ""
     else:
         msg = f"Unknown platform: {platform!r}"
