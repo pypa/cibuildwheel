@@ -566,8 +566,19 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 if build_options.repair_command:
                     log.step("Repairing wheel...")
+                    repair_command = build_options.repair_command
+                    if (
+                        config.identifier.split("-")[0].startswith("gp")
+                        and "delvewheel" in repair_command
+                    ):
+                        # python-native.dll is GraalPy's runtime library (analogous to
+                        # CPython's python3X.dll) and shouldn't be bundled into the wheel.
+                        # See: https://github.com/oracle/graalpython/blob/eab533503e96441c64e2427a8b81b5b38117c899/scripts/wheelbuilder/repair_wheels.py#L66-L82
+                        repair_command = repair_command.replace(
+                            "delvewheel repair", "delvewheel repair --exclude python-native.dll", 1
+                        )
                     repair_command_prepared = prepare_command(
-                        build_options.repair_command,
+                        repair_command,
                         wheel=built_wheel,
                         dest_dir=repaired_wheel_dir,
                         package=build_options.package_dir,
