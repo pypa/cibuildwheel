@@ -2,7 +2,7 @@
 #    nox -s update_constraints
 altgraph==0.17.5
     # via macholib
-build==1.4.4
+build==1.4.3
     # via -r cibuildwheel/resources/constraints.in
 delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
@@ -18,7 +18,7 @@ importlib-metadata==8.7.1
     # via build
 macholib==1.16.4
     # via delocate
-packaging==26.2
+packaging==26.0
     # via
     #   build
     #   delocate
@@ -40,7 +40,7 @@ typing-extensions==4.15.0
     # via
     #   delocate
     #   virtualenv
-virtualenv==21.3.0
+virtualenv==21.2.1
     # via -r cibuildwheel/resources/constraints.in
-zipp==3.23.1
+zipp==3.23.0
     # via importlib-metadata
