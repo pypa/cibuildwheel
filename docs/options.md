@@ -985,6 +985,9 @@ Platform-specific environment variables are also available:<br/>
     # Don't repair macOS wheels
     CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
 
+    # Don't repair Windows wheels
+    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
+
     # Pass the `--lib-sdir .` flag to auditwheel on Linux
     CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
 
