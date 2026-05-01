@@ -571,11 +571,22 @@ def build(options: Options, tmp_path: Path) -> None:
                         config.identifier.split("-")[0].startswith("gp")
                         and "delvewheel" in repair_command
                     ):
-                        # python-native.dll is GraalPy's runtime library (analogous to
-                        # CPython's python3X.dll) and shouldn't be bundled into the wheel.
-                        # See: https://github.com/oracle/graalpython/blob/eab533503e96441c64e2427a8b81b5b38117c899/scripts/wheelbuilder/repair_wheels.py#L66-L82
+                        # GraalPy wheels need several DLLs excluded, that delvewheel excludes
+                        # for CPython/PyPy via wheel-tag patterns, but not so for GraalPy:
+                        # 1. python-native.dll: this is GraalPy's runtime library (analogous to
+                        #    CPython's python3X.dll) and shouldn't be bundled into the wheel.
+                        #    See: https://github.com/oracle/graalpython/blob/eab533503e96441c64e2427a8b81b5b38117c899/scripts/wheelbuilder/repair_wheels.py#L66-L82
+                        # 2. vcruntime140.dll / vcruntime140_1.dll: delvewheel's tag-based table
+                        #    excludes them but it only covers CPython/PyPy wheel tags, so for
+                        #    GraalPy these must be excluded explicitly to avoid a file-access
+                        #    error when the DLL is already loaded by the host Python process.
                         repair_command = repair_command.replace(
-                            "delvewheel repair", "delvewheel repair --exclude python-native.dll", 1
+                            "delvewheel repair",
+                            "delvewheel repair"
+                            " --exclude python-native.dll"
+                            " --exclude vcruntime140.dll"
+                            " --exclude vcruntime140_1.dll",
+                            1,
                         )
                     repair_command_prepared = prepare_command(
                         repair_command,
