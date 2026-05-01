@@ -321,6 +321,15 @@ def setup_python(
 
     log.step("Installing build tools...")
     match build_frontend:
+        case "pip":
+            call(
+                "pip",
+                "install",
+                "--upgrade",
+                "delvewheel",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
         case "build":
             call(
                 "pip",
@@ -345,6 +354,21 @@ def setup_python(
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
+        case "uv":
+            assert uv_path is not None
+            call(
+                uv_path,
+                "pip",
+                "install",
+                "--python",
+                where_python,
+                "--upgrade",
+                "delvewheel",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
+        case _:
+            assert_never(build_frontend)
 
     if python_libs_base:
         # Set up the environment for various backends to enable cross-compilation
