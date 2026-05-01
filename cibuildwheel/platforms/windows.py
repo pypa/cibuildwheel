@@ -327,6 +327,7 @@ def setup_python(
                 "install",
                 "--upgrade",
                 "build[virtualenv]",
+                "delvewheel",
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
@@ -340,6 +341,7 @@ def setup_python(
                 where_python,
                 "--upgrade",
                 "build[virtualenv]",
+                "delvewheel",
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
