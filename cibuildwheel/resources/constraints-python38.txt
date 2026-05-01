@@ -6,6 +6,8 @@ build==1.2.2.post1
     # via -r cibuildwheel/resources/constraints.in
 delocate==0.12.0
     # via -r cibuildwheel/resources/constraints.in
+delvewheel==1.10.0
+    # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.0
     # via virtualenv
 filelock==3.16.1
@@ -16,10 +18,12 @@ importlib-metadata==8.5.0
     # via build
 macholib==1.16.4
     # via delocate
-packaging==26.0
+packaging==26.2
     # via
     #   build
     #   delocate
+pefile==2024.8.26
+    # via delvewheel
 pip==25.0.1
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.3.6
@@ -36,7 +40,7 @@ typing-extensions==4.13.2
     # via
     #   delocate
     #   virtualenv
-virtualenv==21.2.1
+virtualenv==21.3.0
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.20.2
     # via importlib-metadata
