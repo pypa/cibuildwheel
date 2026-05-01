@@ -264,7 +264,15 @@ def build_in_container(
                     project=container_project_path,
                     package=container_package_dir,
                 )
-                container.call(["sh", "-c", before_build_prepared], env=env)
+                before_build_env = env.copy()
+                if use_uv:
+                    # On Linux, no virtualenv is created for the build environment
+                    # (unlike macOS/Windows, where one is set up before before_build
+                    # runs). uv requires either an active venv or UV_SYSTEM_PYTHON=1
+                    # to install packages. Set it here so that `uv pip install` works
+                    # in before_build without requiring users to pass --system.
+                    before_build_env.setdefault("UV_SYSTEM_PYTHON", "1")
+                container.call(["sh", "-c", before_build_prepared], env=before_build_env)
 
             log.step("Building wheel...")
 
