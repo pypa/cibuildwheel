@@ -289,7 +289,7 @@ def get_default_repair_command(platform: str) -> str:
     elif platform == "macos":
         return "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
     elif platform == "windows":
-        return "delvewheel repair -w {dest_dir} {wheel}"
+        return "delvewheel repair -w {dest_dir} -v {wheel}"
     elif platform == "pyodide":
         return ""
     else:

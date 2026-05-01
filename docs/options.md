@@ -909,7 +909,7 @@ Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
-- on Windows: `'delvewheel repair -w {dest_dir} {wheel}'`
+- on Windows: `'delvewheel repair -w {dest_dir} -v {wheel}'`
 - on Android: There is no default command, but cibuildwheel will add `libc++` to the
   wheel if anything links against it. Setting a command will replace this behavior.
 - on Pyodide: You can use `pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}` command to repair the wheel.
@@ -971,7 +971,7 @@ Platform-specific environment variables are also available:<br/>
     ]
     [tool.cibuildwheel.windows]
     repair-wheel-command = [
-      "delvewheel repair -w {dest_dir} {wheel}",
+      "delvewheel repair -w {dest_dir} -v {wheel}",
       "pipx run abi3audit --strict --report {wheel}",
     ]
     ```
@@ -1004,7 +1004,7 @@ Platform-specific environment variables are also available:<br/>
       delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
       pipx run abi3audit --strict --report {wheel}
     CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-      delvewheel repair -w {dest_dir} {wheel} &&
+      delvewheel repair -w {dest_dir} -v {wheel} &&
       pipx run abi3audit --strict --report {wheel}
     ```
 
