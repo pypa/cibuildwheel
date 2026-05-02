@@ -19,7 +19,9 @@ def test_delvewheel_default_on_windows(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
-    actual_wheels = utils.cibuildwheel_run(project_dir, single_python=True)
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir, add_args=["--archs", "native"], single_python=True
+    )
 
     assert len(actual_wheels) == 1
     assert "none-any" not in actual_wheels[0]
