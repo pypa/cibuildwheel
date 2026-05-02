@@ -235,7 +235,7 @@ def setup_env(
     # https://github.com/pypa/auditwheel/pull/643 has been released, and add it to the
     # constraints files.
     tools = [
-        "auditwheel @ git+https://github.com/mhsmith/auditwheel@android",
+        "auditwheel @ git+https://github.com/pypa/auditwheel@main",
         "patchelf",
         "pkgconf",
     ]
