@@ -128,6 +128,25 @@ On GitHub Actions, `macos-14` runners are `arm64`, and `macos-15-intel` runners 
 
 If your CI provider doesn't offer arm64 runners yet, or you want to create `universal2`, you'll have to cross-compile. Cross-compilation can be enabled by adding extra archs to the [`CIBW_ARCHS_MACOS` option](options.md#archs) - e.g. `CIBW_ARCHS_MACOS="x86_64 universal2"`. Cross-compilation is provided by Xcode toolchain v12.2+.
 
+If your build backend needs an explicit macOS target architecture, use [configuration overrides](configuration.md#overrides) to set it from the build identifier:
+
+```toml
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64", "universal2"]
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_x86_64"
+environment = { CMAKE_OSX_ARCHITECTURES = "x86_64" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_arm64"
+environment = { CMAKE_OSX_ARCHITECTURES = "arm64" }
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_universal2"
+environment = { CMAKE_OSX_ARCHITECTURES = "x86_64;arm64" }
+```
+
 Regarding testing,
 
 - On an arm64 runner, it is possible to test `x86_64` wheels and both parts of a `universal2` wheel using Rosetta 2 emulation.
