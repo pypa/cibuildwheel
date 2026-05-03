@@ -205,6 +205,25 @@ def install_graalpy(tmp: Path, url: str) -> Path:
     return installation_path / "bin" / "graalpy"
 
 
+def _setup_arch_environment(python_identifier: str, env: dict[str, str]) -> None:
+    if python_identifier.endswith("arm64"):
+        # macOS 11 is the first OS with arm64 support, so the wheels
+        # have that as a minimum.
+        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
+        env.setdefault("ARCHFLAGS", "-arch arm64")
+        env.setdefault("CMAKE_OSX_ARCHITECTURES", "arm64")
+    elif python_identifier.endswith("universal2"):
+        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
+        env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
+        env.setdefault("CMAKE_OSX_ARCHITECTURES", "arm64;x86_64")
+    elif python_identifier.endswith("x86_64"):
+        # even on the macos11.0 Python installer, on the x86_64 side it's
+        # compatible back to 10.9.
+        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
+        env.setdefault("ARCHFLAGS", "-arch x86_64")
+        env.setdefault("CMAKE_OSX_ARCHITECTURES", "x86_64")
+
+
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -311,19 +330,7 @@ def setup_python(
         )
         env["MACOSX_DEPLOYMENT_TARGET"] = default_target
 
-    if config_is_arm64:
-        # macOS 11 is the first OS with arm64 support, so the wheels
-        # have that as a minimum.
-        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-11.0-arm64")
-        env.setdefault("ARCHFLAGS", "-arch arm64")
-    elif config_is_universal2:
-        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-universal2")
-        env.setdefault("ARCHFLAGS", "-arch arm64 -arch x86_64")
-    elif python_configuration.identifier.endswith("x86_64"):
-        # even on the macos11.0 Python installer, on the x86_64 side it's
-        # compatible back to 10.9.
-        env.setdefault("_PYTHON_HOST_PLATFORM", "macosx-10.9-x86_64")
-        env.setdefault("ARCHFLAGS", "-arch x86_64")
+    _setup_arch_environment(python_configuration.identifier, env)
 
     building_arm64 = config_is_arm64 or config_is_universal2
     if building_arm64 and get_macos_version() < (10, 16) and "SDKROOT" not in env:
