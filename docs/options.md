@@ -845,6 +845,10 @@ In configuration files, use platform tables like `[tool.cibuildwheel.macos]`.
 
     # If cibuildwheel is called with a package_dir argument, it's available as {package}
     CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
+
+    # Use a different command on a specific platform
+    CIBW_BEFORE_BUILD_LINUX: python scripts/install-linux-deps.py
+    CIBW_BEFORE_BUILD_MACOS: python scripts/install-macos-deps.py
     ```
 
 
