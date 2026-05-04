@@ -793,8 +793,7 @@ The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 Platform-specific environment variables are also available:<br/>
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX` | `CIBW_BEFORE_BUILD_ANDROID` | `CIBW_BEFORE_BUILD_IOS` | `CIBW_BEFORE_BUILD_PYODIDE`
 
-In configuration files, use platform tables like `[tool.cibuildwheel.macos]`,
-rather than platform-suffixed option names like `before-build-macos`.
+In configuration files, use platform tables like `[tool.cibuildwheel.macos]`.
 
 #### Examples
 
