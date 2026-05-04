@@ -118,14 +118,20 @@ class GraalPyVersions:
         response.raise_for_status()
 
         releases = response.json()
-        gp_version_re = re.compile(r"-(\d+\.\d+\.\d+)$")
+        gp_asset_re = re.compile(r"^(graalpy(\d+\.\d+)?-(\d+\.\d+\.\d+))-")
         cp_version_re = re.compile(r"Python (\d+\.\d+(?:\.\d+)?)")
         for release in releases:
-            m = gp_version_re.search(release["tag_name"])
-            if m:
-                release["graalpy_version"] = Version(m.group(1))
-            m = cp_version_re.search(release["body"])
-            if m:
+            for asset in release["assets"]:
+                m = gp_asset_re.match(asset["name"])
+                if m:
+                    release["asset_prefix"] = m.group(1)
+                    release["graalpy_version"] = Version(m.group(3))
+                    if m.group(2):
+                        release["python_version"] = Version(m.group(2))
+                    break
+            if "python_version" not in release and (
+                m := cp_version_re.search(release["body"] or "")
+            ):
                 release["python_version"] = Version(m.group(1))
 
         self.releases = [r for r in releases if "graalpy_version" in r and "python_version" in r]
@@ -154,7 +160,6 @@ class GraalPyVersions:
 
         release = releases[-1]
         version = release["python_version"]
-        gpversion = release["graalpy_version"]
 
         if "macosx" in identifier:
             arch = "x86_64" if "x86_64" in identifier else "arm64"
@@ -172,7 +177,7 @@ class GraalPyVersions:
             rf["browser_download_url"]
             for rf in release["assets"]
             if rf["name"].endswith(f"{platform}-{arch}.{ext}")
-            and rf["name"].startswith(f"graalpy-{gpversion.major}")
+            and rf["name"].startswith(release["asset_prefix"])
         ]
         if urls:
             (url,) = urls
