@@ -237,6 +237,7 @@ def build_in_container(
         if PurePosixPath(which_python) != python_bin / "python":
             msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
             raise errors.FatalError(msg)
+        container.call(["python", "-V", "-V"], env=env)
 
         if use_uv:
             which_uv = container.call(["which", "uv"], env=env, capture_output=True).strip()

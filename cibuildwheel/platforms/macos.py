@@ -270,7 +270,7 @@ def setup_python(
     if which_python != str(venv_bin_path / "python"):
         msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
         raise errors.FatalError(msg)
-    call("python", "--version", env=env)
+    call("python", "-V", "-V", env=env)
 
     # check what pip version we're on
     if not use_uv:

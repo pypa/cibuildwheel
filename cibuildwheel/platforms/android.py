@@ -229,7 +229,10 @@ def setup_env(
                 f"or insert {command} above it."
             )
             raise errors.FatalError(msg)
-        call(command, "--version", env=build_env)
+        if command == "python":
+            call(command, "-V", "-V", env=build_env)
+        else:
+            call(command, "--version", env=build_env)
 
     # Construct an altered environment which simulates running on Android.
     android_env = setup_android_env(config, python_dir, venv_dir, build_env)
