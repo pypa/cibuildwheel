@@ -18,6 +18,7 @@ See sessions with `nox -l`
 import os
 import shutil
 import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import nox
@@ -79,6 +80,8 @@ def update_constraints(session: nox.Session) -> None:
     env = os.environ.copy()
     env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
 
+    exclude_newer = (datetime.now(tz=UTC).date() - timedelta(days=7)).isoformat()
+
     for minor_version in range(8, 15):
         python_version = f"3.{minor_version}"
         output_file = resources / f"constraints-python{python_version.replace('.', '')}.txt"
@@ -88,6 +91,7 @@ def update_constraints(session: nox.Session) -> None:
             "compile",
             f"--python-version={python_version}",
             "--upgrade",
+            f"--exclude-newer={exclude_newer}",
             resources / "constraints.in",
             f"--output-file={output_file}",
             env=env,
