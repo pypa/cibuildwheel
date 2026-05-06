@@ -2,7 +2,7 @@
 #    nox -s update_constraints
 altgraph==0.17.5
     # via macholib
-build==1.4.3
+build==1.5.0
     # via -r cibuildwheel/resources/constraints.in
 delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
@@ -10,13 +10,13 @@ delvewheel==1.12.0
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.0
     # via virtualenv
-filelock==3.25.2
+filelock==3.29.0
     # via
     #   python-discovery
     #   virtualenv
 macholib==1.16.4
     # via delocate
-packaging==26.0
+packaging==26.2
     # via
     #   build
     #   delocate

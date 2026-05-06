@@ -793,6 +793,8 @@ The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 Platform-specific environment variables are also available:<br/>
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX` | `CIBW_BEFORE_BUILD_ANDROID` | `CIBW_BEFORE_BUILD_IOS` | `CIBW_BEFORE_BUILD_PYODIDE`
 
+In configuration files, use platform tables like `[tool.cibuildwheel.macos]`.
+
 #### Examples
 
 !!! tab examples "pyproject.toml"
@@ -816,6 +818,13 @@ Platform-specific environment variables are also available:<br/>
 
     # If cibuildwheel is called with a package_dir argument, it's available as {package}
     before-build = "{package}/script/prepare_for_build.sh"
+
+    # Use a different command on a specific platform
+    [tool.cibuildwheel.linux]
+    before-build = "python scripts/install-linux-deps.py"
+
+    [tool.cibuildwheel.macos]
+    before-build = "python scripts/install-macos-deps.py"
     ```
 
     In configuration files, you can use a array, and the items will be joined
@@ -836,6 +845,10 @@ Platform-specific environment variables are also available:<br/>
 
     # If cibuildwheel is called with a package_dir argument, it's available as {package}
     CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
+
+    # Use a different command on a specific platform
+    CIBW_BEFORE_BUILD_LINUX: python scripts/install-linux-deps.py
+    CIBW_BEFORE_BUILD_MACOS: python scripts/install-macos-deps.py
     ```
 
 

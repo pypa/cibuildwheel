@@ -355,7 +355,7 @@ def setup_python(
             "entry or insert python above it."
         )
         raise errors.FatalError(msg)
-    call("python", "--version", env=env)
+    call("python", "-V", "-V", env=env)
 
     # Check what pip version we're on
     assert (venv_bin_path / "pip").exists()
