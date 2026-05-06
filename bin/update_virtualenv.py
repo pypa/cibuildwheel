@@ -17,6 +17,7 @@ import dataclasses
 import difflib
 import logging
 import tomllib
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Final
 
@@ -41,11 +42,15 @@ GET_VIRTUALENV_URL_TEMPLATE: Final[str] = (
 )
 
 
+COOLDOWN_DAYS = 7
+
+
 @dataclasses.dataclass(frozen=True, order=True)
 class VersionTuple:
     name: str
     download_url: str
     version: Version
+    published_at: datetime = dataclasses.field(compare=False)
 
 
 def get_latest_virtualenv_release() -> VersionTuple:
@@ -60,8 +65,12 @@ def get_latest_virtualenv_release() -> VersionTuple:
         msg = "No asset named 'virtualenv.pyz' found in the latest release of get-virtualenv."
         raise RuntimeError(msg)
 
+    published_at = datetime.fromisoformat(response["published_at"])
     return VersionTuple(
-        version=Version(tag_name), name=tag_name, download_url=asset["browser_download_url"]
+        version=Version(tag_name),
+        name=tag_name,
+        download_url=asset["browser_download_url"],
+        published_at=published_at,
     )
 
 
@@ -88,6 +97,13 @@ def update_virtualenv(force: bool, level: str) -> None:
     local_version = str(default["version"])
 
     latest_release = get_latest_virtualenv_release()
+
+    if datetime.now(tz=UTC) - latest_release.published_at < timedelta(days=COOLDOWN_DAYS):
+        rich.print(
+            f"[yellow]Skipping update: latest release {latest_release.name!r} was published "
+            f"less than {COOLDOWN_DAYS} cooldown days ago."
+        )
+        return
 
     if latest_release.version > Version(local_version):
         version = latest_release.name
