@@ -14,21 +14,22 @@ repos:
     exclude: (cibuildwheel/resources/pinned_docker_images.cfg)|(.svg$)
   - id: mixed-line-ending
   - id: trailing-whitespace
+    exclude: ^cibuildwheel/resources/android/android.patch$
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: c60c980e561ed3e73101667fe8365c609d19a438  # frozen: v0.15.9
+  rev: 6fec9b7edb08fd9989088709d864a7826dc74e80  # frozen: v0.15.12
   hooks:
   - id: ruff-check
     args: ["--fix"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: 8e5c80792e2ec0c87804d8ef915bf35e2caea6da  # frozen: v1.20.0
+  rev: fc0f09a29bb495f4a91f00266155d6282d52485d  # frozen: v1.20.2
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
     args: ["--python-version=3.11"]
-    exclude: ^cibuildwheel/resources/_cross_venv.py$  # Requires Python 3.13 or later
+    exclude: ^cibuildwheel/resources/android/_cross_venv.py$  # Requires Python 3.13 or later
     additional_dependencies: &mypy-dependencies
       - bracex
       - build
@@ -85,7 +86,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: ed81924a8b1cecdaa570b072528fa80c9c4d6ccd  # frozen: 0.37.1
+  rev: 943377262562a12b57292fc98fabd7dbf81451fe  # frozen: 0.37.2
   hooks:
     - id: check-dependabot
     - id: check-github-actions

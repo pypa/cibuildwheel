@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run -q
+#!/usr/bin/env -S uv run --script
 
 # /// script
 # dependencies = ["pyyaml"]
