@@ -948,7 +948,7 @@ Platform-specific environment variables are also available:<br/>
 `CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_ANDROID` | `CIBW_REPAIR_WHEEL_COMMAND_IOS` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
 
 !!! note "Windows: telling delvewheel where to find DLLs"
-    On Windows, delvewheel searches the wheel itself and the directories on `PATH` for external DLL dependencies. If your DLLs are already discoverable via `PATH`, (say, installed by a package manager that adds itself and the relevant directories to `PATH`), the default repair command should be sufficient.
+    On Windows, delvewheel searches the directories on `PATH` for external DLL dependencies. If your DLLs are already discoverable via `PATH`, (say, installed by a package manager that adds itself and the relevant directories to `PATH`), the default repair command should be sufficient.
 
     If your project links against DLLs in a custom location – such as a [vcpkg](https://vcpkg.io/) or [Conan](https://conan.io/) install tree, or a manually built library directory, you may pass `--add-path` to tell delvewheel where to look. The flag can be used multiple times for more than one directory:
 
