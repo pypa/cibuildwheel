@@ -1,5 +1,7 @@
 # Maintaining Pyodide support
 
+Last updated: May 2026
+
 This page describes how to update cibuildwheel's Pyodide platform code when either:
 
 - a new Pyodide alpha release arrives with support for a new [PyEmscripten Platform](https://pyodide.org/en/latest/development/abi.html) (which is tied to updates in Emscripten and CPython versions, compiler/linker flags, and so on), or
