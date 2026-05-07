@@ -18,7 +18,6 @@ See sessions with `nox -l`
 import os
 import shutil
 import sys
-from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import nox
@@ -82,14 +81,7 @@ def update_constraints(session: nox.Session) -> None:
 
     # NOTE: Keep this in sync with bin/_cooldown.py
     ignore_cooldown = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
-    cooldown_days = 2
-    exclude_newer_args = (
-        []
-        if ignore_cooldown
-        else [
-            f"--exclude-newer={(datetime.now(tz=UTC).date() - timedelta(days=cooldown_days)).isoformat()}"
-        ]
-    )
+    exclude_newer_args = [] if ignore_cooldown else ["--exclude-newer=2 days"]
 
     for minor_version in range(8, 15):
         python_version = f"3.{minor_version}"
