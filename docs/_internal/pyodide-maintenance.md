@@ -9,10 +9,11 @@ This page describes how to update cibuildwheel's Pyodide platform code when eith
 
 ## Background
 
-Pyodide has two types of releases that matter to cibuildwheel:
+Pyodide has three types of releases that matter to cibuildwheel:
 
 - **Stable** – the most recent full Pyodide release (e.g., `0.29.x` / cp313). This is enabled by default with no special `CIBW_ENABLE` flag needed.
 - **Prerelease** – an alpha/beta/rc Pyodide release that uses the _next_ CPython version (e.g., `314.0.0a1` / cp314). Users must opt in with `CIBW_ENABLE: pyodide-prerelease` to build against this version. This may or may not be available at any given time, depending on the Pyodide release cycle.
+- **End-of-life (EoL)** – older Pyodide stable releases that are no longer the current stable. These are kept available behind `CIBW_ENABLE: pyodide-eol` so that users who still need to build for older Pyodide versions can do so.
 
 The guards in `cibuildwheel/selector.py` enforce this distinction. The constraints files under `cibuildwheel/resources/` pin the exact tool versions that go with each build.
 
@@ -51,19 +52,9 @@ Run the `update_constraints` `nox` session, which reads `build-platforms.toml` a
 nox -s update_constraints
 ```
 
-Alternatively, run the generator script directly:
+### 4. Update tests
 
-```bash
-python bin/generate_pyodide_constraints.py 315.0.0a1 \
-    | uv pip compile - --python-version=3.15 \
-        -o cibuildwheel/resources/constraints-pyodide315.txt
-```
-
-### 4. Update tests and update CI configuration
-
-- Update the unit tests so the new identifier is accepted by the selector with `PyodidePrerelease` enabled and rejected without it. Pyodide-specific integration tests may also need their hardcoded expected-wheel lists extended.
-
-- Run the full test suite with `CIBW_PLATFORM=pyodide` and `CIBW_ENABLE=pyodide-prerelease` environment variables to make sure the new configuration is exercised in CI.
+Update the unit tests so the new identifier is accepted by the selector with `PyodidePrerelease` enabled and rejected without it. Pyodide-specific integration tests may also need their hardcoded expected-wheel lists extended.
 
 ## When a Pyodide prerelease becomes stable
 
@@ -71,7 +62,7 @@ Pyodide uses a versioning scheme where the stable release for a given CPython ve
 
 ### 1. Update the stable entries, and remove (or replace) the prerelease entry
 
-In `build-platforms.toml`, update the former prerelease entry's `default_pyodide_version` to the new stable release (e.g. `314.0.0`) and remove the prerelease marker from the identifier if present. Remove previous prerelease entries if they are now obsolete, or update them to the next prerelease if one is available. Based on your discretion, you may choose to keep the old stable entry for a while if it is still supported by Pyodide, or remove it immediately if it is already retired.
+In `build-platforms.toml`, update the former prerelease entry's `default_pyodide_version` to the new stable release (e.g. `314.0.0`) and remove the prerelease marker from the identifier if present. Remove previous prerelease entries if they are now obsolete, or update them to the next prerelease if one is available. Move the previous stable version behind `pyodide-eol` rather than dropping it outright (see below).
 
 ### 2. Disable or update the prerelease guards
 
@@ -84,22 +75,39 @@ In `selector.py`:
 
 Run `nox -s update_constraints` to regenerate the constraints file for the newly stable version. If the entry was already in `build-platforms.toml` as a prerelease, its constraints file already exists, and this step just refreshes it against the stable Pyodide release and updates the dependencies' versions.
 
-### 4. Update tests and CI configuration
+### 4. Update tests
 
 Update the unit tests so the newly stable identifier is accepted by the selector without needing `PyodidePrerelease` in the enable set. Pyodide-specific integration tests may also need their hardcoded expected-wheel lists extended.
 
-- Run the full test suite with `CIBW_PLATFORM=pyodide` and `CIBW_ENABLE=pyodide-prerelease` environment variables to make sure the new configuration is exercised in CI.
+## When an old Pyodide version is to be moved to end-of-life
 
-## When an old Pyodide version is to be retired
+When a Pyodide version is superseded by a new stable release, move it behind the `pyodide-eol` enable flag. We want to allow users who still build for older Pyodide ABIs time to upgrade.
 
-### 1. Remove the python configuration
+### 1. Add the `pyodide-eol` guard in the selector
 
-Delete the entry from `build-platforms.toml`.
+In `cibuildwheel/selector.py`, add (or update) the `PyodideEoL` guard to include the old identifier:
+
+```python
+if EnableGroup.PyodideEoL not in self.enable and fnmatch(build_id, "cp312-pyodide_*"):
+    return False
+```
+
+### 2. Update tests
+
+Update the unit tests so the EoL identifier requires `PyodideEoL` to be included in the enable set. The default (no `CIBW_ENABLE`) should exclude it.
+
+## When an old Pyodide version is to be fully retired
+
+Retirement is not expected to happen on a routine basis. It is only warranted when the Pyodide ecosystem itself has evolved to the point where an older ABI version is considered obsolete – for example, if the surrounding toolchain, packaging standards, or runtime infrastructure have moved on so substantially that building for the older version no longer makes practical sense. Any retirement is to be discussed and agreed upon by Pyodide maintainers before proceeding.
+
+### 1. Remove the Python configuration
+
+Delete the entry from `build-platforms.toml` and remove the `PyodideEoL` guard for that identifier in `selector.py`.
 
 ### 2. Delete the constraints file
 
 Remove `cibuildwheel/resources/constraints-pyodideXYZ.txt`.
 
-### 3. Update tests and CI configuration
+### 3. Update tests
 
-Remove references to the old identifier from the unit tests, integration tests, and drop any expected-wheel entries for it from the test helper. Also, ensure that no CI job is still trying to build it.
+Remove references to the old identifier from the unit tests, integration tests, and drop any expected-wheel entries for it from the test helper.
