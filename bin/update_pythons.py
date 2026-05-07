@@ -20,6 +20,7 @@ import operator
 import re
 import tomllib
 from collections.abc import Mapping, MutableMapping
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Final, Literal, TypedDict
 from xml.etree import ElementTree as ET
@@ -41,6 +42,7 @@ log = logging.getLogger("cibw")
 # since we want to write to it.
 DIR: Final[Path] = Path(__file__).parent.parent.resolve()
 RESOURCES_DIR: Final[Path] = DIR / "cibuildwheel/resources"
+COOLDOWN_DAYS = 7
 
 
 ArchStr = Literal["32", "64", "ARM64"]
@@ -113,7 +115,7 @@ class WindowsVersions:
 
 
 class GraalPyVersions:
-    def __init__(self) -> None:
+    def __init__(self, cutoff_date: date) -> None:
         response = requests.get("https://api.github.com/repos/oracle/graalpython/releases")
         response.raise_for_status()
 
@@ -128,7 +130,13 @@ class GraalPyVersions:
             if m:
                 release["python_version"] = Version(m.group(1))
 
-        self.releases = [r for r in releases if "graalpy_version" in r and "python_version" in r]
+        self.releases = [
+            r
+            for r in releases
+            if "graalpy_version" in r
+            and "python_version" in r
+            and datetime.fromisoformat(r["published_at"]).date() <= cutoff_date
+        ]
 
     def update_version(self, identifier: str, spec: Specifier) -> ConfigUrl | None:
         if "x86_64" in identifier or "amd64" in identifier:
@@ -426,6 +434,8 @@ class PyodideVersions:
 
 class AllVersions:
     def __init__(self) -> None:
+        cutoff_date: date = (datetime.now(tz=UTC) - timedelta(days=COOLDOWN_DAYS)).date()
+
         self.windows_32 = WindowsVersions("32", False)
         self.windows_t_32 = WindowsVersions("32", True)
         self.windows_64 = WindowsVersions("64", False)
@@ -441,7 +451,7 @@ class AllVersions:
         self.maven = MavenVersions()
         self.ios_cpython = CPythonIOSVersions()
 
-        self.graalpy = GraalPyVersions()
+        self.graalpy = GraalPyVersions(cutoff_date)
 
         self.pyodide = PyodideVersions()
 
