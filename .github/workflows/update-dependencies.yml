@@ -51,11 +51,11 @@ jobs:
     - name: "Run update: dependencies"
       run: uvx nox --force-color -s update_constraints
       env:
-        CIBW_IGNORE_COOLDOWN: ${{ inputs.ignore-cooldown }}
+        CIBW_IGNORE_COOLDOWN: ${{ github.event.inputs.ignore-cooldown || 'false' }}
     - name: "Run update: python configs"
       run: uvx nox --force-color -s update_pins
       env:
-        CIBW_IGNORE_COOLDOWN: ${{ inputs.ignore-cooldown }}
+        CIBW_IGNORE_COOLDOWN: ${{ github.event.inputs.ignore-cooldown || 'false' }}
     - name: "Run update: docs user projects"
       run: uvx nox --force-color -s update_proj -- --auth=${{ secrets.GITHUB_TOKEN }}
 
