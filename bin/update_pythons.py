@@ -67,14 +67,14 @@ class ConfigPyodide(Config):
 
 
 class WindowsVersions:
-    def __init__(self, arch_str: ArchStr, free_threaded: bool) -> None:
+    def __init__(self, arch_str: ArchStr, free_threaded: bool, cutoff_date: date) -> None:
         response = requests.get("https://api.nuget.org/v3/index.json")
         response.raise_for_status()
         api_info = response.json()
 
-        for resource in api_info["resources"]:
-            if resource["@type"] == "PackageBaseAddress/3.0.0":
-                endpoint = resource["@id"]
+        reg_endpoint = next(
+            r["@id"] for r in api_info["resources"] if r["@type"] == "RegistrationsBaseUrl/3.6.0"
+        )
 
         ARCH_DICT = {"32": "win32", "64": "win_amd64", "ARM64": "win_arm64"}
         PACKAGE_DICT = {"32": "pythonx86", "64": "python", "ARM64": "pythonarm64"}
@@ -87,11 +87,25 @@ class WindowsVersions:
         if free_threaded:
             package = f"{package}-freethreaded"
 
-        response = requests.get(f"{endpoint}{package}/index.json")
-        response.raise_for_status()
-        cp_info = response.json()
+        # NuGet serves registration responses gzip-compressed; requests decompresses
+        # automatically via Accept-Encoding negotiation
+        reg_response = requests.get(f"{reg_endpoint}{package}/index.json")
+        reg_response.raise_for_status()
+        reg_data = reg_response.json()
 
-        self.version_dict = {Version(v): v for v in cp_info["versions"]}
+        # NuGet uses 1900-01-01 as a sentinel for packages whose publish date was
+        # not recorded; treat those as old enough to pass the cooldown
+        NUGET_DATE_SENTINEL = date(1900, 1, 1)
+
+        self.version_dict: dict[Version, str] = {}
+        for page_meta in reg_data["items"]:
+            page = requests.get(page_meta["@id"]).json()
+            for item in page["items"]:
+                entry = item["catalogEntry"]
+                published = datetime.fromisoformat(entry["published"]).date()
+                if published != NUGET_DATE_SENTINEL and published > cutoff_date:
+                    continue
+                self.version_dict[Version(entry["version"])] = entry["version"]
 
     def update_version_windows(self, spec: Specifier) -> Config | None:
         # Specifier.filter selects all non pre-releases that match the spec,
@@ -445,12 +459,12 @@ class AllVersions:
     def __init__(self) -> None:
         cutoff_date: date = (datetime.now(tz=UTC) - timedelta(days=COOLDOWN_DAYS)).date()
 
-        self.windows_32 = WindowsVersions("32", False)
-        self.windows_t_32 = WindowsVersions("32", True)
-        self.windows_64 = WindowsVersions("64", False)
-        self.windows_t_64 = WindowsVersions("64", True)
-        self.windows_arm64 = WindowsVersions("ARM64", False)
-        self.windows_t_arm64 = WindowsVersions("ARM64", True)
+        self.windows_32 = WindowsVersions("32", False, cutoff_date)
+        self.windows_t_32 = WindowsVersions("32", True, cutoff_date)
+        self.windows_64 = WindowsVersions("64", False, cutoff_date)
+        self.windows_t_64 = WindowsVersions("64", True, cutoff_date)
+        self.windows_arm64 = WindowsVersions("ARM64", False, cutoff_date)
+        self.windows_t_arm64 = WindowsVersions("ARM64", True, cutoff_date)
         self.windows_pypy_64 = PyPyVersions("64", cutoff_date)
 
         self.cpython = CPythonVersions(cutoff_date)
