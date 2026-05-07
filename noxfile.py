@@ -80,7 +80,7 @@ def update_constraints(session: nox.Session) -> None:
     env = os.environ.copy()
     env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
 
-    # NOTE: Keep this in sync with cibuildwheel/util/_cooldown.py
+    # NOTE: Keep this in sync with bin/_cooldown.py and the Dependabot config.
     ignore_cooldown = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
     cooldown_days = 7
     exclude_newer_args = (
