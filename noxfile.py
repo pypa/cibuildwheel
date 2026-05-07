@@ -23,8 +23,6 @@ from pathlib import Path
 
 import nox
 
-from cibuildwheel.util._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
-
 nox.needs_version = ">=2025.2.9"
 nox.options.default_venv_backend = "uv|virtualenv"
 
@@ -82,11 +80,14 @@ def update_constraints(session: nox.Session) -> None:
     env = os.environ.copy()
     env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
 
+    # NOTE: Keep this in sync with cibuildwheel/util/_cooldown.py
+    ignore_cooldown = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
+    cooldown_days = 7
     exclude_newer_args = (
         []
-        if IGNORE_COOLDOWN
+        if ignore_cooldown
         else [
-            f"--exclude-newer={(datetime.now(tz=UTC).date() - timedelta(days=COOLDOWN_DAYS)).isoformat()}"
+            f"--exclude-newer={(datetime.now(tz=UTC).date() - timedelta(days=cooldown_days)).isoformat()}"
         ]
     )
 
