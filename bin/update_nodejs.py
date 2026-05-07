@@ -26,11 +26,10 @@ import click
 import packaging.specifiers
 import requests
 import rich
+from _cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 from packaging.version import InvalidVersion, Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
-
-from cibuildwheel.util._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 
 log = logging.getLogger("cibw")
 

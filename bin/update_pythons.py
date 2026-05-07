@@ -29,6 +29,7 @@ from xml.etree import ElementTree as ET
 import click
 import requests
 import rich
+from _cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 from packaging.specifiers import Specifier
 from packaging.version import Version
 from rich.logging import RichHandler
@@ -36,7 +37,6 @@ from rich.syntax import Syntax
 
 from cibuildwheel.extra import dump_python_configurations, get_pyodide_xbuildenv_info
 from cibuildwheel.platforms.android import android_triplet
-from cibuildwheel.util._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 
 log = logging.getLogger("cibw")
 
