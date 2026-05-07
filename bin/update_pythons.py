@@ -95,13 +95,18 @@ class WindowsVersions:
         reg_data = reg_response.json()
 
         # NuGet uses 1900-01-01 as a sentinel for packages whose publish date was
-        # not recorded; treat those as old enough to pass the cooldown
+        # not recorded. The NuGet SDK looks at this as null and treats it as
+        # "allow" (and dependabot-core does the same):
+        # https://github.com/dependabot/dependabot-core/blob/b0090acfa61b7541c040e302c760a84c702217a3/nuget/helpers/lib/NuGetUpdater/NuGetUpdater.Core/Run/ApiModel/Cooldown.cs#L70-L75
         NUGET_DATE_SENTINEL = date(1900, 1, 1)
 
         self.version_dict: dict[Version, str] = {}
         for page_meta in reg_data["items"]:
-            page = requests.get(page_meta["@id"]).json()
-            for item in page["items"]:
+            # Registration pages may be inlined in the index response or kept external
+            # See: https://github.com/microsoft/NativeAOTDependencyHelper/blob/9ad3f7be5b919f6166d60a228691e1c802797909/NativeAOTDependencyHelper.Core/Checks/NuGetRecentlyUpdatedCheck.cs#L36-L45
+            # pythonarm64 and all freethreaded packages have fully-inlined pages and need no extra fetches.
+            items = page_meta.get("items") or requests.get(page_meta["@id"]).json()["items"]
+            for item in items:
                 entry = item["catalogEntry"]
                 published = datetime.fromisoformat(entry["published"]).date()
                 if published != NUGET_DATE_SENTINEL and published > cutoff_date:
