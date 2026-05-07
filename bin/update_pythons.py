@@ -193,7 +193,7 @@ class GraalPyVersions:
 
 
 class PyPyVersions:
-    def __init__(self, arch_str: ArchStr):
+    def __init__(self, arch_str: ArchStr, cutoff_date: date):
         response = requests.get("https://downloads.python.org/pypy/versions.json")
         response.raise_for_status()
 
@@ -205,7 +205,9 @@ class PyPyVersions:
         self.releases = [
             r
             for r in releases
-            if not r["pypy_version"].is_prerelease and not r["pypy_version"].is_devrelease
+            if not r["pypy_version"].is_prerelease
+            and not r["pypy_version"].is_devrelease
+            and date.fromisoformat(r["date"]) <= cutoff_date
         ]
         self.arch = arch_str
 
@@ -442,11 +444,11 @@ class AllVersions:
         self.windows_t_64 = WindowsVersions("64", True)
         self.windows_arm64 = WindowsVersions("ARM64", False)
         self.windows_t_arm64 = WindowsVersions("ARM64", True)
-        self.windows_pypy_64 = PyPyVersions("64")
+        self.windows_pypy_64 = PyPyVersions("64", cutoff_date)
 
         self.cpython = CPythonVersions()
-        self.macos_pypy = PyPyVersions("64")
-        self.macos_pypy_arm64 = PyPyVersions("ARM64")
+        self.macos_pypy = PyPyVersions("64", cutoff_date)
+        self.macos_pypy_arm64 = PyPyVersions("ARM64", cutoff_date)
 
         self.maven = MavenVersions()
         self.ios_cpython = CPythonIOSVersions()
