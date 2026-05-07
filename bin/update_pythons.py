@@ -360,7 +360,7 @@ class MavenVersions:
 
 
 class CPythonIOSVersions:
-    def __init__(self) -> None:
+    def __init__(self, cutoff_date: date) -> None:
         response = requests.get(
             "https://api.github.com/repos/beeware/Python-Apple-support/releases",
             headers={
@@ -375,6 +375,9 @@ class CPythonIOSVersions:
 
         # Each release has a name like "3.13-b4"
         for release in releases_info:
+            if datetime.fromisoformat(release["published_at"]).date() > cutoff_date:
+                continue
+
             py_version, build = release["name"].split("-")
             version = Version(py_version)
             self.versions_dict.setdefault(version, {})
@@ -455,7 +458,7 @@ class AllVersions:
         self.macos_pypy_arm64 = PyPyVersions("ARM64", cutoff_date)
 
         self.maven = MavenVersions()
-        self.ios_cpython = CPythonIOSVersions()
+        self.ios_cpython = CPythonIOSVersions(cutoff_date)
 
         self.graalpy = GraalPyVersions(cutoff_date)
 
