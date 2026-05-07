@@ -16,7 +16,6 @@
 import dataclasses
 import difflib
 import logging
-import os
 import tomllib
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -28,6 +27,7 @@ from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
+from bin._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 from cibuildwheel.extra import github_api_request
 
 log = logging.getLogger("cibw")
@@ -41,10 +41,6 @@ GET_VIRTUALENV_GITHUB: Final[str] = "https://github.com/pypa/get-virtualenv"
 GET_VIRTUALENV_URL_TEMPLATE: Final[str] = (
     f"{GET_VIRTUALENV_GITHUB}/blob/{{version}}/public/virtualenv.pyz?raw=true"
 )
-
-
-COOLDOWN_DAYS = 7
-IGNORE_COOLDOWN = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
 
 
 @dataclasses.dataclass(frozen=True, order=True)

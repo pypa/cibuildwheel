@@ -23,6 +23,8 @@ from pathlib import Path
 
 import nox
 
+from bin._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
+
 nox.needs_version = ">=2025.2.9"
 nox.options.default_venv_backend = "uv|virtualenv"
 
@@ -80,11 +82,12 @@ def update_constraints(session: nox.Session) -> None:
     env = os.environ.copy()
     env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
 
-    ignore_cooldown = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
     exclude_newer_args = (
         []
-        if ignore_cooldown
-        else [f"--exclude-newer={(datetime.now(tz=UTC).date() - timedelta(days=7)).isoformat()}"]
+        if IGNORE_COOLDOWN
+        else [
+            f"--exclude-newer={(datetime.now(tz=UTC).date() - timedelta(days=COOLDOWN_DAYS)).isoformat()}"
+        ]
     )
 
     for minor_version in range(8, 15):

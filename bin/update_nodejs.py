@@ -13,7 +13,6 @@
 import dataclasses
 import difflib
 import logging
-import os
 import tomllib
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -27,6 +26,8 @@ from packaging.version import InvalidVersion, Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
+from bin._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
+
 log = logging.getLogger("cibw")
 
 # Looking up the dir instead of using utils.resources_dir
@@ -36,8 +37,6 @@ RESOURCES_DIR: Final[Path] = DIR / "cibuildwheel/resources"
 
 NODEJS_DIST: Final[str] = "https://nodejs.org/dist/"
 NODEJS_INDEX: Final[str] = f"{NODEJS_DIST}index.json"
-COOLDOWN_DAYS = 7
-IGNORE_COOLDOWN = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
 
 
 @dataclasses.dataclass(frozen=True, order=True)

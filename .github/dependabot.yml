@@ -9,5 +9,6 @@ updates:
       actions:
         patterns:
           - "*"
+    # NOTE: keep this in sync with bin/_cooldown.py
     cooldown:
       default-days: 7

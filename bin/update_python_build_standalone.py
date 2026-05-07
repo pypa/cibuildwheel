@@ -10,18 +10,15 @@
 # ///
 
 import json
-import os
 from datetime import UTC, datetime, timedelta
 
+from bin._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 from cibuildwheel.extra import github_api_request
 from cibuildwheel.util.python_build_standalone import (
     PythonBuildStandaloneAsset,
     PythonBuildStandaloneReleaseData,
 )
 from cibuildwheel.util.resources import PYTHON_BUILD_STANDALONE_RELEASES
-
-COOLDOWN_DAYS = 7
-IGNORE_COOLDOWN = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
 
 
 def main() -> None:

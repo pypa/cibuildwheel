@@ -17,7 +17,6 @@
 import difflib
 import logging
 import operator
-import os
 import re
 import tomllib
 from collections.abc import Mapping, MutableMapping
@@ -35,6 +34,7 @@ from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
+from bin._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 from cibuildwheel.extra import dump_python_configurations, get_pyodide_xbuildenv_info
 from cibuildwheel.platforms.android import android_triplet
 
@@ -44,8 +44,6 @@ log = logging.getLogger("cibw")
 # since we want to write to it.
 DIR: Final[Path] = Path(__file__).parent.parent.resolve()
 RESOURCES_DIR: Final[Path] = DIR / "cibuildwheel/resources"
-COOLDOWN_DAYS = 7
-IGNORE_COOLDOWN = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
 
 
 ArchStr = Literal["32", "64", "ARM64"]
