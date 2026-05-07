@@ -17,6 +17,7 @@
 import difflib
 import logging
 import operator
+import os
 import re
 import tomllib
 from collections.abc import Mapping, MutableMapping
@@ -44,6 +45,7 @@ log = logging.getLogger("cibw")
 DIR: Final[Path] = Path(__file__).parent.parent.resolve()
 RESOURCES_DIR: Final[Path] = DIR / "cibuildwheel/resources"
 COOLDOWN_DAYS = 7
+IGNORE_COOLDOWN = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
 
 
 ArchStr = Literal["32", "64", "ARM64"]
@@ -473,7 +475,11 @@ class PyodideVersions:
 
 class AllVersions:
     def __init__(self) -> None:
-        cutoff_date: date = (datetime.now(tz=UTC) - timedelta(days=COOLDOWN_DAYS)).date()
+        cutoff_date: date = (
+            date.max
+            if IGNORE_COOLDOWN
+            else (datetime.now(tz=UTC) - timedelta(days=COOLDOWN_DAYS)).date()
+        )
 
         self.windows_32 = WindowsVersions("32", False, cutoff_date)
         self.windows_t_32 = WindowsVersions("32", True, cutoff_date)

@@ -16,6 +16,7 @@
 import dataclasses
 import difflib
 import logging
+import os
 import tomllib
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -43,6 +44,7 @@ GET_VIRTUALENV_URL_TEMPLATE: Final[str] = (
 
 
 COOLDOWN_DAYS = 7
+IGNORE_COOLDOWN = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
 
 
 @dataclasses.dataclass(frozen=True, order=True)
@@ -98,7 +100,9 @@ def update_virtualenv(force: bool, level: str) -> None:
 
     latest_release = get_latest_virtualenv_release()
 
-    if datetime.now(tz=UTC) - latest_release.published_at < timedelta(days=COOLDOWN_DAYS):
+    if not IGNORE_COOLDOWN and datetime.now(tz=UTC) - latest_release.published_at < timedelta(
+        days=COOLDOWN_DAYS
+    ):
         rich.print(
             f"[yellow]Skipping update: latest release {latest_release.name!r} was published "
             f"less than {COOLDOWN_DAYS} cooldown days ago."

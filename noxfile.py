@@ -80,7 +80,12 @@ def update_constraints(session: nox.Session) -> None:
     env = os.environ.copy()
     env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
 
-    exclude_newer = (datetime.now(tz=UTC).date() - timedelta(days=7)).isoformat()
+    ignore_cooldown = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
+    exclude_newer_args = (
+        []
+        if ignore_cooldown
+        else [f"--exclude-newer={(datetime.now(tz=UTC).date() - timedelta(days=7)).isoformat()}"]
+    )
 
     for minor_version in range(8, 15):
         python_version = f"3.{minor_version}"
@@ -91,7 +96,7 @@ def update_constraints(session: nox.Session) -> None:
             "compile",
             f"--python-version={python_version}",
             "--upgrade",
-            f"--exclude-newer={exclude_newer}",
+            *exclude_newer_args,
             resources / "constraints.in",
             f"--output-file={output_file}",
             env=env,
@@ -124,6 +129,7 @@ def update_constraints(session: nox.Session) -> None:
             "compile",
             f"--python-version={python_version}",
             "--upgrade",
+            *exclude_newer_args,
             tmp_file,
             f"--output-file={output_file}",
             env=env,

@@ -13,6 +13,7 @@
 import dataclasses
 import difflib
 import logging
+import os
 import tomllib
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -36,6 +37,7 @@ RESOURCES_DIR: Final[Path] = DIR / "cibuildwheel/resources"
 NODEJS_DIST: Final[str] = "https://nodejs.org/dist/"
 NODEJS_INDEX: Final[str] = f"{NODEJS_DIST}index.json"
 COOLDOWN_DAYS = 7
+IGNORE_COOLDOWN = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
 
 
 @dataclasses.dataclass(frozen=True, order=True)
@@ -49,7 +51,11 @@ def parse_nodejs_index() -> list[VersionTuple]:
     response = requests.get(NODEJS_INDEX)
     response.raise_for_status()
     versions_info = response.json()
-    cutoff_date: date = (datetime.now(tz=UTC) - timedelta(days=COOLDOWN_DAYS)).date()
+    cutoff_date: date = (
+        date.max
+        if IGNORE_COOLDOWN
+        else (datetime.now(tz=UTC) - timedelta(days=COOLDOWN_DAYS)).date()
+    )
     for version_info in versions_info:
         version_string = version_info.get("version", "???")
         if not version_info.get("lts", False):

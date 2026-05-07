@@ -10,6 +10,7 @@
 # ///
 
 import json
+import os
 from datetime import UTC, datetime, timedelta
 
 from cibuildwheel.extra import github_api_request
@@ -20,6 +21,7 @@ from cibuildwheel.util.python_build_standalone import (
 from cibuildwheel.util.resources import PYTHON_BUILD_STANDALONE_RELEASES
 
 COOLDOWN_DAYS = 7
+IGNORE_COOLDOWN = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
 
 
 def main() -> None:
@@ -33,7 +35,7 @@ def main() -> None:
     latest_tag = latest_release["tag_name"]
 
     published_at = datetime.fromisoformat(latest_release["published_at"])
-    if datetime.now(tz=UTC) - published_at < timedelta(days=COOLDOWN_DAYS):
+    if not IGNORE_COOLDOWN and datetime.now(tz=UTC) - published_at < timedelta(days=COOLDOWN_DAYS):
         print(
             f"Skipping update: latest release {latest_tag!r} was published "
             f"less than {COOLDOWN_DAYS} days ago."
