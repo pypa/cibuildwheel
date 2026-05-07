@@ -413,6 +413,7 @@ def _expected_wheels(
 
         elif platform == "pyodide":
             platform_tags = {
+                "cp312-cp312": ["pyodide_2024_0_wasm32"],
                 "cp313-cp313": ["pyemscripten_2025_0_wasm32"],
                 "cp314-cp314": ["pyemscripten_2026_0_wasm32"],
             }.get(python_abi_tag, [])

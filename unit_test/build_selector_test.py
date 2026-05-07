@@ -108,6 +108,18 @@ def test_build_filter_pyodide() -> None:
         enable=frozenset(),
     )
     assert build_selector("cp313-pyodide_wasm32")
+    assert not build_selector("cp312-pyodide_wasm32")
+    assert not build_selector("cp314-pyodide_wasm32")
+
+
+def test_build_filter_pyodide_eol() -> None:
+    build_selector = BuildSelector(
+        build_config="*",
+        skip_config="",
+        enable=frozenset([EnableGroup.PyodideEoL]),
+    )
+    assert build_selector("cp312-pyodide_wasm32")
+    assert build_selector("cp313-pyodide_wasm32")
     assert not build_selector("cp314-pyodide_wasm32")
 
 

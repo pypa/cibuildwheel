@@ -34,6 +34,7 @@ class EnableGroup(StrEnum):
     GraalPy = "graalpy"
     PyPy = "pypy"
     PyPyEoL = "pypy-eol"
+    PyodideEoL = "pyodide-eol"
     PyodidePrerelease = "pyodide-prerelease"
 
     @classmethod
@@ -95,6 +96,8 @@ class BuildSelector:
         if EnableGroup.PyPyEoL not in self.enable and is_pypy_eol:
             return False
         if EnableGroup.GraalPy not in self.enable and fnmatch(build_id, "gp*"):
+            return False
+        if EnableGroup.PyodideEoL not in self.enable and fnmatch(build_id, "cp312-pyodide_*"):
             return False
         # NOTE: Disable this when we don't have any Pyodide prereleases (e.g., 314.0.0a1+)
         # When doing this, also:
