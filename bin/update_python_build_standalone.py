@@ -12,8 +12,8 @@
 import json
 from datetime import UTC, datetime, timedelta
 
-from bin._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 from cibuildwheel.extra import github_api_request
+from cibuildwheel.util._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 from cibuildwheel.util.python_build_standalone import (
     PythonBuildStandaloneAsset,
     PythonBuildStandaloneReleaseData,

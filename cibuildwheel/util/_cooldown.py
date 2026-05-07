@@ -1,6 +1,6 @@
 import os
 
-# Number of days a release must age before our update scripts will pick it up.
+# Number of days a release must age before the update scripts will pick it up.
 # NOTE: keep this in sync with the Dependabot configuration in .github/dependabot.yml.
 COOLDOWN_DAYS = 7
 

@@ -23,7 +23,7 @@ from pathlib import Path
 
 import nox
 
-from bin._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
+from cibuildwheel.util._cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 
 nox.needs_version = ">=2025.2.9"
 nox.options.default_venv_backend = "uv|virtualenv"
