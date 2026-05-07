@@ -273,7 +273,7 @@ class PyPyVersions:
 
 
 class CPythonVersions:
-    def __init__(self) -> None:
+    def __init__(self, cutoff_date: date) -> None:
         response = requests.get(
             "https://www.python.org/api/v2/downloads/release/?is_published=true"
         )
@@ -285,6 +285,10 @@ class CPythonVersions:
         for release in releases_info:
             # Skip the pymanager releases
             if not release["slug"].startswith("python"):
+                continue
+
+            release_date_str = release.get("release_date")
+            if release_date_str and datetime.fromisoformat(release_date_str).date() > cutoff_date:
                 continue
 
             # Removing the prefix
@@ -446,7 +450,7 @@ class AllVersions:
         self.windows_t_arm64 = WindowsVersions("ARM64", True)
         self.windows_pypy_64 = PyPyVersions("64", cutoff_date)
 
-        self.cpython = CPythonVersions()
+        self.cpython = CPythonVersions(cutoff_date)
         self.macos_pypy = PyPyVersions("64", cutoff_date)
         self.macos_pypy_arm64 = PyPyVersions("ARM64", cutoff_date)
 
