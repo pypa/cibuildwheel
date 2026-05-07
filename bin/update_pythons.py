@@ -21,6 +21,7 @@ import re
 import tomllib
 from collections.abc import Mapping, MutableMapping
 from datetime import UTC, date, datetime, timedelta
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any, Final, Literal, TypedDict
 from xml.etree import ElementTree as ET
@@ -346,7 +347,7 @@ class CPythonVersions:
 class MavenVersions:
     MAVEN_URL = "https://repo.maven.apache.org/maven2/com/chaquo/python/python"
 
-    def __init__(self) -> None:
+    def __init__(self, cutoff_date: date) -> None:
         response = requests.get(f"{self.MAVEN_URL}/maven-metadata.xml")
         response.raise_for_status()
         root = ET.fromstring(response.text)
@@ -357,20 +358,30 @@ class MavenVersions:
             assert isinstance(version_str, str), version_str
             self.versions.append(Version(version_str))
 
+        self.cutoff_date = cutoff_date
+
     def update_version_android(self, identifier: str, spec: Specifier) -> ConfigUrl | None:
         sorted_versions = sorted(spec.filter(self.versions), reverse=True)
 
-        # Return a config using the highest version for the given specifier.
-        if sorted_versions:
-            max_version = sorted_versions[0]
+        # maven-metadata.xml only carries a package-level timestamp, not per-version
+        # dates, so we check the Last-Modified header on each candidate's POM file
+        for max_version in sorted_versions:
             triplet = android_triplet(identifier)
+            pom_url = f"{self.MAVEN_URL}/{max_version}/python-{max_version}.pom"
+            head_response = requests.head(pom_url)
+            head_response.raise_for_status()
+            last_modified_str = head_response.headers.get("Last-Modified")
+            if last_modified_str:
+                published = parsedate_to_datetime(last_modified_str).date()
+                if published > self.cutoff_date:
+                    log.info("Skipping %s: published %s is within cooldown", max_version, published)
+                    continue
             return ConfigUrl(
                 identifier=identifier,
                 version=f"{max_version.major}.{max_version.minor}",
                 url=f"{self.MAVEN_URL}/{max_version}/python-{max_version}-{triplet}.tar.gz",
             )
-        else:
-            return None
+        return None
 
 
 class CPythonIOSVersions:
@@ -471,7 +482,7 @@ class AllVersions:
         self.macos_pypy = PyPyVersions("64", cutoff_date)
         self.macos_pypy_arm64 = PyPyVersions("ARM64", cutoff_date)
 
-        self.maven = MavenVersions()
+        self.maven = MavenVersions(cutoff_date)
         self.ios_cpython = CPythonIOSVersions(cutoff_date)
 
         self.graalpy = GraalPyVersions(cutoff_date)
