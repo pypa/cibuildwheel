@@ -24,7 +24,7 @@ packaging==26.2
     #   delocate
 pefile==2024.8.26
     # via delvewheel
-pip==26.1.1
+pip==26.0.1
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.9.6
     # via
@@ -32,7 +32,7 @@ platformdirs==4.9.6
     #   virtualenv
 pyproject-hooks==1.2.0
     # via build
-python-discovery==1.3.0
+python-discovery==1.2.2
     # via virtualenv
 tomli==2.4.1
     # via build
@@ -40,7 +40,7 @@ typing-extensions==4.15.0
     # via
     #   delocate
     #   virtualenv
-virtualenv==21.3.1
+virtualenv==21.2.1
     # via -r cibuildwheel/resources/constraints.in
 zipp==3.23.1
     # via importlib-metadata
