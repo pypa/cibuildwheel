@@ -364,6 +364,8 @@ values are:
 - `pyodide-prerelease`: Pyodide versions that haven't released yet, if one is
   available. Safe if you are shipping a site with an early build, not for
   general distribution.
+- `pyodide-eol`: Enable Pyodide versions that are no longer the current stable
+  release (if still available).
 - `all`: Enable all of the above.
 
 !!! caution
