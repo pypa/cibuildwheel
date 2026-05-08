@@ -159,8 +159,6 @@ By default, `ARM64` is not enabled when running on non-`ARM64` runners. Use [`CI
 
 ## Pyodide/WebAssembly {: #pyodide}
 
-Pyodide is offered as an experimental feature in cibuildwheel.
-
 ### System requirements
 
 Pyodide builds require a Linux or macOS machine.
