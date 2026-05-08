@@ -6,11 +6,7 @@ abi3info==2025.4.29
     # via abi3audit
 altgraph==0.17.5
     # via macholib
-attrs==26.1.0
-    # via
-    #   cattrs
-    #   requests-cache
-build==1.4.3
+build==1.4.4
     # via -r cibuildwheel/resources/constraints.in
 cattrs==25.3.0
     # via requests-cache
@@ -38,11 +34,7 @@ kaitaistruct==0.11
     # via abi3audit
 macholib==1.16.4
     # via delocate
-markdown-it-py==3.0.0
-    # via rich
-mdurl==0.1.2
-    # via markdown-it-py
-packaging==25.0
+packaging==26.2
     # via
     #   abi3audit
     #   build

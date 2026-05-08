@@ -38,11 +38,7 @@ kaitaistruct==0.11
     # via abi3audit
 macholib==1.16.4
     # via delocate
-markdown-it-py==3.0.0
-    # via rich
-mdurl==0.1.2
-    # via markdown-it-py
-packaging==24.2
+packaging==26.2
     # via
     #   abi3audit
     #   build

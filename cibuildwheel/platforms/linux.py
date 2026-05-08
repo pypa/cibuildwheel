@@ -239,6 +239,7 @@ def build_in_container(
         if PurePosixPath(which_python) != python_bin / "python":
             msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
             raise errors.FatalError(msg)
+        container.call(["python", "-V", "-V"], env=env)
 
         if use_uv:
             which_uv = container.call(["which", "uv"], env=env, capture_output=True).strip()
@@ -266,7 +267,16 @@ def build_in_container(
                     project=container_project_path,
                     package=container_package_dir,
                 )
-                container.call(["sh", "-c", before_build_prepared], env=env)
+                before_build_env = env.copy()
+                if use_uv:
+                    # On Linux, no virtualenv is created for the build environment
+                    # (unlike macOS/Windows, where one is set up before before_build
+                    # runs). uv requires either an active venv or an explicit Python
+                    # target to install packages. Pin UV_PYTHON to the exact interpreter
+                    # for this build so that `uv pip install` works in before_build
+                    # without requiring users to pass --system.
+                    before_build_env["UV_PYTHON"] = str(python_bin / "python")
+                container.call(["sh", "-c", before_build_prepared], env=before_build_env)
 
             log.step("Building wheel...")
 
