@@ -2,15 +2,15 @@
 #    nox -s update_constraints
 annotated-types==0.7.0
     # via pydantic
-auditwheel-emscripten==0.2.3
+auditwheel-emscripten==0.2.4
     # via pyodide-build
-build==1.2.2.post1
+build==1.5.0
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-certifi==2026.2.25
+certifi==2026.4.22
     # via requests
-charset-normalizer==3.4.6
+charset-normalizer==3.4.7
     # via requests
 click==8.1.8
     # via
@@ -19,54 +19,54 @@ click==8.1.8
     #   pyodide-cli
 distlib==0.4.0
     # via virtualenv
-filelock==3.25.2
+filelock==3.29.0
     # via
     #   python-discovery
     #   virtualenv
-idna==3.11
+idna==3.13
     # via requests
 leb128==1.0.9
     # via auditwheel-emscripten
-markdown-it-py==4.0.0
+markdown-it-py==4.2.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-packaging==26.0
+packaging==26.2
     # via
     #   auditwheel-emscripten
     #   build
     #   pyodide-build
     #   wheel
-pip==26.0.1
+pip==26.1.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.9.4
+platformdirs==4.9.6
     # via
     #   pyodide-build
     #   python-discovery
     #   virtualenv
-pydantic==2.12.5
+pydantic==2.13.4
     # via
     #   pyodide-build
     #   pyodide-lock
-pydantic-core==2.41.5
+pydantic-core==2.46.4
     # via pydantic
-pygments==2.19.2
+pygments==2.20.0
     # via rich
-pyodide-build==0.33.0
+pyodide-build==0.34.3
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.5.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
-pyodide-lock==0.1.2
+pyodide-lock==0.1.3
     # via pyodide-build
 pyproject-hooks==1.2.0
     # via build
-python-discovery==1.2.0
+python-discovery==1.3.0
     # via virtualenv
-requests==2.32.5
+requests==2.33.1
     # via pyodide-build
-rich==14.3.3
+rich==15.0.0
     # via
     #   pyodide-build
     #   pyodide-cli
@@ -81,11 +81,11 @@ typing-inspection==0.4.2
     # via pydantic
 urllib3==2.6.3
     # via requests
-virtualenv==21.2.0
+virtualenv==21.3.1
     # via
     #   build
     #   pyodide-build
-wheel==0.46.3
+wheel==0.47.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build

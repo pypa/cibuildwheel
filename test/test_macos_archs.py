@@ -34,7 +34,7 @@ def test_cross_compiled_build(tmp_path: Path) -> None:
         add_env={"CIBW_ARCHS": "x86_64, universal2, arm64"},
         single_python=True,
     )
-    python_tag = "cp{}{}".format(*utils.SINGLE_PYTHON_VERSION)
+    python_tag = "cp{0}{1}-cp{0}{1}-".format(*utils.SINGLE_PYTHON_VERSION)
     expected_wheels = [w for w in ALL_MACOS_WHEELS if python_tag in w]
     assert set(actual_wheels) == set(expected_wheels)
 
@@ -176,7 +176,7 @@ def test_universal2_testing_on_x86_64(
         else:
             assert warning_message in captured.err
 
-    python_tag = "cp{}{}".format(*utils.SINGLE_PYTHON_VERSION)
+    python_tag = "cp{0}{1}-cp{0}{1}-".format(*utils.SINGLE_PYTHON_VERSION)
     expected_wheels = [w for w in ALL_MACOS_WHEELS if python_tag in w and "universal2" in w]
 
     assert set(actual_wheels) == set(expected_wheels)
@@ -210,7 +210,7 @@ def test_universal2_testing_on_arm64(
     assert "running tests on arm64 with pillow" in captured.out
     assert "running tests on x86_64 with pillow" in captured.out
 
-    python_tag = "cp{}{}".format(*utils.SINGLE_PYTHON_VERSION)
+    python_tag = "cp{0}{1}-cp{0}{1}-".format(*utils.SINGLE_PYTHON_VERSION)
     expected_wheels = [w for w in ALL_MACOS_WHEELS if python_tag in w and "universal2" in w]
     assert set(actual_wheels) == set(expected_wheels)
 
