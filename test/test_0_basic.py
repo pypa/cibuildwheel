@@ -70,9 +70,7 @@ def test_sample_build(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None
             logger.step_end()
 
 
-@pytest.mark.parametrize(
-    "enable_setting", ["", "cpython-prerelease", "pypy", "cpython-freethreading"]
-)
+@pytest.mark.parametrize("enable_setting", ["", "cpython-prerelease", "pypy"])
 def test_build_identifiers(
     tmp_path: Path, enable_setting: str, monkeypatch: pytest.MonkeyPatch
 ) -> None:

@@ -686,8 +686,6 @@ class Options:
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)
             enable |= EnableGroup.all_groups()
-            if args.only.startswith("cp313t-"):
-                enable.add(EnableGroup.CPythonFreeThreading)
 
         build_selector = BuildSelector(
             build_config=build_config,
