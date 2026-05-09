@@ -10,6 +10,9 @@
 # ///
 
 import json
+from datetime import UTC, datetime, timedelta
+
+from _cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 
 from cibuildwheel.extra import github_api_request
 from cibuildwheel.util.python_build_standalone import (
@@ -28,6 +31,14 @@ def main() -> None:
     # Get the latest release tag from the GitHub API
     latest_release = github_api_request("repos/astral-sh/python-build-standalone/releases/latest")
     latest_tag = latest_release["tag_name"]
+
+    published_at = datetime.fromisoformat(latest_release["published_at"])
+    if not IGNORE_COOLDOWN and datetime.now(tz=UTC) - published_at < timedelta(days=COOLDOWN_DAYS):
+        print(
+            f"Skipping update: latest release {latest_tag!r} was published "
+            f"less than {COOLDOWN_DAYS} days ago."
+        )
+        return
 
     # Get the list of assets for the latest release
     github_assets = github_api_request(

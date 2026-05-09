@@ -20,6 +20,8 @@ import operator
 import re
 import tomllib
 from collections.abc import Mapping, MutableMapping
+from datetime import UTC, date, datetime, timedelta
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any, Final, Literal, TypedDict
 from xml.etree import ElementTree as ET
@@ -27,6 +29,7 @@ from xml.etree import ElementTree as ET
 import click
 import requests
 import rich
+from _cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 from packaging.specifiers import Specifier
 from packaging.version import Version
 from rich.logging import RichHandler
@@ -65,14 +68,14 @@ class ConfigPyodide(Config):
 
 
 class WindowsVersions:
-    def __init__(self, arch_str: ArchStr, free_threaded: bool) -> None:
+    def __init__(self, arch_str: ArchStr, free_threaded: bool, cutoff_date: date) -> None:
         response = requests.get("https://api.nuget.org/v3/index.json")
         response.raise_for_status()
         api_info = response.json()
 
-        for resource in api_info["resources"]:
-            if resource["@type"] == "PackageBaseAddress/3.0.0":
-                endpoint = resource["@id"]
+        reg_endpoint = next(
+            r["@id"] for r in api_info["resources"] if r["@type"] == "RegistrationsBaseUrl/3.6.0"
+        )
 
         ARCH_DICT = {"32": "win32", "64": "win_amd64", "ARM64": "win_arm64"}
         PACKAGE_DICT = {"32": "pythonx86", "64": "python", "ARM64": "pythonarm64"}
@@ -85,11 +88,30 @@ class WindowsVersions:
         if free_threaded:
             package = f"{package}-freethreaded"
 
-        response = requests.get(f"{endpoint}{package}/index.json")
-        response.raise_for_status()
-        cp_info = response.json()
+        # NuGet serves registration responses gzip-compressed; requests decompresses
+        # automatically via Accept-Encoding negotiation
+        reg_response = requests.get(f"{reg_endpoint}{package}/index.json")
+        reg_response.raise_for_status()
+        reg_data = reg_response.json()
 
-        self.version_dict = {Version(v): v for v in cp_info["versions"]}
+        # NuGet uses 1900-01-01 as a sentinel for packages whose publish date was
+        # not recorded. The NuGet SDK looks at this as null and treats it as
+        # "allow" (and dependabot-core does the same):
+        # https://github.com/dependabot/dependabot-core/blob/b0090acfa61b7541c040e302c760a84c702217a3/nuget/helpers/lib/NuGetUpdater/NuGetUpdater.Core/Run/ApiModel/Cooldown.cs#L70-L75
+        NUGET_DATE_SENTINEL = date(1900, 1, 1)
+
+        self.version_dict: dict[Version, str] = {}
+        for page_meta in reg_data["items"]:
+            # Registration pages may be inlined in the index response or kept external
+            # See: https://github.com/microsoft/NativeAOTDependencyHelper/blob/9ad3f7be5b919f6166d60a228691e1c802797909/NativeAOTDependencyHelper.Core/Checks/NuGetRecentlyUpdatedCheck.cs#L36-L45
+            # pythonarm64 and all freethreaded packages have fully-inlined pages and need no extra fetches.
+            items = page_meta.get("items") or requests.get(page_meta["@id"]).json()["items"]
+            for item in items:
+                entry = item["catalogEntry"]
+                published = datetime.fromisoformat(entry["published"]).date()
+                if published != NUGET_DATE_SENTINEL and published > cutoff_date:
+                    continue
+                self.version_dict[Version(entry["version"])] = entry["version"]
 
     def update_version_windows(self, spec: Specifier) -> Config | None:
         # Specifier.filter selects all non pre-releases that match the spec,
@@ -113,7 +135,7 @@ class WindowsVersions:
 
 
 class GraalPyVersions:
-    def __init__(self) -> None:
+    def __init__(self, cutoff_date: date) -> None:
         response = requests.get("https://api.github.com/repos/oracle/graalpython/releases")
         response.raise_for_status()
 
@@ -128,7 +150,13 @@ class GraalPyVersions:
             if m:
                 release["python_version"] = Version(m.group(1))
 
-        self.releases = [r for r in releases if "graalpy_version" in r and "python_version" in r]
+        self.releases = [
+            r
+            for r in releases
+            if "graalpy_version" in r
+            and "python_version" in r
+            and datetime.fromisoformat(r["published_at"]).date() <= cutoff_date
+        ]
 
     def update_version(self, identifier: str, spec: Specifier) -> ConfigUrl | None:
         if "x86_64" in identifier or "amd64" in identifier:
@@ -185,7 +213,7 @@ class GraalPyVersions:
 
 
 class PyPyVersions:
-    def __init__(self, arch_str: ArchStr):
+    def __init__(self, arch_str: ArchStr, cutoff_date: date):
         response = requests.get("https://downloads.python.org/pypy/versions.json")
         response.raise_for_status()
 
@@ -197,7 +225,9 @@ class PyPyVersions:
         self.releases = [
             r
             for r in releases
-            if not r["pypy_version"].is_prerelease and not r["pypy_version"].is_devrelease
+            if not r["pypy_version"].is_prerelease
+            and not r["pypy_version"].is_devrelease
+            and date.fromisoformat(r["date"]) <= cutoff_date
         ]
         self.arch = arch_str
 
@@ -263,7 +293,7 @@ class PyPyVersions:
 
 
 class CPythonVersions:
-    def __init__(self) -> None:
+    def __init__(self, cutoff_date: date) -> None:
         response = requests.get(
             "https://www.python.org/api/v2/downloads/release/?is_published=true"
         )
@@ -275,6 +305,10 @@ class CPythonVersions:
         for release in releases_info:
             # Skip the pymanager releases
             if not release["slug"].startswith("python"):
+                continue
+
+            release_date_str = release.get("release_date")
+            if release_date_str and datetime.fromisoformat(release_date_str).date() > cutoff_date:
                 continue
 
             # Removing the prefix
@@ -318,7 +352,7 @@ class CPythonVersions:
 class MavenVersions:
     MAVEN_URL = "https://repo.maven.apache.org/maven2/com/chaquo/python/python"
 
-    def __init__(self) -> None:
+    def __init__(self, cutoff_date: date) -> None:
         response = requests.get(f"{self.MAVEN_URL}/maven-metadata.xml")
         response.raise_for_status()
         root = ET.fromstring(response.text)
@@ -329,24 +363,34 @@ class MavenVersions:
             assert isinstance(version_str, str), version_str
             self.versions.append(Version(version_str))
 
+        self.cutoff_date = cutoff_date
+
     def update_version_android(self, identifier: str, spec: Specifier) -> ConfigUrl | None:
         sorted_versions = sorted(spec.filter(self.versions), reverse=True)
 
-        # Return a config using the highest version for the given specifier.
-        if sorted_versions:
-            max_version = sorted_versions[0]
+        # maven-metadata.xml only carries a package-level timestamp, not per-version
+        # dates, so we check the Last-Modified header on each candidate's POM file
+        for max_version in sorted_versions:
             triplet = android_triplet(identifier)
+            pom_url = f"{self.MAVEN_URL}/{max_version}/python-{max_version}.pom"
+            head_response = requests.head(pom_url)
+            head_response.raise_for_status()
+            last_modified_str = head_response.headers.get("Last-Modified")
+            if last_modified_str:
+                published = parsedate_to_datetime(last_modified_str).date()
+                if published > self.cutoff_date:
+                    log.info("Skipping %s: published %s is within cooldown", max_version, published)
+                    continue
             return ConfigUrl(
                 identifier=identifier,
                 version=f"{max_version.major}.{max_version.minor}",
                 url=f"{self.MAVEN_URL}/{max_version}/python-{max_version}-{triplet}.tar.gz",
             )
-        else:
-            return None
+        return None
 
 
 class CPythonIOSVersions:
-    def __init__(self) -> None:
+    def __init__(self, cutoff_date: date) -> None:
         response = requests.get(
             "https://api.github.com/repos/beeware/Python-Apple-support/releases",
             headers={
@@ -361,6 +405,9 @@ class CPythonIOSVersions:
 
         # Each release has a name like "3.13-b4"
         for release in releases_info:
+            if datetime.fromisoformat(release["published_at"]).date() > cutoff_date:
+                continue
+
             py_version, build = release["name"].split("-")
             version = Version(py_version)
             self.versions_dict.setdefault(version, {})
@@ -426,22 +473,28 @@ class PyodideVersions:
 
 class AllVersions:
     def __init__(self) -> None:
-        self.windows_32 = WindowsVersions("32", False)
-        self.windows_t_32 = WindowsVersions("32", True)
-        self.windows_64 = WindowsVersions("64", False)
-        self.windows_t_64 = WindowsVersions("64", True)
-        self.windows_arm64 = WindowsVersions("ARM64", False)
-        self.windows_t_arm64 = WindowsVersions("ARM64", True)
-        self.windows_pypy_64 = PyPyVersions("64")
+        cutoff_date: date = (
+            date.max
+            if IGNORE_COOLDOWN
+            else (datetime.now(tz=UTC) - timedelta(days=COOLDOWN_DAYS)).date()
+        )
 
-        self.cpython = CPythonVersions()
-        self.macos_pypy = PyPyVersions("64")
-        self.macos_pypy_arm64 = PyPyVersions("ARM64")
+        self.windows_32 = WindowsVersions("32", False, cutoff_date)
+        self.windows_t_32 = WindowsVersions("32", True, cutoff_date)
+        self.windows_64 = WindowsVersions("64", False, cutoff_date)
+        self.windows_t_64 = WindowsVersions("64", True, cutoff_date)
+        self.windows_arm64 = WindowsVersions("ARM64", False, cutoff_date)
+        self.windows_t_arm64 = WindowsVersions("ARM64", True, cutoff_date)
+        self.windows_pypy_64 = PyPyVersions("64", cutoff_date)
 
-        self.maven = MavenVersions()
-        self.ios_cpython = CPythonIOSVersions()
+        self.cpython = CPythonVersions(cutoff_date)
+        self.macos_pypy = PyPyVersions("64", cutoff_date)
+        self.macos_pypy_arm64 = PyPyVersions("ARM64", cutoff_date)
 
-        self.graalpy = GraalPyVersions()
+        self.maven = MavenVersions(cutoff_date)
+        self.ios_cpython = CPythonIOSVersions(cutoff_date)
+
+        self.graalpy = GraalPyVersions(cutoff_date)
 
         self.pyodide = PyodideVersions()
 
