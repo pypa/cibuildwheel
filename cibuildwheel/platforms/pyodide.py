@@ -17,7 +17,7 @@ from filelock import FileLock
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import get_build_frontend_extra_flags
+from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config_settings
 from cibuildwheel.logger import log
 from cibuildwheel.options import Options
 from cibuildwheel.selector import BuildSelector
@@ -423,7 +423,11 @@ def build(options: Options, tmp_path: Path) -> None:
                 extra_flags = get_build_frontend_extra_flags(
                     build_frontend,
                     build_options.build_verbosity,
-                    build_options.config_settings,
+                    prepare_config_settings(
+                        build_options.config_settings,
+                        project=".",
+                        package=build_options.package_dir,
+                    ),
                     py38=False,
                 )
 

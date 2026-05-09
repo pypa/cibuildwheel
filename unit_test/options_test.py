@@ -10,7 +10,11 @@ import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.bashlex_eval import local_environment_executor
-from cibuildwheel.frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from cibuildwheel.frontend import (
+    BuildFrontendConfig,
+    get_build_frontend_extra_flags,
+    prepare_config_settings,
+)
 from cibuildwheel.logger import Logger
 from cibuildwheel.options import (
     CommandLineArguments,
@@ -591,6 +595,26 @@ def test_get_build_frontend_extra_flags_warning(
     )
     assert args == ["-Ca", "-Cb", "-1"]
     mock_warning.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("config_settings", "expected"),
+    [
+        (
+            "setup-args=--cross-file={project}/meson_cross_files/windows-386.ini",
+            "setup-args=--cross-file=C:/project/meson_cross_files/windows-386.ini",
+        ),
+        (
+            "setup-args=--cross-file={package}/meson_cross_files/windows-386.ini",
+            "setup-args=--cross-file=C:/project/pkg/meson_cross_files/windows-386.ini",
+        ),
+    ],
+)
+def test_prepare_config_settings(config_settings: str, expected: str) -> None:
+    assert (
+        prepare_config_settings(config_settings, project="C:/project", package="C:/project/pkg")
+        == expected
+    )
 
 
 @pytest.mark.parametrize(

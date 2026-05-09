@@ -543,6 +543,9 @@ Specify config settings for the build backend. Each space separated
 item will be passed via `--config-setting`. In TOML, you can specify
 a table of items, including arrays.
 
+You can use the `{project}` or `{package}` placeholders in `config-settings`
+to refer to the project root or package being built, respectively.
+
 !!! tip
     Currently, "build" supports arrays for options, but "pip" only supports
     single values.
@@ -564,6 +567,14 @@ Platform-specific environment variables also available:<br/>
 
     ```yaml
     CIBW_CONFIG_SETTINGS: "--build-option=--use-mypyc"
+    ```
+
+    ```yaml
+    CIBW_CONFIG_SETTINGS_LINUX: "setup-args=--cross-file={project}/cross_file.txt"
+    ```
+
+    ```yaml
+    CIBW_CONFIG_SETTINGS: "editable-verbose=true source-dir={package}"
     ```
 
 
