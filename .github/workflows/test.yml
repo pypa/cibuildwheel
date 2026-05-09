@@ -46,7 +46,7 @@ jobs:
       with:
         python-version: "3.x"
     - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
-    - uses: j178/prek-action@cbc2f23eb5539cf20d82d1aabd0d0ecbcc56f4e3 # v2.0.2
+    - uses: j178/prek-action@6ad80277337ad479fe43bd70701c3f7f8aa74db3 # v2.0.3
     - name: PyLint checks
       run: uvx nox -s pylint -- --output-format=github
 
