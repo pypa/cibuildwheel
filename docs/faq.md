@@ -114,6 +114,48 @@ Meson generally works well with cibuildwheel, but there are a few things to be a
 
 -   If you need to build 32-bit Windows wheels, you need to activate a 32-bit compiler toolchain before starting cibuildwheel. Many users use [ilammy/msvc-dev-cmd](https://github.com/ilammy/msvc-dev-cmd) for this purpose.
 
+### Caching cibuildwheel's downloaded tools {: #caching}
+
+To speed up builds, cibuildwheel caches the tools it downloads — CPython/PyPy installers, [`virtualenv`][virtualenv], [python-build-standalone][pbs] archives used on Android/iOS, etc. The active cache folder is printed in the preamble of every run:
+
+```
+Cache folder: /Users/Matt/Library/Caches/cibuildwheel
+```
+
+By default it lives under the OS user-cache directory:
+
+| Platform     | Default cache folder                          |
+| ------------ | --------------------------------------------- |
+| Linux        | `~/.cache/cibuildwheel`                       |
+| macOS / iOS  | `~/Library/Caches/cibuildwheel`               |
+| Windows      | `%LOCALAPPDATA%\pypa\cibuildwheel\Cache`      |
+
+Set the `CIBW_CACHE_PATH` environment variable to point cibuildwheel at a different folder. On CI you'll typically want a workspace-relative path so that the runner's cache action can persist it between runs.
+
+#### Persisting the cache on GitHub Actions
+
+```yaml
+- uses: actions/cache@v4
+  with:
+    path: .cibw-cache
+    key: cibw-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+    restore-keys: |
+      cibw-${{ runner.os }}-
+
+- uses: pypa/cibuildwheel@v3.4.1
+  env:
+    CIBW_CACHE_PATH: ${{ github.workspace }}/.cibw-cache
+```
+
+The `restore-keys` fallback lets a slightly stale cache still be reused if `pyproject.toml` changes. Adjust the cache key to whatever set of inputs determines what cibuildwheel will download (e.g. include a hash of `pyproject.toml`'s `[tool.cibuildwheel]` section, or pin on a Python build-tools version).
+
+For platform-specific notes (e.g. caching the official python.org installers on macOS, or NuGet CPython downloads on Windows), see the [platforms documentation](platforms.md).
+
+If the cache becomes stale or corrupt, run `cibuildwheel --clean-cache` (or simply delete the folder) before re-running.
+
+[virtualenv]: https://virtualenv.pypa.io/
+[pbs]: https://gregoryszorc.com/docs/python-build-standalone/main/
+
 ### Automatic updates using Dependabot {: #automatic-updates}
 
 Selecting a moving target (like the latest release) is generally a bad idea in CI. If something breaks, you can't tell whether it was your code or an upstream update that caused the breakage, and in a worst-case scenario, it could occur during a release.
