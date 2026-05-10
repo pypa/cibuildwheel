@@ -430,6 +430,34 @@
       ],
       "title": "CIBW_XBUILD_TOOLS"
     },
+    "xbuild-files": {
+      "description": "Platform-specific files in the build environment",
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "patternProperties": {
+            ".+": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "title": "CIBW_XBUILD_FILES"
+    },
     "pyodide-version": {
       "type": "string",
       "description": "Specify the version of Pyodide to use",
@@ -643,6 +671,9 @@
               "xbuild-tools": {
                 "$ref": "#/$defs/inherit"
               },
+              "xbuild-files": {
+                "$ref": "#/$defs/inherit"
+              },
               "before-test": {
                 "$ref": "#/$defs/inherit"
               },
@@ -765,6 +796,9 @@
           "xbuild-tools": {
             "$ref": "#/properties/xbuild-tools"
           },
+          "xbuild-files": {
+            "$ref": "#/properties/xbuild-files"
+          },
           "pyodide-version": {
             "$ref": "#/properties/pyodide-version"
           },
@@ -883,6 +917,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
+        },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
         },
@@ -959,6 +996,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
+        },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
         },
@@ -1021,6 +1061,9 @@
         },
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
+        },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
         },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
@@ -1098,6 +1141,9 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
+        },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
         },
@@ -1161,11 +1207,27 @@
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
         },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
+        },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"
         },
         "repair-wheel-command": {
-          "$ref": "#/properties/repair-wheel-command"
+          "description": "Execute a shell command to repair each built wheel.",
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ],
+          "title": "CIBW_REPAIR_WHEEL_COMMAND",
+          "default": "auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}"
         },
         "test-command": {
           "$ref": "#/properties/test-command"
@@ -1223,6 +1285,9 @@
         },
         "xbuild-tools": {
           "$ref": "#/properties/xbuild-tools"
+        },
+        "xbuild-files": {
+          "$ref": "#/properties/xbuild-files"
         },
         "pyodide-version": {
           "$ref": "#/properties/pyodide-version"

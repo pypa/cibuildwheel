@@ -212,6 +212,28 @@ def test_parse_key_value_string() -> None:
     }
 
 
+def test_parse_key_value_string_unknown_name() -> None:
+    # Unknown fields are not allowed by default.
+    with pytest.raises(ValueError, match=r"Failed to parse 'key: value'. Unknown field name 'key'"):
+        parse_key_value_string("key: value")
+
+    # Unknown fields can be enabled by passing "*".
+    assert parse_key_value_string(
+        "key: value",
+        kw_arg_names=["*"],
+    ) == {
+        "key": ["value"],
+    }
+
+    assert parse_key_value_string(
+        "key1: value1a value1b; key2: value2",
+        kw_arg_names=["*"],
+    ) == {
+        "key1": ["value1a", "value1b"],
+        "key2": ["value2"],
+    }
+
+
 def test_flexible_version_comparisons() -> None:
     assert FlexibleVersion("2.0") == FlexibleVersion("2")
     assert FlexibleVersion("2.0") < FlexibleVersion("2.1")
