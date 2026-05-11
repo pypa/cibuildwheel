@@ -475,7 +475,6 @@ def build_wheel(state: BuildState) -> Path:
                         project=".",
                         package=state.options.package_dir,
                     ),
-                    py38=False,
                 ),
                 env=state.android_env,
             )
@@ -497,7 +496,6 @@ def build_wheel(state: BuildState) -> Path:
                         project=".",
                         package=state.options.package_dir,
                     ),
-                    py38=False,
                 ),
                 env=state.android_env,
             )

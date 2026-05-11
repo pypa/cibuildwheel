@@ -428,7 +428,6 @@ def build(options: Options, tmp_path: Path) -> None:
                         project=".",
                         package=build_options.package_dir,
                     ),
-                    py38=False,
                 )
 
                 call(
