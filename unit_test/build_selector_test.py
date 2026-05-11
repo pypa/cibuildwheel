@@ -52,7 +52,7 @@ def test_build_filter_pre() -> None:
     assert build_selector("cp313-manylinux_x86_64")
     assert build_selector("cp37-win_amd64")
     assert build_selector("cp313-win_amd64")
-    assert not build_selector("cp313t-manylinux_x86_64")
+    assert build_selector("cp314t-manylinux_x86_64")
 
 
 def test_build_filter_pypy() -> None:
@@ -97,8 +97,8 @@ def test_build_filter_pyodide_prerelease() -> None:
         skip_config="",
         enable=frozenset([EnableGroup.PyodidePrerelease]),
     )
-    assert build_selector("cp312-pyodide_wasm32")
     assert build_selector("cp313-pyodide_wasm32")
+    assert build_selector("cp314-pyodide_wasm32")
 
 
 def test_build_filter_pyodide() -> None:
@@ -107,8 +107,20 @@ def test_build_filter_pyodide() -> None:
         skip_config="",
         enable=frozenset(),
     )
+    assert build_selector("cp313-pyodide_wasm32")
+    assert not build_selector("cp312-pyodide_wasm32")
+    assert not build_selector("cp314-pyodide_wasm32")
+
+
+def test_build_filter_pyodide_eol() -> None:
+    build_selector = BuildSelector(
+        build_config="*",
+        skip_config="",
+        enable=frozenset([EnableGroup.PyodideEoL]),
+    )
     assert build_selector("cp312-pyodide_wasm32")
     assert build_selector("cp313-pyodide_wasm32")
+    assert not build_selector("cp314-pyodide_wasm32")
 
 
 def test_skip() -> None:
@@ -208,12 +220,6 @@ def test_build_limited_python_patch() -> None:
 
     assert build_selector("cp36-manylinux_x86_64")
     assert build_selector("cp37-manylinux_x86_64")
-
-
-def test_build_free_threaded_python() -> None:
-    build_selector = BuildSelector(build_config="*", skip_config="", enable=frozenset(EnableGroup))
-
-    assert build_selector("cp313t-manylinux_x86_64")
 
 
 def test_testing_selector() -> None:

@@ -28,7 +28,6 @@ $defs:
     description: How to inherit the parent's value.
   enable:
     enum:
-      - cpython-freethreading
       - cpython-prerelease
       - graalpy
       - pyodide-prerelease

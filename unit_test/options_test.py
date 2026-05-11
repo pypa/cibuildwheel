@@ -10,7 +10,11 @@ import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.bashlex_eval import local_environment_executor
-from cibuildwheel.frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from cibuildwheel.frontend import (
+    BuildFrontendConfig,
+    get_build_frontend_extra_flags,
+    prepare_config_settings,
+)
 from cibuildwheel.logger import Logger
 from cibuildwheel.options import (
     CommandLineArguments,
@@ -18,7 +22,6 @@ from cibuildwheel.options import (
     _get_pinned_container_images,
 )
 from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
-from cibuildwheel.selector import EnableGroup
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
 
@@ -36,7 +39,7 @@ manylinux-x86_64-image = "manylinux_2_28"
 
 environment-pass = ["EXAMPLE_ENV"]
 
-pyodide-version = "0.28.0"
+pyodide-version = "0.29.4"
 
 [tool.cibuildwheel.macos]
 test-requires = "else"
@@ -93,7 +96,7 @@ def test_options_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux_2_34"]
 
     local = options.build_options("cp312-pyodide_wasm32")
-    assert local.pyodide_version == "0.28.0"
+    assert local.pyodide_version == "0.29.4"
 
 
 def test_passthrough(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -447,50 +450,6 @@ def test_override_inherit_environment_with_references(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("toml_assignment", "env", "enable_args", "expected_result"),
-    [
-        ("", {}, [], False),
-        ("enable = ['cpython-freethreading']", {}, [], True),
-        ("enable = []", {}, [], False),
-        ("", {}, ["cpython-freethreading"], True),
-        ("", {}, ["cpython-freethreading", "pypy"], True),
-        ("", {"CIBW_ENABLE": "pypy"}, [], False),
-        ("", {"CIBW_ENABLE": "cpython-freethreading"}, [], True),
-        ("enable = []", {"CIBW_ENABLE": "cpython-freethreading"}, [], True),
-        ("enable = ['cpython-freethreading']", {"CIBW_ENABLE": "pypy"}, [], True),
-        ("enable = ['cpython-freethreading']", {}, ["pypy"], True),
-        ("enable = ['cpython-freethreading']", {"CIBW_ENABLE": ""}, [], True),
-        ("enable = []", {"CIBW_ENABLE": ""}, [], False),
-    ],
-)
-def test_free_threaded_support(
-    tmp_path: Path,
-    toml_assignment: str,
-    env: dict[str, str],
-    enable_args: list[str],
-    expected_result: bool,
-) -> None:
-    args = CommandLineArguments.defaults()
-    args.package_dir = tmp_path
-    args.enable = enable_args
-
-    pyproject_toml: Path = tmp_path / "pyproject.toml"
-    pyproject_toml.write_text(
-        textwrap.dedent(
-            f"""\
-            [tool.cibuildwheel]
-            {toml_assignment}
-            """
-        )
-    )
-    options = Options(platform="linux", command_line_arguments=args, env=env)
-    if expected_result:
-        assert EnableGroup.CPythonFreeThreading in options.globals.build_selector.enable
-    else:
-        assert EnableGroup.CPythonFreeThreading not in options.globals.build_selector.enable
-
-
-@pytest.mark.parametrize(
     ("toml_assignment", "base_file_path", "packages"),
     [
         ("", resources.CONSTRAINTS, []),
@@ -617,25 +576,31 @@ def test_get_build_frontend_extra_flags(
     monkeypatch.setattr(Logger, "warning", mock_warning)
     build_frontend = BuildFrontendConfig(frontend, ["-1"])
     args = get_build_frontend_extra_flags(
-        build_frontend=build_frontend, verbosity_level=verbosity, config_settings="a b", py38=False
+        build_frontend=build_frontend, verbosity_level=verbosity, config_settings="a b"
     )
 
     assert args == result
     mock_warning.assert_not_called()
 
 
-@pytest.mark.parametrize("frontend", ["build", "build[uv]"])
-def test_get_build_frontend_extra_flags_warning(
-    frontend: Literal["build", "build[uv]"], monkeypatch: pytest.MonkeyPatch
-) -> None:
-    mock_warning = unittest.mock.MagicMock()
-    monkeypatch.setattr(Logger, "warning", mock_warning)
-    build_frontend = BuildFrontendConfig(frontend, ["-1"])
-    args = get_build_frontend_extra_flags(
-        build_frontend=build_frontend, verbosity_level=-1, config_settings="a b", py38=True
+@pytest.mark.parametrize(
+    ("config_settings", "expected"),
+    [
+        (
+            "setup-args=--cross-file={project}/meson_cross_files/windows-386.ini",
+            "setup-args=--cross-file=C:/project/meson_cross_files/windows-386.ini",
+        ),
+        (
+            "setup-args=--cross-file={package}/meson_cross_files/windows-386.ini",
+            "setup-args=--cross-file=C:/project/pkg/meson_cross_files/windows-386.ini",
+        ),
+    ],
+)
+def test_prepare_config_settings(config_settings: str, expected: str) -> None:
+    assert (
+        prepare_config_settings(config_settings, project="C:/project", package="C:/project/pkg")
+        == expected
     )
-    assert args == ["-Ca", "-Cb", "-1"]
-    mock_warning.assert_called_once()
 
 
 @pytest.mark.parametrize(
