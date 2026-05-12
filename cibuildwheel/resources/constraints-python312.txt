@@ -18,7 +18,8 @@ packaging==26.2
     # via
     #   build
     #   delocate
-pip==26.1.1
+pip==26.1.1; implementation_name != "graalpy" or platform_system != "Windows"  
+pip==26.0.1; implementation_name == "graalpy" and platform_system == "Windows"
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.9.6
     # via
