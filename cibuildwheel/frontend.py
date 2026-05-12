@@ -4,8 +4,8 @@ import typing
 from collections.abc import Sequence
 from typing import Literal, Self, get_args
 
-from cibuildwheel.logger import log
-from cibuildwheel.util.helpers import parse_key_value_string
+from cibuildwheel.typing import PathOrStr
+from cibuildwheel.util.helpers import parse_key_value_string, prepare_command
 
 BuildFrontendName = Literal["pip", "build", "build[uv]", "uv"]
 
@@ -36,12 +36,8 @@ class BuildFrontendConfig:
             return {"name": self.name, "args": repr(self.args)}
 
 
-def _get_verbosity_flags(level: int, frontend: BuildFrontendName, *, py38: bool) -> list[str]:
+def _get_verbosity_flags(level: int, frontend: BuildFrontendName) -> list[str]:
     if level < 0:
-        if frontend.startswith("build") and py38:
-            msg = f"build_verbosity {level} is not supported for {frontend} frontend. Ignoring."
-            log.warning(msg)
-            return []
         return ["-" + -level * "q"]
 
     if level > 0:
@@ -56,6 +52,10 @@ def _get_verbosity_flags(level: int, frontend: BuildFrontendName, *, py38: bool)
 def _split_config_settings(config_settings: str) -> list[str]:
     config_settings_list = shlex.split(config_settings)
     return [f"-C{setting}" for setting in config_settings_list]
+
+
+def prepare_config_settings(config_settings: str, *, project: PathOrStr, package: PathOrStr) -> str:
+    return prepare_command(config_settings, project=project, package=package)
 
 
 # Based on build.__main__.main.
@@ -75,10 +75,10 @@ def parse_config_settings(config_settings_str: str) -> dict[str, str | list[str]
 
 
 def get_build_frontend_extra_flags(
-    build_frontend: BuildFrontendConfig, verbosity_level: int, config_settings: str, *, py38: bool
+    build_frontend: BuildFrontendConfig, verbosity_level: int, config_settings: str
 ) -> list[str]:
     return [
         *_split_config_settings(config_settings),
         *build_frontend.args,
-        *_get_verbosity_flags(verbosity_level, build_frontend.name, py38=py38),
+        *_get_verbosity_flags(verbosity_level, build_frontend.name),
     ]

@@ -1,4 +1,3 @@
-import os
 import sys
 import tomllib
 from collections.abc import Mapping
@@ -166,78 +165,6 @@ def test_empty_selector(monkeypatch: pytest.MonkeyPatch) -> None:
         main()
 
     assert e.value.code == 3
-
-
-@pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_cp313t_warning1(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    monkeypatch.setenv("CIBW_ENABLE", "cpython-freethreading")
-
-    main()
-
-    _, err = capsys.readouterr()
-    print(err)
-    assert "'cpython-freethreading' enable is deprecated" in err
-
-
-@pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_cp313t_warning2(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
-) -> None:
-    local_path = tmp_path / "tmp_project"
-    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
-    local_path.joinpath("setup.py").touch()
-
-    monkeypatch.setattr(
-        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
-    )
-    monkeypatch.setenv("CIBW_ENABLE", "cpython-freethreading")
-
-    main()
-
-    _, err = capsys.readouterr()
-    print(err)
-    assert "'cpython-freethreading' enable is deprecated" in err
-
-
-@pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_cp313t_warning3(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
-) -> None:
-    local_path = tmp_path / "tmp_project"
-    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
-    local_path.joinpath("setup.py").touch()
-
-    monkeypatch.setattr(
-        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
-    )
-
-    main()
-
-    _, err = capsys.readouterr()
-    print(err)
-    assert "'cpython-freethreading' enable is deprecated" in err
-
-
-@pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_cp313t_warning4(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
-) -> None:
-    local_path = tmp_path / "tmp_project"
-    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
-    local_path.joinpath("setup.py").touch()
-
-    monkeypatch.setattr(
-        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
-    )
-    monkeypatch.setenv("CIBW_ENABLE", "all")
-
-    main()
-
-    _, err = capsys.readouterr()
-    print(err)
-    assert "'cpython-freethreading' enable is deprecated" in err
 
 
 @pytest.mark.parametrize(
@@ -530,19 +457,26 @@ def test_config_settings(
     ],
 )
 @pytest.mark.parametrize(
-    "pattern",
+    ("pattern", "series"),
     [
-        "cp27-*",
-        "cp35-*",
-        "?p36-*",
-        "?p27*",
-        "?p2*",
-        "?p35*",
+        ("cp27-*", 1),
+        ("cp35-*", 1),
+        ("?p36-*", 2),
+        ("?p37-*", 2),
+        ("?p38-*", 3),
+        ("?p27*", 1),
+        ("?p2*", 1),
+        ("?p35*", 1),
+        ("cp313t*", None),
     ],
 )
 @pytest.mark.usefixtures("platform", "intercepted_build_args", "allow_empty")
 def test_build_selector_deprecated_error(
-    monkeypatch: pytest.MonkeyPatch, selector: str, pattern: str, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
+    selector: str,
+    pattern: str,
+    series: int,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.setenv(selector, pattern)
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
@@ -556,8 +490,10 @@ def test_build_selector_deprecated_error(
         main()
 
     stderr = capsys.readouterr().err
-    series = "2" if "6" in pattern else "1"
-    msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the {series}.x series or update"
+    if pattern == "cp313t*":
+        msg = "cibuildwheel 4.x no longer supports Python 3.13 free-threading. Please use the 3.x series or update"
+    else:
+        msg = f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the {series}.x series or update"
     assert msg in stderr
 
 

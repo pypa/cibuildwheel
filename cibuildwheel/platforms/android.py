@@ -25,7 +25,11 @@ from filelock import FileLock
 from cibuildwheel import errors, platforms  # pylint: disable=cyclic-import
 from cibuildwheel.architecture import Architecture, arch_synonym
 from cibuildwheel.audit import run_audit
-from cibuildwheel.frontend import get_build_frontend_extra_flags, parse_config_settings
+from cibuildwheel.frontend import (
+    get_build_frontend_extra_flags,
+    parse_config_settings,
+    prepare_config_settings,
+)
 from cibuildwheel.logger import log
 from cibuildwheel.options import BuildOptions, Options
 from cibuildwheel.selector import BuildSelector
@@ -468,8 +472,11 @@ def build_wheel(state: BuildState) -> Path:
                 *get_build_frontend_extra_flags(
                     state.options.build_frontend,
                     state.options.build_verbosity,
-                    state.options.config_settings,
-                    py38=False,
+                    prepare_config_settings(
+                        state.options.config_settings,
+                        project=".",
+                        package=state.options.package_dir,
+                    ),
                 ),
                 env=state.android_env,
             )
@@ -486,8 +493,11 @@ def build_wheel(state: BuildState) -> Path:
                 *get_build_frontend_extra_flags(
                     state.options.build_frontend,
                     state.options.build_verbosity,
-                    state.options.config_settings,
-                    py38=False,
+                    prepare_config_settings(
+                        state.options.config_settings,
+                        project=".",
+                        package=state.options.package_dir,
+                    ),
                 ),
                 env=state.android_env,
             )

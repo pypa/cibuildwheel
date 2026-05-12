@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, assert_never
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import needs_audit, run_audit
-from cibuildwheel.frontend import get_build_frontend_extra_flags
+from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config_settings
 from cibuildwheel.logger import log
 from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from cibuildwheel.options import BuildOptions, Options
@@ -288,8 +288,11 @@ def build_in_container(
             extra_flags = get_build_frontend_extra_flags(
                 build_frontend,
                 build_options.build_verbosity,
-                build_options.config_settings,
-                py38=config.identifier[1:].startswith("p38"),
+                prepare_config_settings(
+                    build_options.config_settings,
+                    project=container_project_path,
+                    package=container_package_dir,
+                ),
             )
 
             match build_frontend.name:

@@ -16,7 +16,11 @@ from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import BuildFrontendName, get_build_frontend_extra_flags
+from cibuildwheel.frontend import (
+    BuildFrontendName,
+    get_build_frontend_extra_flags,
+    prepare_config_settings,
+)
 from cibuildwheel.logger import log
 from cibuildwheel.options import Options
 from cibuildwheel.selector import BuildSelector
@@ -239,11 +243,6 @@ def setup_rust_cross_compile(
         )
 
 
-def can_use_uv(python_configuration: PythonConfiguration) -> bool:
-    conditions = (not python_configuration.identifier.startswith("pp38-"),)
-    return all(conditions)
-
-
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -274,9 +273,6 @@ def setup_python(
         msg = "Unknown Python implementation"
         raise ValueError(msg)
     assert base_python.exists()
-
-    if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
-        build_frontend = "build"
 
     use_uv = build_frontend in {"build[uv]", "uv"}
     uv_path = find_uv()
@@ -416,7 +412,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
-            use_uv = build_frontend.name in {"build[uv]", "uv"} and can_use_uv(config)
+            use_uv = build_frontend.name in {"build[uv]", "uv"}
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -463,8 +459,11 @@ def build(options: Options, tmp_path: Path) -> None:
                 extra_flags = get_build_frontend_extra_flags(
                     build_frontend,
                     build_options.build_verbosity,
-                    build_options.config_settings,
-                    py38=config.identifier[1:].startswith("p38"),
+                    prepare_config_settings(
+                        build_options.config_settings,
+                        project=".",
+                        package=options.globals.package_dir,
+                    ),
                 )
 
                 if (

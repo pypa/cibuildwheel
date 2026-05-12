@@ -20,7 +20,11 @@ from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
 from cibuildwheel.ci import detect_ci_provider
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import BuildFrontendName, get_build_frontend_extra_flags
+from cibuildwheel.frontend import (
+    BuildFrontendName,
+    get_build_frontend_extra_flags,
+    prepare_config_settings,
+)
 from cibuildwheel.logger import log
 from cibuildwheel.options import Options
 from cibuildwheel.selector import BuildSelector
@@ -152,11 +156,10 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
             if not pkg_path.exists():
                 download(url, pkg_path)
             args = []
-            if version.startswith("3.13"):
-                # Python 3.13 is the first version to have a free-threading option
-                args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_313.resolve())]
-            elif version.startswith("3.14"):
+            if version.startswith("3.14"):
                 args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_314.resolve())]
+            elif version.startswith("3.15"):
+                args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_315.resolve())]
             call("sudo", "installer", "-pkg", pkg_path, *args, "-target", "/")
             pkg_path.unlink()
             env = os.environ.copy()
@@ -478,8 +481,11 @@ def build(options: Options, tmp_path: Path) -> None:
                 extra_flags = get_build_frontend_extra_flags(
                     build_frontend,
                     build_options.build_verbosity,
-                    build_options.config_settings,
-                    py38=config.identifier[1:].startswith("p38"),
+                    prepare_config_settings(
+                        build_options.config_settings,
+                        project=".",
+                        package=build_options.package_dir,
+                    ),
                 )
 
                 build_env = env.copy()
@@ -574,13 +580,6 @@ def build(options: Options, tmp_path: Path) -> None:
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 machine_arch = platform.machine()
-                python_arch = call(
-                    "python",
-                    "-sSc",
-                    "import platform; print(platform.machine())",
-                    env=env,
-                    capture_stdout=True,
-                ).strip()
                 testing_archs: list[Literal["x86_64", "arm64"]]
 
                 if config_is_arm64:
@@ -624,24 +623,6 @@ def build(options: Options, tmp_path: Path) -> None:
                         else:
                             msg = "unreachable"
                             raise RuntimeError(msg)
-
-                        # skip this test
-                        continue
-
-                    is_cp38 = config.identifier.startswith("cp38-")
-                    if testing_arch == "arm64" and is_cp38 and python_arch != "arm64":
-                        log.warning(
-                            unwrap(
-                                """
-                                While cibuildwheel can build CPython 3.8 universal2/arm64 wheels, we
-                                cannot test the arm64 part of them, even when running on an Apple
-                                Silicon machine. This is because we use the x86_64 installer of
-                                CPython 3.8. See the discussion in
-                                https://github.com/pypa/cibuildwheel/pull/1169 for the details. To
-                                silence this warning, set `CIBW_TEST_SKIP: "cp38-macosx_*:arm64"`.
-                                """
-                            )
-                        )
 
                         # skip this test
                         continue
@@ -702,33 +683,16 @@ def build(options: Options, tmp_path: Path) -> None:
                         shell_with_arch(before_test_prepared, env=virtualenv_env)
 
                     # install the wheel
-                    if is_cp38 and python_arch == "x86_64":
-                        virtualenv_env_install_wheel = virtualenv_env.copy()
-                        virtualenv_env_install_wheel["SYSTEM_VERSION_COMPAT"] = "0"
-                        log.notice(
-                            unwrap(
-                                """
-                                Setting SYSTEM_VERSION_COMPAT=0 to ensure CPython 3.8 can get
-                                correct macOS version and allow installation of wheels with
-                                MACOSX_DEPLOYMENT_TARGET >= 11.0.
-                                See https://github.com/pypa/cibuildwheel/issues/1767 for the
-                                details.
-                                """
-                            )
-                        )
-                    else:
-                        virtualenv_env_install_wheel = virtualenv_env
-
                     pip_install(
                         f"{repaired_wheel}{build_options.test_extras}",
-                        env=virtualenv_env_install_wheel,
+                        env=virtualenv_env,
                     )
 
                     # test the wheel
                     if build_options.test_requires:
                         pip_install(
                             *build_options.test_requires,
-                            env=virtualenv_env_install_wheel,
+                            env=virtualenv_env,
                         )
 
                     # run the tests from a temp dir, with an absolute path in the command
