@@ -32,7 +32,7 @@ from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
-from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
+from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
 
 
 @functools.cache
@@ -157,6 +157,8 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
             args = []
             if version.startswith("3.14"):
                 args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_314.resolve())]
+            elif version.startswith("3.15"):
+                args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_315.resolve())]
             call("sudo", "installer", "-pkg", pkg_path, *args, "-target", "/")
             pkg_path.unlink()
             env = os.environ.copy()
@@ -244,6 +246,7 @@ def setup_python(
         venv_path,
         dependency_constraint,
         use_uv=use_uv,
+        marker_env=target_marker_env(implementation_id=implementation_id),
     )
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
