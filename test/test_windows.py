@@ -23,7 +23,7 @@ def test_delvewheel_runs_by_default(tmp_path: Path, capfd: pytest.CaptureFixture
     utils.cibuildwheel_run(project_dir, add_args=["--archs", "native"], single_python=True)
 
     captured = capfd.readouterr()
-    assert "Repairing wheel" in captured.err
+    assert "Repairing wheel" in captured.out
 
 
 def test_delvewheel_disabled_by_empty_repair_command(
@@ -45,7 +45,7 @@ def test_delvewheel_disabled_by_empty_repair_command(
     )
 
     captured = capfd.readouterr()
-    assert "Repairing wheel" not in captured.err
+    assert "Repairing wheel" not in captured.out
 
 
 def test_delvewheel_fails_when_dll_is_missing(tmp_path: Path) -> None:
