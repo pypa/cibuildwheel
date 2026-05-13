@@ -6,7 +6,7 @@ from .c import SPAM_C_TEMPLATE
 _SPAM_C_WITH_MISSING_DLL = """\
 #include <Python.h>
 
-__declspec(dllimport) int cibwtest_add(int a, int b);
+int cibwtest_add(int a, int b);
 
 static PyObject *spam_filter(PyObject *self, PyObject *args)
 {
@@ -34,6 +34,7 @@ PyMODINIT_FUNC PyInit_spam(void)
 """
 
 _SETUP_PY_WITH_MISSING_DLL = """\
+import subprocess
 from pathlib import Path
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext as _orig_build_ext
@@ -46,18 +47,22 @@ class build_ext(_orig_build_ext):
         if not self.compiler.initialized:
             self.compiler.initialize()
         dll_dir.mkdir(exist_ok=True)
-        (dll_dir / "cibwtest.c").write_text(
-            "__declspec(dllexport) int cibwtest_add(int a, int b) { return a + b; }\\n"
-        )
-        objs = self.compiler.compile(
-            [str(dll_dir / "cibwtest.c")], output_dir=str(dll_dir)
-        )
-        self.compiler.link_shared_lib(
-            objs,
-            "cibwtest",
-            output_dir=str(dll_dir),
-            extra_postargs=[f"/IMPLIB:{dll_dir / 'cibwtest.lib'}"],
-        )
+
+        machine = {
+            "win-arm64": "ARM64",
+            "win-amd64": "X64",
+            "win32": "X86",
+        }.get(self.plat_name, "X64")
+
+        def_file = dll_dir / "cibwtest.def"
+        def_file.write_text("EXPORTS\\n    cibwtest_add\\n")
+        subprocess.check_call([
+            self.compiler.lib,
+            f"/def:{def_file}",
+            "/name:cibwtest.dll",
+            f"/out:{dll_dir / 'cibwtest.lib'}",
+            f"/machine:{machine}",
+        ])
         super().build_extensions()
 
 setup(
