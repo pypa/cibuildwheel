@@ -68,7 +68,7 @@ Homepage = "https://github.com/pypa/cibuildwheel"
 [dependency-groups]
 docs = [
     "jinja2>=3.1.2",
-    "mkdocs-include-markdown-plugin==6.2.2",
+    "mkdocs-include-markdown-plugin==7.1.8",
     "mkdocs-macros-plugin>=1.4.1",
     "mkdocs==1.6.1",
     "pymdown-extensions",
