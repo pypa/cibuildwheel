@@ -34,7 +34,6 @@ PyMODINIT_FUNC PyInit_spam(void)
 """
 
 _SETUP_PY_WITH_MISSING_DLL = """\
-import subprocess
 from pathlib import Path
 from setuptools import setup, Extension
 from setuptools.command.build_ext import build_ext as _orig_build_ext
@@ -50,14 +49,14 @@ class build_ext(_orig_build_ext):
         (dll_dir / "cibwtest.c").write_text(
             "__declspec(dllexport) int cibwtest_add(int a, int b) { return a + b; }\\n"
         )
-        subprocess.check_call(
-            [
-                self.compiler.cc, "/nologo", "/LD",
-                str(dll_dir / "cibwtest.c"),
-                f"/Fe:{dll_dir / 'cibwtest.dll'}",
-                f"/Fo:{dll_dir / 'cibwtest.obj'}",
-            ],
-            cwd=dll_dir,
+        objs = self.compiler.compile(
+            [str(dll_dir / "cibwtest.c")], output_dir=str(dll_dir)
+        )
+        self.compiler.link_shared_lib(
+            objs,
+            "cibwtest",
+            output_dir=str(dll_dir),
+            extra_postargs=[f"/IMPLIB:{dll_dir / 'cibwtest.lib'}"],
         )
         super().build_extensions()
 
