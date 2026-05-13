@@ -10,6 +10,43 @@ from . import test_projects, utils
 basic_project = test_projects.new_c_project()
 
 
+def test_delvewheel_runs_by_default(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    if utils.get_platform() != "windows":
+        pytest.skip("This test is only relevant to Windows")
+
+    skip_if_no_msvc()
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    utils.cibuildwheel_run(project_dir, add_args=["--archs", "native"], single_python=True)
+
+    captured = capfd.readouterr()
+    assert "Repairing wheel" in captured.err
+
+
+def test_delvewheel_disabled_by_empty_repair_command(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
+    if utils.get_platform() != "windows":
+        pytest.skip("This test is only relevant to Windows")
+
+    skip_if_no_msvc()
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    utils.cibuildwheel_run(
+        project_dir,
+        add_args=["--archs", "native"],
+        add_env={"CIBW_REPAIR_WHEEL_COMMAND_WINDOWS": ""},
+        single_python=True,
+    )
+
+    captured = capfd.readouterr()
+    assert "Repairing wheel" not in captured.err
+
+
 def skip_if_no_msvc(arm64: bool = False) -> None:
     programfiles = os.getenv("PROGRAMFILES(X86)", "") or os.getenv("PROGRAMFILES", "")
     if not programfiles:
