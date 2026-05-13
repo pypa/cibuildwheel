@@ -6,7 +6,7 @@ import textwrap
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sequence, Set
 from pathlib import Path, PurePath, PurePosixPath
-from typing import TYPE_CHECKING, assert_never
+from typing import assert_never
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
@@ -19,9 +19,6 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.file import copy_test_sources
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel
-
-if TYPE_CHECKING:
-    from cibuildwheel.typing import PathOrStr
 
 ARCHITECTURE_OCI_PLATFORM_MAP = {
     Architecture.x86_64: OCIPlatform.AMD64,
@@ -212,7 +209,6 @@ def build_in_container(
 
         log.step("Setting up build environment...")
 
-        dependency_constraint_flags: list[PathOrStr] = []
         local_constraints_file = build_options.dependency_constraints.get_for_python_version(
             version=config.version,
             tmp_dir=local_identifier_tmp_dir,
@@ -220,7 +216,6 @@ def build_in_container(
         if local_constraints_file:
             container_constraints_file = PurePosixPath("/constraints.txt")
             container.copy_into(local_constraints_file, container_constraints_file)
-            dependency_constraint_flags = ["-c", container_constraints_file]
 
         env = container.get_environment()
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
@@ -378,9 +373,7 @@ def build_in_container(
             # set up a virtual environment to install and test from, to make sure
             # there are no dependencies that were pulled in at build time.
             if not use_uv:
-                container.call(
-                    ["pip", "install", "virtualenv", *dependency_constraint_flags], env=env
-                )
+                container.call(["pip", "install", "virtualenv"], env=env)
 
             testing_temp_dir = PurePosixPath(
                 container.call(["mktemp", "-d"], capture_output=True).strip()
