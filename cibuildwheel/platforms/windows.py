@@ -34,7 +34,7 @@ from cibuildwheel.util.file import (
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
-from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
+from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
 
 
 def get_nuget_args(
@@ -284,6 +284,7 @@ def setup_python(
         venv_path,
         dependency_constraint,
         use_uv=use_uv,
+        marker_env=target_marker_env(implementation_id=implementation_id),
     )
 
     # set up environment variables for run_with_env
