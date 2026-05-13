@@ -85,7 +85,7 @@ jobs:
           python_version: '3.11'
         # Max Python
         - os: ubuntu-latest
-          python_version: '3.14'
+          python_version: '3.15'
         - os: ubuntu-latest
           python_version: '3.14'
           test_select: android
