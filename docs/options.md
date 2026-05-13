@@ -923,6 +923,7 @@ Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
+- on Windows: `'delvewheel repair -w {dest_dir} -v {wheel}'`
 - on Android: There is no default command, but cibuildwheel will add `libc++` to the
   wheel if anything links against it. Setting a command will replace this behavior.
 - on Pyodide: You can use `pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}` command to repair the wheel.
@@ -947,27 +948,33 @@ The command is run in a shell, so you can run multiple commands like `cmd1 && cm
 Platform-specific environment variables are also available:<br/>
 `CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_ANDROID` | `CIBW_REPAIR_WHEEL_COMMAND_IOS` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
 
-!!! tip
-    cibuildwheel doesn't yet ship a default repair command for Windows.
+!!! note "Windows: telling delvewheel where to find DLLs"
+    On Windows, delvewheel searches the directories on `PATH` for external DLL dependencies. If your DLLs are already discoverable via `PATH`, (say, installed by a package manager that adds itself and the relevant directories to `PATH`), the default repair command should be sufficient.
 
-    **If that's an issue for you, check out [delvewheel]** - a new package that aims to do the same as auditwheel or delocate for Windows.
+    If your project links against DLLs in a custom location – such as a [vcpkg](https://vcpkg.io/) or [Conan](https://conan.io/) install tree, or a manually built library directory, you may pass `--add-path` to tell delvewheel where to look. The flag can be used multiple times for more than one directory:
 
-    Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
+    ```toml
+    [tool.cibuildwheel.windows]
+    repair-wheel-command = "delvewheel repair --add-path C:/vcpkg/installed/x64-windows/bin --add-path C:/mylibs/bin -w {dest_dir} -v {wheel}"
+    ```
 
-    [Delvewheel]: https://github.com/adang1345/delvewheel
+    You can also reference environment variables expanded by the shell at build time, for example if the path is set during `before-build`:
+
+    ```yaml
+    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path %VCPKG_INSTALLED_DIR%\\x64-windows\\bin -w {dest_dir} -v {wheel}"
+    ```
 
 #### Examples
 
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Use delvewheel on windows
-    [tool.cibuildwheel.windows]
-    before-build = "pip install delvewheel"
-    repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
-
     # Don't repair macOS wheels
     [tool.cibuildwheel.macos]
+    repair-wheel-command = ""
+
+    # Don't repair Windows wheels
+    [tool.cibuildwheel.windows]
     repair-wheel-command = ""
 
     # Pass the `--lib-sdir .` flag to auditwheel on Linux
@@ -994,7 +1001,7 @@ Platform-specific environment variables are also available:<br/>
     ]
     [tool.cibuildwheel.windows]
     repair-wheel-command = [
-      "copy {wheel} {dest_dir}",
+      "delvewheel repair -w {dest_dir} -v {wheel}",
       "pipx run abi3audit --strict --report {wheel}",
     ]
     ```
@@ -1005,12 +1012,11 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Use delvewheel on windows
-    CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
-
     # Don't repair macOS wheels
     CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
+
+    # Don't repair Windows wheels
+    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
 
     # Pass the `--lib-sdir .` flag to auditwheel on Linux
     CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
@@ -1028,7 +1034,7 @@ Platform-specific environment variables are also available:<br/>
       delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
       pipx run abi3audit --strict --report {wheel}
     CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-      copy {wheel} {dest_dir} &&
+      delvewheel repair -w {dest_dir} -v {wheel} &&
       pipx run abi3audit --strict --report {wheel}
     ```
 

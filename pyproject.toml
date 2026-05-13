@@ -247,6 +247,7 @@ ignore = ["W002"]  # constraints-*.txt are allowed to be duplicates of one anoth
 ignore-words-list = [
     "sur",
     "assertin",
+    "Fo",
 ]
 skip = [
     '^docs/working-examples\.md',
