@@ -215,14 +215,16 @@ def get_default_repair_command(platform: str) -> str:
         return "auditwheel repair -w {dest_dir} {wheel}"
     elif platform == "macos":
         return "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
-    elif platform in {"windows", "pyodide"}:
+    elif platform == "windows":
+        return "delvewheel repair -w {dest_dir} -v {wheel}"
+    elif platform == "pyodide":
         return ""
     else:
         msg = f"Unknown platform: {platform!r}"
         raise ValueError(msg)
 
 
-@pytest.mark.parametrize("repair_command", [None, "repair", "repair -w {dest_dir} {wheel}"])
+@pytest.mark.parametrize("repair_command", [None, "", "repair", "repair -w {dest_dir} {wheel}"])
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_repair_command(
     repair_command: str | None,
@@ -242,7 +244,9 @@ def test_repair_command(
 
     build_options = intercepted_build_args.args[0].build_options(identifier=None)
 
-    expected_repair = repair_command or get_default_repair_command(platform)
+    expected_repair = (
+        get_default_repair_command(platform) if repair_command is None else repair_command
+    )
     assert build_options.repair_command == expected_repair
 
 

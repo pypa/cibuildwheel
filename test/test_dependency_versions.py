@@ -10,7 +10,7 @@ from cibuildwheel.util import resources
 
 from . import test_projects, utils
 
-VERSION_REGEX = r"([\w-]+)==([^\s]+)"
+VERSION_REGEX = r"([\w-]+)==([^;\s]+)"
 
 CHECK_VERSIONS_SCRIPT = """\
 '''
@@ -73,7 +73,13 @@ def test_check_versions_script(
 def get_versions_from_constraint_file(constraint_file: Path) -> dict[str, str]:
     constraint_file_text = constraint_file.read_text(encoding="utf-8")
 
-    return dict(re.findall(VERSION_REGEX, constraint_file_text))
+    # Use the first occurrence of each package name. The marker-bearing lines
+    # (such as the GraalPy-specific pip pin) come after the default pin, so the
+    # first match is the one that applies to the majority of builds.
+    result: dict[str, str] = {}
+    for name, version in re.findall(VERSION_REGEX, constraint_file_text):
+        result.setdefault(name, version)
+    return result
 
 
 @pytest.mark.parametrize("python_version", ["3.9", "3.13"])
