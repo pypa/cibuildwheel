@@ -3,3 +3,4 @@ build
 delocate
 delvewheel
 virtualenv
+abi3audit

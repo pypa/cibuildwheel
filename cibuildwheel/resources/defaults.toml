@@ -5,6 +5,8 @@ test-skip = ""
 enable = []
 
 archs = ["auto"]
+audit-requires = ["abi3audit"]
+audit-command = "abi3audit --strict --report {abi3_wheel}"
 build-frontend = "default"
 config-settings = {}
 dependency-versions = "pinned"
@@ -65,3 +67,4 @@ repair-wheel-command = "delvewheel repair -w {dest_dir} -v {wheel}"
 [tool.cibuildwheel.ios]
 
 [tool.cibuildwheel.pyodide]
+audit-command = ""

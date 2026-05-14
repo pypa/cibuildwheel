@@ -923,7 +923,6 @@ Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
-- on Windows: `'delvewheel repair -w {dest_dir} -v {wheel}'`
 - on Android: There is no default command, but cibuildwheel will add `libc++` to the
   wheel if anything links against it. Setting a command will replace this behavior.
 - on Pyodide: You can use `pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}` command to repair the wheel.
@@ -948,33 +947,27 @@ The command is run in a shell, so you can run multiple commands like `cmd1 && cm
 Platform-specific environment variables are also available:<br/>
 `CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_ANDROID` | `CIBW_REPAIR_WHEEL_COMMAND_IOS` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
 
-!!! note "Windows: telling delvewheel where to find DLLs"
-    On Windows, delvewheel searches the directories on `PATH` for external DLL dependencies. If your DLLs are already discoverable via `PATH`, (say, installed by a package manager that adds itself and the relevant directories to `PATH`), the default repair command should be sufficient.
+!!! tip
+    cibuildwheel doesn't yet ship a default repair command for Windows.
 
-    If your project links against DLLs in a custom location – such as a [vcpkg](https://vcpkg.io/) or [Conan](https://conan.io/) install tree, or a manually built library directory, you may pass `--add-path` to tell delvewheel where to look. The flag can be used multiple times for more than one directory:
+    **If that's an issue for you, check out [delvewheel]** - a new package that aims to do the same as auditwheel or delocate for Windows.
 
-    ```toml
-    [tool.cibuildwheel.windows]
-    repair-wheel-command = "delvewheel repair --add-path C:/vcpkg/installed/x64-windows/bin --add-path C:/mylibs/bin -w {dest_dir} -v {wheel}"
-    ```
+    Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
 
-    You can also reference environment variables expanded by the shell at build time, for example if the path is set during `before-build`:
-
-    ```yaml
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair --add-path %VCPKG_INSTALLED_DIR%\\x64-windows\\bin -w {dest_dir} -v {wheel}"
-    ```
+    [Delvewheel]: https://github.com/adang1345/delvewheel
 
 #### Examples
 
 !!! tab examples "pyproject.toml"
 
     ```toml
+    # Use delvewheel on windows
+    [tool.cibuildwheel.windows]
+    before-build = "pip install delvewheel"
+    repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
+
     # Don't repair macOS wheels
     [tool.cibuildwheel.macos]
-    repair-wheel-command = ""
-
-    # Don't repair Windows wheels
-    [tool.cibuildwheel.windows]
     repair-wheel-command = ""
 
     # Pass the `--lib-sdir .` flag to auditwheel on Linux
@@ -988,23 +981,10 @@ Platform-specific environment variables are also available:<br/>
       'python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}',
     ]
 
-    # Use abi3audit to catch issues with Limited API wheels
-    [tool.cibuildwheel.linux]
-    repair-wheel-command = [
-      "auditwheel repair -w {dest_dir} {wheel}",
-      "pipx run abi3audit --strict --report {wheel}",
-    ]
-    [tool.cibuildwheel.macos]
-    repair-wheel-command = [
-      "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
-      "pipx run abi3audit --strict --report {wheel}",
-    ]
-    [tool.cibuildwheel.windows]
-    repair-wheel-command = [
-      "delvewheel repair -w {dest_dir} -v {wheel}",
-      "pipx run abi3audit --strict --report {wheel}",
-    ]
     ```
+
+    !!! note
+        cibuildwheel automatically runs [abi3audit](https://github.com/trailofbits/abi3audit) on abi3 wheels after the repair step. You no longer need to add it to your repair command manually.
 
     In configuration files, you can use an inline array, and the items will be joined with `&&`.
 
@@ -1012,11 +992,12 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "Environment variables"
 
     ```yaml
+    # Use delvewheel on windows
+    CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
+    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+
     # Don't repair macOS wheels
     CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
-
-    # Don't repair Windows wheels
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
 
     # Pass the `--lib-sdir .` flag to auditwheel on Linux
     CIBW_REPAIR_WHEEL_COMMAND_LINUX: "auditwheel repair --lib-sdir . -w {dest_dir} {wheel}"
@@ -1026,16 +1007,6 @@ Platform-specific environment variables are also available:<br/>
       python scripts/repair_wheel.py -w {dest_dir} {wheel} &&
       python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}
 
-    # Use abi3audit to catch issues with Limited API wheels
-    CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
-      auditwheel repair -w {dest_dir} {wheel} &&
-      pipx run abi3audit --strict --report {wheel}
-    CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-      delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
-      pipx run abi3audit --strict --report {wheel}
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-      delvewheel repair -w {dest_dir} -v {wheel} &&
-      pipx run abi3audit --strict --report {wheel}
     ```
 
 
@@ -1255,6 +1226,10 @@ Platform-specific environment variables are also available:<br/>
     dependency versions on Linux, use the [`manylinux-*` / `musllinux-*`](#linux-image)
     options.
 
+    There is one exception to this rule - when `audit-requires` is left as the
+    default `["abi3audit"]`, the `abi3audit` version is governed by this option,
+    because audits take place outside of the build container.
+
 #### Examples
 
 !!! tab examples "pyproject.toml"
@@ -1346,6 +1321,102 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
 
     # Build Pyodide wheels using a specific, previously released alpha release of 0.28.0
     CIBW_PYODIDE_VERSION: 0.28.0a3
+    ```
+
+
+## Auditing
+
+### `audit-requires` {: #audit-requires toml env-var }
+
+> Install Python dependencies for the audit step
+
+Default: `abi3audit`
+
+Space-separated list of package dependencies required for the audit command.
+These are installed into an isolated environment before running the
+[`audit-command`](#audit-command).
+
+If no audit command is specified, or no audit is required (i.e. your project builds non-abi3 wheels and the command refers only to abi3 wheels), then the audit environment won't be created and this option is ignored.
+
+If you leave this as the default, the versions of abi3audit and libraries are pinned according to [`dependency-versions`](#dependency-versions), even on Linux.
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    # Install twine for wheel metadata checks
+    [tool.cibuildwheel]
+    audit-requires = "twine"
+
+    # Install specific versions of audit dependencies
+    [tool.cibuildwheel]
+    audit-requires = ["twine==6.1.0", "abi3audit==0.0.17"]
+    ```
+
+    In configuration files, you can use an array, and the items will be joined with a space.
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Install twine for wheel metadata checks
+    CIBW_AUDIT_REQUIRES: twine
+
+    # Install specific versions of audit dependencies
+    CIBW_AUDIT_REQUIRES: twine==6.1.0 abi3audit==0.0.17
+    ```
+
+### `audit-command` {: #audit-command toml env-var }
+
+> Use a tool to check wheels before the end of the run
+
+Default: `abi3audit --strict --report {abi3_wheel}`
+
+Run shell commands to verify your wheels once they are built. Multiple commands can be passed, they should be separated with ` && `. In each command, you must use one of the following placeholders:
+
+- `{abi3_wheel}`: if your build produces an [ABI3 wheel](https://docs.python.org/3/c-api/stable.html#limited-c-api), as determined by the presence of an ABI3 tag in the filename, the command is run and this placeholder is substituted for the wheel path.
+- `{wheel}`: inserts the wheel path for all wheels that were built.
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    # Run a custom audit tool on all wheels
+    [tool.cibuildwheel]
+    audit-command = "my-audit-tool --check {wheel}"
+
+    # Run multiple audit commands, one for abi3 wheels only and one for all wheels
+    [tool.cibuildwheel]
+    audit-command = [
+      "./my-audit-tool --check-abi3 {abi3_wheel}",
+      "./my-audit-tool --check {wheel}",
+    ]
+
+    # Use twine check to validate wheel metadata
+    [tool.cibuildwheel]
+    audit-requires = ["twine"]
+    audit-command = "twine check {wheel}"
+
+    # Add an additional audit command using overrides, keeping the default abi3audit check
+    [[tool.cibuildwheel.overrides]]
+    select = "*"
+    inherit.audit-command = "append"
+    audit-command = "twine check {wheel}"
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Run a custom audit tool on all wheels
+    CIBW_AUDIT_COMMAND: "my-audit-tool --check {wheel}"
+
+    # Run multiple audit commands
+    CIBW_AUDIT_COMMAND: "./my-audit-tool --check-abi3 {abi3_wheel} && ./my-audit-tool --check {wheel}"
+
+    # Use twine check to validate wheel metadata
+    CIBW_AUDIT_REQUIRES: "twine"
+    CIBW_AUDIT_COMMAND: "twine check {wheel}"
     ```
 
 
