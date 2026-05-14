@@ -6,6 +6,8 @@ build==1.4.4
     # via -r cibuildwheel/resources/constraints.in
 delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
+delvewheel==1.12.1
+    # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.0
     # via virtualenv
 filelock==3.19.1
@@ -20,6 +22,8 @@ packaging==26.2
     # via
     #   build
     #   delocate
+pefile==2024.8.26
+    # via delvewheel
 pip==26.0.1 ; (python_full_version < '3.10' and implementation_name != 'graalpy') or (python_full_version >= '3.13' and implementation_name != 'graalpy') or (python_full_version < '3.10' and sys_platform != 'win32') or (python_full_version >= '3.13' and sys_platform != 'win32') or (implementation_name == 'graalpy' and sys_platform == 'win32')
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.4.0
