@@ -1,4 +1,5 @@
-pip
+pip>=26.1.1; (implementation_name != "graalpy" or platform_system != "Windows") and python_version >= "3.10" and python_version < "3.13"
+pip<26.1.1; implementation_name == "graalpy" and platform_system == "Windows" or python_version < "3.10" or python_version >= "3.13"
 build
 delocate
 delvewheel

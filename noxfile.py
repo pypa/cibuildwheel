@@ -88,6 +88,7 @@ def update_constraints(session: nox.Session) -> None:
             "compile",
             f"--python-version={python_version}",
             "--upgrade",
+            "--no-strip-markers",
             resources / "constraints.in",
             f"--output-file={output_file}",
             env=env,
