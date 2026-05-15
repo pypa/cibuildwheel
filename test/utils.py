@@ -263,6 +263,8 @@ def _expected_wheels(
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
 
+    enable_groups = get_enable_groups()
+
     # To be kept in sync with Python versions for Pyodide identifiers in cibuildwheel/selector.py.
     if platform == "pyodide" and python_abi_tags is None:
         python_abi_tags = ["cp313-cp313"]
@@ -273,11 +275,15 @@ def _expected_wheels(
             "cp313-cp313",
             "cp314-cp314",
         ]
+        if EnableGroup.CPythonPrerelease in enable_groups:
+            python_abi_tags += ["cp315-cp315"]
     elif platform == "ios" and python_abi_tags is None:
         python_abi_tags = [
             "cp313-cp313",
             "cp314-cp314",
         ]
+        if EnableGroup.CPythonPrerelease in enable_groups:
+            python_abi_tags += ["cp315-cp315"]
     elif python_abi_tags is None:
         python_abi_tags = [
             "cp39-cp39",
@@ -288,8 +294,6 @@ def _expected_wheels(
             "cp314-cp314",
             "cp314-cp314t",
         ]
-
-        enable_groups = get_enable_groups()
 
         if EnableGroup.CPythonPrerelease in enable_groups:
             python_abi_tags += [
