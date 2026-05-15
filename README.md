@@ -28,8 +28,8 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 | CPython 3.10             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | N/A            |
 | CPython 3.11             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | N/A            |
 | CPython 3.12             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | ✅<sup>3</sup> |
-| CPython 3.13             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | ✅  | ✅<sup>4</sup> |
-| CPython 3.14             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | ✅  | N/A            |
+| CPython 3.13             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | ✅  | ✅             |
+| CPython 3.14             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | ✅  | ✅<sup>4</sup> |
 | CPython 3.15<sup>6</sup> | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | ✅  | N/A            |
 | PyPy 3.9 v7.3            | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
 | PyPy 3.10 v7.3           | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
@@ -39,8 +39,8 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 
 <sup>**1** PyPy & GraalPy are only supported for manylinux wheels.</sup><br>
 <sup>**2** Windows arm64 support is experimental.</sup><br>
-<sup>**3** Not supported on PyPI, uses old tag.</sup><br>
-<sup>**4** Experimental alpha, do not upload to PyPI yet.</sup><br>
+<sup>**3** Not supported on PyPI, uses old `pyodide` tag instead of `pyemscripten`.</sup><br>
+<sup>**4** Experimental alpha ABI, do not upload to PyPI yet.</sup><br>
 <sup>**5** manylinux armv7l support is experimental. As there are no RHEL based image for this architecture, it's using an Ubuntu based image instead.</sup><br>
 <sup>**6** Python 3.15 requires opt-in using [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable).</sup><br>
 
