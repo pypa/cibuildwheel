@@ -282,6 +282,8 @@ def _expected_wheels(
             "cp313-cp313",
             "cp314-cp314",
         ]
+        if EnableGroup.CPythonPrerelease in enable_groups:
+            python_abi_tags += ["cp315-cp315"]
     elif python_abi_tags is None:
         python_abi_tags = [
             "cp39-cp39",
