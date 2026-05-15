@@ -488,14 +488,7 @@ class AllVersions:
             versions = self.maven if identifier.startswith("cp313") else self.cpython
             config_update = versions.update_version_android(identifier, spec)
         elif "ios" in identifier:
-            # Python 3.13 and 3.14 are released by BeeWare on GitHub.
-            # Python 3.15 and newer have official releases on python.org.
-            if identifier.startswith(("cp313", "cp314")):
-                config_update = self.ios_cpython.update_version_ios(identifier, version)
-            else:
-                config_update = self.cpython.update_version(
-                    identifier, spec, "iOS-XCframework.tar.gz"
-                )
+            config_update = self.ios_cpython.update_version_ios(identifier, version)
         elif "pyodide" in identifier:
             config_update = self.pyodide.update_version_pyodide(
                 identifier, version, spec, config["node_version"]

@@ -312,8 +312,9 @@ def setup_python(
         / f"python{python_configuration.version}"
     )
 
-    # target_python will never be called, so we aren't validating it (not there
-    # for 3.15+)
+    assert target_python.exists(), (
+        f"{target_python.name} not found, has {list(target_install_path.iterdir())}"
+    )
 
     log.step("Creating cross build environment...")
 
