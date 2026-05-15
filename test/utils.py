@@ -390,6 +390,7 @@ def _expected_wheels(
             api_level = {
                 "cp313-cp313": 21,
                 "cp314-cp314": 24,
+                "cp315-cp315": 24,
             }[python_abi_tag]
             platform_tags = [f"android_{api_level}_{machine_arch}"]
 
