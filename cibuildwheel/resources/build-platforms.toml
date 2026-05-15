@@ -244,5 +244,6 @@ python_configurations = [
   { identifier = "cp314-ios_x86_64_iphonesimulator", version = "3.14", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.14-b9/Python-3.14-iOS-support.b9.tar.gz" },
   { identifier = "cp314-ios_arm64_iphonesimulator", version = "3.14", url = "https://github.com/beeware/Python-Apple-support/releases/download/3.14-b9/Python-3.14-iOS-support.b9.tar.gz" },
   { identifier = "cp315-ios_arm64_iphoneos", version = "3.15", url = "https://www.python.org/ftp/python/3.15.0/python-3.15.0b1-iOS-XCframework.tar.gz" },
+  { identifier = "cp315-ios_x86_64_iphonesimulator", version = "3.15", url = "https://www.python.org/ftp/python/3.15.0/python-3.15.0b1-iOS-XCframework.tar.gz" },
   { identifier = "cp315-ios_arm64_iphonesimulator", version = "3.15", url = "https://www.python.org/ftp/python/3.15.0/python-3.15.0b1-iOS-XCframework.tar.gz" },
 ]

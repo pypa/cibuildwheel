@@ -390,19 +390,14 @@ def _expected_wheels(
             api_level = {
                 "cp313-cp313": 21,
                 "cp314-cp314": 24,
-                "cp315-cp315": 24,
             }[python_abi_tag]
             platform_tags = [f"android_{api_level}_{machine_arch}"]
 
         elif platform == "ios":
             if machine_arch == "x86_64":
-                # CPython 3.15+ dropped x86_64 iOS simulator support
-                if int(python_abi_tag[2:5]) >= 315:
-                    platform_tags = []
-                else:
-                    platform_tags = [
-                        f"ios_{iphoneos_deployment_target.replace('.', '_')}_x86_64_iphonesimulator"
-                    ]
+                platform_tags = [
+                    f"ios_{iphoneos_deployment_target.replace('.', '_')}_x86_64_iphonesimulator"
+                ]
             elif machine_arch == "arm64":
                 platform_tags = [
                     f"ios_{iphoneos_deployment_target.replace('.', '_')}_arm64_iphoneos",
