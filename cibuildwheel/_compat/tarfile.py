@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 # Per https://peps.python.org/pep-0706/, the "data" filter will become
 # the default in Python 3.14. The first series of releases with the filter
 # had a broken filter that could not process symlinks correctly.
-elif (3, 11, 5) <= sys.version_info <= sys.version_info < (3, 14):
+elif (3, 11, 5) <= sys.version_info < (3, 14):
 
     class TarFile(tarfile.TarFile):  # pragma: no cover
         extraction_filter = staticmethod(tarfile.data_filter)
