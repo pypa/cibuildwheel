@@ -76,7 +76,7 @@ class RepairStepProducedNoWheelError(FatalError):
             Build failed because the repair step completed successfully but
             did not produce a wheel.
 
-            Your `repair-wheel-command` is expected to place the repaired
+            Your `repair-wheel-command` must place the repaired
             wheel in the {dest_dir} directory. See the documentation for
             example configurations:
 
@@ -94,7 +94,7 @@ class RepairStepProducedMultipleWheelsError(FatalError):
             Build failed because the repair step completed successfully but
             produced multiple wheels: {wheels}
 
-            Your `repair-wheel-command` is expected to place one repaired
+            Your `repair-wheel-command` must place exactly one repaired
             wheel in the {{dest_dir}} directory. See the documentation for
             example configurations:
 

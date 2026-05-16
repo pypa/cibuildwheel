@@ -708,11 +708,13 @@ class Options:
 
     def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:
         error_set = {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
-        warning_set: set[str] = set()
+        warning_set: set[str] = (
+            set()
+        )  # Currently no warnings, next: https://github.com/pypa/manylinux/issues/1925
 
         if value in error_set:
             msg = (
-                f"cibuildwheel 3.x does not support the image {value!r}. Either upgrade to a "
+                f"cibuildwheel 4.x does not support the image {value!r}. Either upgrade to a "
                 "supported image or continue using the image by pinning it directly with"
                 " its full OCI registry '<name>{:<tag>|@<digest>}'."
             )
