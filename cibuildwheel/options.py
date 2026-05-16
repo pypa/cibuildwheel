@@ -708,9 +708,8 @@ class Options:
 
     def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:
         error_set = {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
-        warning_set: set[str] = (
-            set()
-        )  # Currently no warnings, next: https://github.com/pypa/manylinux/issues/1925
+        # Currently no warnings, next: https://github.com/pypa/manylinux/issues/1925
+        warning_set: set[str] = set()
 
         if value in error_set:
             msg = (
