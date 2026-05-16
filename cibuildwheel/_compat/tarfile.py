@@ -1,3 +1,5 @@
+# Based on https://github.com/pypa/build/blob/f4ebd495cc0c2c74155bd4fe48b76399fb7927ac/src/build/_compat/tarfile.py
+
 from __future__ import annotations
 
 import sys
