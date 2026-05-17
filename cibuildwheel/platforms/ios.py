@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 __lazy_modules__ = [
+    "cibuildwheel.audit",
     "cibuildwheel.frontend",
     "cibuildwheel.logger",
     "cibuildwheel.platforms.macos",
@@ -19,6 +20,7 @@ __lazy_modules__ = [
     "subprocess",
     "sys",
     "textwrap",
+    "typing",
 ]
 
 import dataclasses
@@ -63,6 +65,7 @@ if TYPE_CHECKING:
     from cibuildwheel.environment import ParsedEnvironment
     from cibuildwheel.options import Options
     from cibuildwheel.selector import BuildSelector
+
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 __lazy_modules__ = [
+    "cibuildwheel.audit",
     "cibuildwheel.frontend",
     "cibuildwheel.logger",
     "cibuildwheel.util",
@@ -10,9 +11,11 @@ __lazy_modules__ = [
     "collections",
     "contextlib",
     "pathlib",
+    "shutil",
     "subprocess",
     "sys",
     "textwrap",
+    "typing",
 ]
 
 import contextlib

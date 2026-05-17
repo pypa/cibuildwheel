@@ -1,13 +1,6 @@
 from __future__ import annotations
 
-__lazy_modules__ = [
-    "collections",
-    "platform",
-    "re",
-    "shutil",
-    "subprocess",
-    "sys",
-]
+__lazy_modules__ = ["platform", "re", "shutil", "subprocess", "sys"]
 
 import platform as platform_module
 import re

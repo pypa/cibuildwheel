@@ -3,7 +3,6 @@ from __future__ import annotations
 __lazy_modules__ = ["sys"]
 
 import sys
-
 from typing import Final, Protocol
 
 from cibuildwheel import errors

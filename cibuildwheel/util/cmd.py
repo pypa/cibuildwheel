@@ -1,13 +1,6 @@
 from __future__ import annotations
 
-__lazy_modules__ = [
-    "cibuildwheel.errors",
-    "collections",
-    "os",
-    "shlex",
-    "shutil",
-    "subprocess",
-]
+__lazy_modules__ = ["cibuildwheel.errors", "os", "shlex", "shutil", "subprocess"]
 
 import os
 import shlex

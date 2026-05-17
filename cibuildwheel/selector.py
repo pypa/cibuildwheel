@@ -13,14 +13,11 @@ import itertools
 from enum import StrEnum
 from fnmatch import fnmatch
 
-
 import bracex
 from packaging.version import Version
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from typing import Any
-
     from packaging.specifiers import SpecifierSet
 
 

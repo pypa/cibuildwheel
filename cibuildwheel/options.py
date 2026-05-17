@@ -22,7 +22,6 @@ __lazy_modules__ = [
     "shlex",
     "textwrap",
     "tomllib",
-    "typing",
 ]
 
 import collections

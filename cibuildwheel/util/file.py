@@ -3,7 +3,6 @@ from __future__ import annotations
 __lazy_modules__ = [
     "certifi",
     "cibuildwheel.errors",
-    "collections",
     "shutil",
     "ssl",
     "tarfile",

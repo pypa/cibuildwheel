@@ -1,4 +1,4 @@
-__lazy_modules__ = ["cibuildwheel.util.helpers", "os"]
+__lazy_modules__ = ["cibuildwheel.util", "cibuildwheel.util.helpers", "os"]
 
 import os
 import re

@@ -1,3 +1,16 @@
+__lazy_modules__ = [
+    "cibuildwheel.logger",
+    "cibuildwheel.options",
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "cibuildwheel.venv",
+    "pathlib",
+    "subprocess",
+    "sys",
+]
+
 import subprocess
 import sys
 from pathlib import Path

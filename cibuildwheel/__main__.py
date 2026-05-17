@@ -2,6 +2,8 @@ from __future__ import annotations
 
 __lazy_modules__ = [
     "argparse",
+    "cibuildwheel._compat",
+    "cibuildwheel._compat.tarfile",
     "cibuildwheel.architecture",
     "cibuildwheel.ci",
     "cibuildwheel.logger",
@@ -13,18 +15,15 @@ __lazy_modules__ = [
     "cibuildwheel.util.file",
     "cibuildwheel.util.helpers",
     "cibuildwheel.util.resources",
-    "collections",
     "contextlib",
     "functools",
     "os",
     "pathlib",
     "shutil",
     "sys",
-    "tarfile",
     "tempfile",
     "textwrap",
     "traceback",
-    "typing",
 ]
 
 import argparse

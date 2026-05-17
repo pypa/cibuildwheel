@@ -3,7 +3,6 @@ from __future__ import annotations
 __lazy_modules__ = [
     "cibuildwheel.ci",
     "codecs",
-    "collections",
     "contextlib",
     "functools",
     "hashlib",

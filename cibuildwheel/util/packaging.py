@@ -3,7 +3,6 @@ from __future__ import annotations
 __lazy_modules__ = [
     "cibuildwheel.util.cmd",
     "cibuildwheel.util.helpers",
-    "collections",
     "packaging",
     "packaging.utils",
     "shlex",
@@ -23,7 +22,7 @@ from cibuildwheel.util.helpers import parse_key_value_string, unwrap
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
-    from typing import Any, Literal, Self
+    from typing import Literal, Self
 
 
 @dataclass(kw_only=True)
