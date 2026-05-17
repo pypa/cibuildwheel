@@ -82,12 +82,23 @@ def localize_sysconfig_vars(platform_config_path, venv_site_packages):
         json.dump(localized_vars(build_time_vars, slice_path), f, indent=2)
 
 
-def make_cross_venv(venv_path: Path, platform_config_path: Path):
+def make_cross_venv(
+    venv_path: Path,
+    platform_config_path: Path,
+    scripts_path: Path | None = None,
+):
     """Convert a virtual environment into a cross-platform environment.
 
     :param venv_path: The path to the root of the venv.
-    :param platform_config_path: The path containing the platform config.
+    :param platform_config_path: The path containing the platform config
+        (sysconfigdata files).
+    :param scripts_path: The path containing the cross-venv support scripts
+        (_cross_venv.py and the multiarch-specific _cross_*.py).  Defaults to
+        ``platform_config_path`` for BeeWare-style packages where these files
+        are co-located with the sysconfig data.
     """
+    if scripts_path is None:
+        scripts_path = platform_config_path
     if not venv_path.exists():
         raise ValueError(f"Virtual environment {venv_path} does not exist.")
     if not (venv_path / "bin/python3").exists():
@@ -107,12 +118,18 @@ def make_cross_venv(venv_path: Path, platform_config_path: Path):
 
     # Copy in the site-package environment modifications.
     cross_multiarch = f"_cross_{platform_config_path.name.replace('-', '_')}"
+    # The multiarch-specific script may be directly in scripts_path (BeeWare
+    # convention, where all files are co-located) or in a named subdirectory
+    # (cibuildwheel resource layout, where each multiarch has its own subdir).
+    multiarch_script = scripts_path / f"{cross_multiarch}.py"
+    if not multiarch_script.exists():
+        multiarch_script = scripts_path / platform_config_path.name / f"{cross_multiarch}.py"
     shutil.copy(
-        platform_config_path / f"{cross_multiarch}.py",
+        multiarch_script,
         venv_site_packages / f"{cross_multiarch}.py",
     )
     shutil.copy(
-        platform_config_path / "_cross_venv.py",
+        scripts_path / "_cross_venv.py",
         venv_site_packages / "_cross_venv.py",
     )
     # Write the .pth file that will enable the cross-env modifications
@@ -130,15 +147,23 @@ if __name__ == "__main__":
         platform_config_path = Path(__file__).parent
 
     try:
+        scripts_path = Path(sys.argv[3]).resolve()
+    except IndexError:
+        scripts_path = None
+
+    try:
         venv_path = Path(sys.argv[1]).resolve()
-        make_cross_venv(venv_path, platform_config_path)
+        make_cross_venv(venv_path, platform_config_path, scripts_path)
     except IndexError:
         print("""
 Convert a virtual environment in to a cross-platform environment.
 
 Usage:
-    make_cross_venv <venv> (<platform config>)
+    make_cross_venv <venv> (<platform config>) (<scripts path>)
 
 If an explicit platform config isn't provided, it is assumed the directory
 containing the make_cross_venv script *is* a platform config.
+
+If an explicit scripts path isn't provided, it defaults to the platform config
+path (the BeeWare convention where scripts are co-located with sysconfig data).
 """)
