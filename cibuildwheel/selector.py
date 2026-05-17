@@ -1,22 +1,27 @@
+from __future__ import annotations
+
 __lazy_modules__ = [
     "bracex",
     "fnmatch",
     "itertools",
     "packaging",
-    "packaging.specifiers",
     "packaging.version",
-    "typing",
 ]
 
 import dataclasses
 import itertools
 from enum import StrEnum
 from fnmatch import fnmatch
-from typing import Self
+
 
 import bracex
-from packaging.specifiers import SpecifierSet
 from packaging.version import Version
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Any
+
+    from packaging.specifiers import SpecifierSet
 
 
 def selector_matches(patterns: str, string: str) -> bool:
@@ -47,11 +52,11 @@ class EnableGroup(StrEnum):
     PyodidePrerelease = "pyodide-prerelease"
 
     @classmethod
-    def all_groups(cls) -> frozenset[Self]:
+    def all_groups(cls) -> frozenset[EnableGroup]:
         return frozenset(cls)
 
     @classmethod
-    def parse_option_value(cls, value: str) -> frozenset[Self]:
+    def parse_option_value(cls, value: str) -> frozenset[EnableGroup]:
         """
         Parses a string of space-separated values into a set of EnableGroup
         members. The string may contain group names or "all".

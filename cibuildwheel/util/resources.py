@@ -1,11 +1,15 @@
-__lazy_modules__ = ["cibuildwheel.typing", "tomllib", "typing"]
+from __future__ import annotations
+
+__lazy_modules__ = ["tomllib", "typing"]
 
 import functools
 import tomllib
 from pathlib import Path
 from typing import Final
 
-from cibuildwheel.typing import PlatformName
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from cibuildwheel.typing import PlatformName
 
 PATH: Final[Path] = Path(__file__).parent.parent / "resources"
 INSTALL_CERTIFI_SCRIPT: Final[Path] = PATH / "install_certifi.py"

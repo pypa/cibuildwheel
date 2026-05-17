@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 __lazy_modules__ = [
     "cibuildwheel.architecture",
     "cibuildwheel.environment",
@@ -35,7 +37,7 @@ import textwrap
 import tomllib
 from collections.abc import Callable, Generator, Iterable, Mapping, Sequence, Set
 from pathlib import Path
-from typing import Any, Final, Literal, Self, assert_never
+from typing import Final, assert_never
 
 from packaging.specifiers import SpecifierSet
 
@@ -51,6 +53,10 @@ from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util import resources
 from cibuildwheel.util.helpers import format_safe, parse_key_value_string, strtobool, unwrap
 from cibuildwheel.util.packaging import DependencyConstraints
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Any, Literal, Self
 
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",

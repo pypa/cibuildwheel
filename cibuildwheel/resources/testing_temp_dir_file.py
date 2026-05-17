@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 # this file is copied to the testing cwd, to raise the below error message if
 # pytest/unittest is run from there.
 
-__lazy_modules__ = ["sys", "typing"]
+__lazy_modules__ = ["sys"]
 
 import sys
 import unittest
-from typing import NoReturn
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import NoReturn
 
 
 class TestStringMethods(unittest.TestCase):

@@ -1,9 +1,14 @@
-__lazy_modules__ = ["cibuildwheel.util", "json", "typing"]
+from __future__ import annotations
+
+__lazy_modules__ = ["cibuildwheel.util", "json"]
 
 import json
-from typing import Any
 
 from cibuildwheel.util import resources
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Any
 
 
 def get_schema(tool_name: str = "cibuildwheel") -> dict[str, Any]:

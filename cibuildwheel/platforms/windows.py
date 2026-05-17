@@ -1,10 +1,9 @@
+from __future__ import annotations
+
 __lazy_modules__ = [
     "cibuildwheel.architecture",
-    "cibuildwheel.environment",
     "cibuildwheel.frontend",
     "cibuildwheel.logger",
-    "cibuildwheel.options",
-    "cibuildwheel.selector",
     "cibuildwheel.util",
     "cibuildwheel.util.cmd",
     "cibuildwheel.util.file",
@@ -12,7 +11,6 @@ __lazy_modules__ = [
     "cibuildwheel.util.packaging",
     "cibuildwheel.venv",
     "collections",
-    "collections.abc",
     "filelock",
     "json",
     "os",
@@ -31,7 +29,6 @@ import platform as platform_module
 import shutil
 import subprocess
 import textwrap
-from collections.abc import MutableMapping, Sequence, Set
 from functools import cache
 from pathlib import Path
 from typing import assert_never
@@ -41,15 +38,8 @@ from filelock import FileLock
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
-from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import (
-    BuildFrontendName,
-    get_build_frontend_extra_flags,
-    prepare_config_settings,
-)
+from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config_settings
 from cibuildwheel.logger import log
-from cibuildwheel.options import Options
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import (
@@ -62,6 +52,15 @@ from cibuildwheel.util.file import (
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
 from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import MutableMapping, Sequence, Set
+
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.frontend import BuildFrontendName
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 
 def get_nuget_args(

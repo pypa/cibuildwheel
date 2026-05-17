@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 __lazy_modules__ = [
     "certifi",
     "cibuildwheel.errors",
     "collections",
-    "collections.abc",
     "shutil",
     "ssl",
     "tarfile",
@@ -19,7 +20,6 @@ import ssl
 import tarfile
 import time
 import urllib.request
-from collections.abc import Callable
 from pathlib import Path, PurePath
 from typing import Final
 from zipfile import ZipFile
@@ -28,6 +28,10 @@ import certifi
 from platformdirs import user_cache_path
 
 from cibuildwheel.errors import FatalError
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 DEFAULT_CIBW_CACHE_PATH: Final[Path] = user_cache_path(appname="cibuildwheel", appauthor="pypa")
 CIBW_CACHE_PATH: Final[Path] = Path(

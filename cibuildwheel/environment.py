@@ -1,13 +1,19 @@
-__lazy_modules__ = ["bashlex", "bashlex.errors", "collections", "collections.abc"]
+from __future__ import annotations
+
+__lazy_modules__ = ["bashlex", "bashlex.errors", "collections"]
 
 import dataclasses
-from collections.abc import Mapping, Sequence
-from typing import Any, Protocol
+from typing import Protocol
 
 import bashlex
 import bashlex.errors
 
 from cibuildwheel import bashlex_eval
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+    from typing import Any
 
 
 class EnvironmentParseError(Exception):

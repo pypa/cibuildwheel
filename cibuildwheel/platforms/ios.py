@@ -55,6 +55,14 @@ from cibuildwheel.util.helpers import prepare_command, unwrap_preserving_paragra
 from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.venv import constraint_flags, virtualenv
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence, Set
+
+    from cibuildwheel.architecture import Architecture
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class PythonConfiguration:

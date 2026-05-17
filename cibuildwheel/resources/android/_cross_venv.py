@@ -1,7 +1,9 @@
+from __future__ import annotations
+
 # This module is copied into the site-packages directory of an Android build environment, and
 # activated via a .pth file when we want the environment to simulate Android.
 
-__lazy_modules__ = ["os", "pathlib", "platform", "re", "sys", "sysconfig", "typing"]
+__lazy_modules__ = ["os", "pathlib", "platform", "re", "sys", "sysconfig"]
 
 import os
 import platform
@@ -9,7 +11,10 @@ import re
 import sys
 import sysconfig
 from pathlib import Path
-from typing import Any
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Any
 
 
 def initialize() -> None:

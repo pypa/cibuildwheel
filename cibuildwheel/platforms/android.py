@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 __lazy_modules__ = [
     "build",
     "build.env",
     "cibuildwheel.architecture",
     "cibuildwheel.frontend",
     "cibuildwheel.logger",
-    "cibuildwheel.options",
-    "cibuildwheel.selector",
     "cibuildwheel.util",
     "cibuildwheel.util.cmd",
     "cibuildwheel.util.file",
@@ -14,7 +14,6 @@ __lazy_modules__ = [
     "cibuildwheel.util.python_build_standalone",
     "cibuildwheel.venv",
     "collections",
-    "collections.abc",
     "csv",
     "elftools",
     "elftools.common.exceptions",
@@ -33,7 +32,6 @@ __lazy_modules__ = [
     "subprocess",
     "sysconfig",
     "textwrap",
-    "typing",
 ]
 
 import csv
@@ -45,14 +43,12 @@ import shlex
 import shutil
 import subprocess
 import sysconfig
-from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 from os.path import relpath
 from pathlib import Path
 from pprint import pprint
 from runpy import run_path
 from textwrap import dedent
-from typing import Any
 
 from build import ProjectBuilder
 from build.env import IsolatedEnv
@@ -69,8 +65,6 @@ from cibuildwheel.frontend import (
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
-from cibuildwheel.options import BuildOptions, Options
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
@@ -78,6 +72,14 @@ from cibuildwheel.util.helpers import prepare_command
 from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
 from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator, MutableMapping
+    from typing import Any
+
+    from cibuildwheel.options import BuildOptions, Options
+    from cibuildwheel.selector import BuildSelector
 
 RESOURCES_ANDROID = resources.PATH / "android"
 
