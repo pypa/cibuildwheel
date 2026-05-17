@@ -5,7 +5,6 @@ import functools
 import os
 import shutil
 import sys
-import tarfile
 import textwrap
 import traceback
 import typing
@@ -16,6 +15,7 @@ from typing import Any, Literal, TextIO
 
 import cibuildwheel
 from cibuildwheel import errors
+from cibuildwheel._compat.tarfile import TarFile, safe_extractall
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
@@ -262,8 +262,8 @@ def main_inner(global_options: GlobalOptions) -> None:
     # Tarfile builds require extraction and changing the directory
     temp_dir = Path(mkdtemp(prefix="cibw-sdist-")).resolve(strict=True)
     try:
-        with tarfile.open(args.package_dir) as tar:
-            tar.extractall(path=temp_dir)
+        with TarFile.open(args.package_dir) as tar:
+            safe_extractall(tar, temp_dir)
 
         # The extract directory is now the project dir
         try:
