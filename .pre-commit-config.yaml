@@ -1,6 +1,6 @@
 ci:
   autoupdate_schedule: monthly
-exclude: "^cibuildwheel/resources/ios-support"
+exclude: "^cibuildwheel/resources/ios-support/(?!make_cross_venv\\.py)"
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks

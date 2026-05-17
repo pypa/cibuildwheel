@@ -1,12 +1,15 @@
+from __future__ import annotations
+
 import json
 import pprint
 import shutil
 import sys
-from pathlib import Path
 from importlib import util as importlib_util
+from pathlib import Path
+from typing import Any
 
 
-def localized_vars(orig_vars, slice_path):
+def localized_vars(orig_vars: dict[str, Any], slice_path: Path) -> dict[str, Any]:
     """Update (where possible) any references to build-time variables with the
     best guess of the installed location.
     """
@@ -26,7 +29,7 @@ def localized_vars(orig_vars, slice_path):
     return localized_vars
 
 
-def localize_sysconfigdata(platform_config_path, venv_site_packages):
+def localize_sysconfigdata(platform_config_path: Path, venv_site_packages: Path) -> None:
     """Localize a sysconfigdata python module.
 
     :param platform_config_path: The platform config that contains the
@@ -38,10 +41,7 @@ def localize_sysconfigdata(platform_config_path, venv_site_packages):
     sysconfigdata_path = next(platform_config_path.glob("_sysconfigdata_*.py"))
 
     # Import the sysconfigdata module
-    spec = importlib_util.spec_from_file_location(
-        sysconfigdata_path.stem,
-        sysconfigdata_path
-    )
+    spec = importlib_util.spec_from_file_location(sysconfigdata_path.stem, sysconfigdata_path)
     if spec is None:
         msg = f"Unable to load spec for {sysconfigdata_path}"
         raise ValueError(msg)
@@ -57,13 +57,11 @@ def localize_sysconfigdata(platform_config_path, venv_site_packages):
         f.write(f"# Generated from {sysconfigdata_path}\n")
         f.write("build_time_vars = ")
         pprint.pprint(
-            localized_vars(sysconfigdata.build_time_vars, slice_path),
-            stream=f,
-            compact=True
+            localized_vars(sysconfigdata.build_time_vars, slice_path), stream=f, compact=True
         )
 
 
-def localize_sysconfig_vars(platform_config_path, venv_site_packages):
+def localize_sysconfig_vars(platform_config_path: Path, venv_site_packages: Path) -> None:
     """Localize a sysconfig_vars.json file.
 
     :param platform_config_path: The platform config that contains the
@@ -86,7 +84,7 @@ def make_cross_venv(
     venv_path: Path,
     platform_config_path: Path,
     scripts_path: Path | None = None,
-):
+) -> None:
     """Convert a virtual environment into a cross-platform environment.
 
     :param venv_path: The path to the root of the venv.
@@ -100,9 +98,11 @@ def make_cross_venv(
     if scripts_path is None:
         scripts_path = platform_config_path
     if not venv_path.exists():
-        raise ValueError(f"Virtual environment {venv_path} does not exist.")
+        msg = f"Virtual environment {venv_path} does not exist."
+        raise ValueError(msg)
     if not (venv_path / "bin/python3").exists():
-        raise ValueError(f"{venv_path} does not appear to be a virtual environment.")
+        msg = f"{venv_path} does not appear to be a virtual environment."
+        raise ValueError(msg)
 
     print(
         f"Converting {venv_path} into a {platform_config_path.name} environment... ",
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         platform_config_path = Path(__file__).parent
 
     try:
-        scripts_path = Path(sys.argv[3]).resolve()
+        scripts_path: Path | None = Path(sys.argv[3]).resolve()
     except IndexError:
         scripts_path = None
 

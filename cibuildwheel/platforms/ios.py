@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
+from packaging.version import Version
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
@@ -114,19 +115,15 @@ def get_python_configurations(
 
 
 def _inject_support_files(installation_path: Path, python_version: str) -> None:
-    """Inject iOS cross-compilation sysconfig files into an XCFramework that
-    doesn't include them (e.g. python.org distributions for 3.15+).
+    """Inject iOS cross-compilation sysconfig files into an XCFramework.
 
-    BeeWare's Python-Apple-support packages include ``platform-config/``
-    directories inside each XCFramework slice.  These contain the sysconfig
-    data files that cibuildwheel uses to localize platform paths during
-    cross-compilation environment setup.  The official python.org XCFramework
-    tarballs omit those files, so we create the ``platform-config/`` structure
-    here by copying the sysconfig data from the package's ``lib-*`` directories.
+    python.org distributions for 3.15+ omit BeeWare's ``platform-config/``
+    directories, so we create them here by copying the sysconfig data from
+    the package's ``lib-*`` directories.  BeeWare's Python-Apple-support
+    packages already include these files and don't need injection.
 
-    The cross-venv scripts (``make_cross_venv.py``, ``_cross_venv.py``, and the
-    multiarch-specific helpers) are kept in cibuildwheel's own resources and
-    executed in-situ, so they do not need to be copied into the cache.
+    The cross-venv scripts are kept in cibuildwheel's own resources and
+    executed in-situ, so they are not copied here.
     """
     xcframework = installation_path / "Python.xcframework"
     if not xcframework.exists():
@@ -135,14 +132,11 @@ def _inject_support_files(installation_path: Path, python_version: str) -> None:
     for slice_path in xcframework.iterdir():
         if not slice_path.is_dir() or slice_path.name == "build":
             continue
-        platform_config = slice_path / "platform-config"
-        if platform_config.exists():
-            # Already has support files (e.g. beeware-style package).
-            continue
 
         # Create a platform-config directory for each architecture in this
         # slice.  Each slice contains one or more lib-<arch> directories;
         # the _sysconfigdata_ filename encodes the multiarch tag.
+        platform_config = slice_path / "platform-config"
         for lib_dir in slice_path.glob("lib-*"):
             if not lib_dir.is_dir():
                 continue
@@ -166,9 +160,6 @@ def _inject_support_files(installation_path: Path, python_version: str) -> None:
                 shutil.copy(sysconfig_file, multiarch_config)
             for sysconfig_file in python_lib_dir.glob("_sysconfig_vars_*.json"):
                 shutil.copy(sysconfig_file, multiarch_config)
-            # Note: the cross-venv scripts (make_cross_venv.py, _cross_venv.py,
-            # and multiarch-specific helpers) are kept in cibuildwheel resources
-            # and run in-situ, so they are intentionally NOT copied here.
 
 
 def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threading: bool) -> Path:
@@ -188,7 +179,10 @@ def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threadin
             installation_path.mkdir(parents=True, exist_ok=True)
             call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
             downloaded_tar_gz.unlink()
-            _inject_support_files(installation_path, config.version)
+            # python.org 3.15+ distributions don't include BeeWare's
+            # platform-config/ directories; inject them from the lib data.
+            if Version(config.version) >= Version("3.15"):
+                _inject_support_files(installation_path, config.version)
 
     return installation_path
 
@@ -242,21 +236,35 @@ def cross_virtualenv(
     )
 
     # Convert the macOS virtual environment into an iOS virtual environment
-    # using the cross-platform conversion script from cibuildwheel resources.
+    # using make_cross_venv.py.
 
     # target_python is the path to the Python binary;
     # determine the root of the XCframework slice that is being used.
     slice_path = target_python.parent.parent
     platform_config_path = slice_path / f"platform-config/{multiarch}"
-    call(
-        "python",
-        str(resources.IOS_SUPPORT_FILES / "make_cross_venv.py"),
-        str(venv_path),
-        str(platform_config_path),
-        str(resources.IOS_SUPPORT_FILES),
-        env=env,
-        cwd=venv_path,
-    )
+    if Version(py_version) >= Version("3.15"):
+        # python.org 3.15+ distributions: platform-config has only sysconfig
+        # data (injected by _inject_support_files); cross-venv scripts come
+        # from cibuildwheel resources.
+        call(
+            "python",
+            str(resources.IOS_SUPPORT_FILES / "make_cross_venv.py"),
+            str(venv_path),
+            str(platform_config_path),
+            str(resources.IOS_SUPPORT_FILES),
+            env=env,
+            cwd=venv_path,
+        )
+    else:
+        # BeeWare distributions: platform-config already contains both
+        # sysconfig data and the make_cross_venv.py script.
+        call(
+            "python",
+            str(platform_config_path / "make_cross_venv.py"),
+            str(venv_path),
+            env=env,
+            cwd=venv_path,
+        )
 
     # When running on macOS, it's easy for the build environment to leak into
     # the target environment, especially when building for ARM64 (because the
@@ -372,13 +380,6 @@ def setup_python(
         / python_configuration.xcframework_slice
         / "bin"
         / f"python{python_configuration.version}"
-    )
-
-    # target_python may not exist as an executable for 3.15+ (python.org
-    # distributions don't include a standalone binary), but the bin directory
-    # should always be present.
-    assert target_python.parent.exists(), (
-        f"Expected bin directory to exist at {target_python.parent}"
     )
 
     log.step("Creating cross build environment...")
