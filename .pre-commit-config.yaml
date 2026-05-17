@@ -1,5 +1,6 @@
 ci:
   autoupdate_schedule: monthly
+exclude: "^cibuildwheel/resources/ios-support"
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks

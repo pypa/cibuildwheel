@@ -113,6 +113,68 @@ def get_python_configurations(
     return python_configurations
 
 
+def _inject_support_files(installation_path: Path, python_version: str) -> None:
+    """Inject iOS cross-compilation support files into an XCFramework that
+    doesn't include them (e.g. python.org distributions for 3.15+).
+
+    Beeware's Python-Apple-support packages include ``platform-config/``
+    directories inside each XCFramework slice.  These contain the
+    ``make_cross_venv.py`` script and associated helpers that cibuildwheel
+    uses to turn a macOS virtual environment into an iOS cross-compilation
+    environment.  The official python.org XCFramework tarballs omit those
+    files, so we bundle the 3.14 versions as resources and inject them here.
+    """
+    xcframework = installation_path / "Python.xcframework"
+    if not xcframework.exists():
+        return
+
+    for slice_path in xcframework.iterdir():
+        if not slice_path.is_dir() or slice_path.name == "build":
+            continue
+        platform_config = slice_path / "platform-config"
+        if platform_config.exists():
+            # Already has support files (e.g. beeware-style package).
+            continue
+
+        # Create a platform-config directory for each architecture in this
+        # slice.  Each slice contains one or more lib-<arch> directories;
+        # the _sysconfigdata_ filename encodes the multiarch tag.
+        support_dir = resources.IOS_SUPPORT_FILES
+        for lib_dir in slice_path.glob("lib-*"):
+            if not lib_dir.is_dir():
+                continue
+            python_lib_dir = lib_dir / f"python{python_version}"
+            if not python_lib_dir.exists():
+                continue
+
+            # Derive the multiarch tag from the sysconfigdata filename,
+            # e.g. _sysconfigdata__ios_arm64-iphoneos.py → arm64-iphoneos
+            sysconfigdata_files = list(python_lib_dir.glob("_sysconfigdata_*.py"))
+            if not sysconfigdata_files:
+                continue
+            multiarch = sysconfigdata_files[0].stem.split("_ios_")[1]
+
+            multiarch_config = platform_config / multiarch
+            multiarch_config.mkdir(parents=True)
+
+            # Copy sysconfig data from the lib directory into platform-config
+            # so that make_cross_venv.py can find and localize it.
+            for sysconfig_file in python_lib_dir.glob("_sysconfigdata_*.py"):
+                shutil.copy(sysconfig_file, multiarch_config)
+            for sysconfig_file in python_lib_dir.glob("_sysconfig_vars_*.json"):
+                shutil.copy(sysconfig_file, multiarch_config)
+
+            # Copy the shared support scripts.
+            shutil.copy(support_dir / "make_cross_venv.py", multiarch_config)
+            shutil.copy(support_dir / "_cross_venv.py", multiarch_config)
+
+            # Copy the multiarch-specific scripts (e.g. _cross_arm64_iphoneos.py).
+            multiarch_support_dir = support_dir / multiarch
+            if multiarch_support_dir.exists():
+                for f in multiarch_support_dir.iterdir():
+                    shutil.copy(f, multiarch_config)
+
+
 def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threading: bool) -> Path:
     if free_threading:
         msg = "Free threading builds aren't available for iOS (yet)"
@@ -130,6 +192,7 @@ def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threadin
             installation_path.mkdir(parents=True, exist_ok=True)
             call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
             downloaded_tar_gz.unlink()
+            _inject_support_files(installation_path, config.version)
 
     return installation_path
 
