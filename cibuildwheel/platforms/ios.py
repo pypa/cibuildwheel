@@ -172,7 +172,8 @@ def _inject_support_files(installation_path: Path, python_version: str) -> None:
             multiarch_support_dir = support_dir / multiarch
             if multiarch_support_dir.exists():
                 for f in multiarch_support_dir.iterdir():
-                    shutil.copy(f, multiarch_config)
+                    if f.is_file():
+                        shutil.copy(f, multiarch_config)
 
 
 def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threading: bool) -> Path:
