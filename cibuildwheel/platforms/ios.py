@@ -382,6 +382,10 @@ def setup_python(
         / f"python{python_configuration.version}"
     )
 
+    assert target_python.parent.exists(), (
+        f"{target_python.parent} not found, has {list(target_install_path.iterdir())}"
+    )
+
     log.step("Creating cross build environment...")
 
     venv_path = tmp / "venv"
