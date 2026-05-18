@@ -31,25 +31,20 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from collections.abc import Sequence, Set
 from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
 
 from cibuildwheel import errors
-from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
-from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import (
     BuildFrontendName,
     get_build_frontend_extra_flags,
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
-from cibuildwheel.options import Options
 from cibuildwheel.platforms.macos import install_cpython as install_build_cpython
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell, split_command
 from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
