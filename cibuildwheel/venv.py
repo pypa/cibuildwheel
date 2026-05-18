@@ -1,10 +1,28 @@
+from __future__ import annotations
+
+__lazy_modules__ = [
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "contextlib",
+    "filelock",
+    "os",
+    "packaging",
+    "packaging.markers",
+    "packaging.requirements",
+    "packaging.version",
+    "pathlib",
+    "shutil",
+    "tomllib",
+    "typing",
+]
+
 import contextlib
 import functools
 import os
 import shutil
 import sys
 import tomllib
-from collections.abc import Sequence
 from pathlib import Path
 from typing import Final, cast
 
@@ -16,6 +34,10 @@ from packaging.version import Version
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call
 from cibuildwheel.util.file import CIBW_CACHE_PATH, download
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 _IS_WIN: Final[bool] = sys.platform.startswith("win")
 

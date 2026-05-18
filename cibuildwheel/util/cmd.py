@@ -1,14 +1,23 @@
+from __future__ import annotations
+
+__lazy_modules__ = ["cibuildwheel.errors", "os", "shlex", "shutil", "subprocess"]
+
 import os
 import shlex
 import shutil
 import subprocess
 import sys
 import typing
-from collections.abc import Iterator, Mapping
-from typing import Final, Literal
+from typing import Final
 
 from cibuildwheel.errors import FatalError
-from cibuildwheel.typing import PathOrStr
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Iterator, Mapping
+    from typing import Literal
+
+    from cibuildwheel.typing import PathOrStr
 
 _IS_WIN: Final[bool] = sys.platform.startswith("win")
 

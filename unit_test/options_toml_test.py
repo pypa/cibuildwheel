@@ -15,6 +15,9 @@ from cibuildwheel.options import (
 )
 from cibuildwheel.typing import PlatformName
 
+TYPE_CHECKING = False
+
+
 PYPROJECT_1 = """
 [tool.cibuildwheel]
 build = "cp39*"

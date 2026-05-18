@@ -1,3 +1,28 @@
+from __future__ import annotations
+
+__lazy_modules__ = [
+    "cibuildwheel.audit",
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.platforms.macos",
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "cibuildwheel.venv",
+    "filelock",
+    "os",
+    "pathlib",
+    "platform",
+    "shlex",
+    "shutil",
+    "subprocess",
+    "sys",
+    "textwrap",
+    "typing",
+]
+
 import dataclasses
 import os
 import platform
@@ -6,31 +31,35 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from collections.abc import Sequence, Set
 from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
 
 from cibuildwheel import errors
-from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
-from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import (
     BuildFrontendName,
     get_build_frontend_extra_flags,
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
-from cibuildwheel.options import Options
 from cibuildwheel.platforms.macos import install_cpython as install_build_cpython
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell, split_command
 from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
 from cibuildwheel.util.helpers import prepare_command, unwrap_preserving_paragraphs
 from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.venv import constraint_flags, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence, Set
+
+    from cibuildwheel.architecture import Architecture
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)

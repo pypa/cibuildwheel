@@ -1,14 +1,28 @@
+from __future__ import annotations
+
+__lazy_modules__ = [
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.resources",
+    "filelock",
+    "fnmatch",
+    "json",
+    "platform",
+]
+
 import fnmatch
 import functools
 import json
 import platform
 import typing
-from pathlib import Path
 
 from filelock import FileLock
 
 from cibuildwheel.util.file import download, extract_tar
 from cibuildwheel.util.resources import PYTHON_BUILD_STANDALONE_RELEASES
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class PythonBuildStandaloneAsset(typing.TypedDict):
