@@ -148,6 +148,28 @@ Because the builds are happening without full isolation, there might be some dif
 
 In order to speed-up builds, cibuildwheel will cache the tools it needs to be reused for future builds. The folder used for caching is system/user dependent and is reported in the printed preamble of each run (e.g. `Cache folder: C:\Users\Matt\AppData\Local\pypa\cibuildwheel\Cache`). You can override the cache folder using the ``CIBW_CACHE_PATH`` environment variable.
 
+### Caching CPython installations on CI {: #windows-cpython-cache}
+
+On Windows, cibuildwheel installs CPython from NuGet under the `nuget-cpython` directory in its cache folder. If your CI jobs spend a lot of time reinstalling these Python versions, you can set `CIBW_CACHE_PATH` to a known location and cache that directory between runs.
+
+!!! warning
+    Be careful with caches in release workflows. Only restore and save caches from trusted branches or tags; do not save caches from untrusted pull requests, because a poisoned cache can affect later builds. If in doubt, keep release builds uncached.
+
+For example, on GitHub Actions:
+
+```yaml
+env:
+  CIBW_CACHE_PATH: ${{ runner.temp }}\cibw-cache
+
+steps:
+  - uses: actions/cache@v4
+    with:
+      path: ${{ env.CIBW_CACHE_PATH }}\nuget-cpython
+      key: cibw-nuget-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('.github/workflows/*', 'pyproject.toml') }}
+
+  - uses: pypa/cibuildwheel@v3.4.1
+```
+
 ### Windows ARM64 builds {: #windows-arm64}
 
 `cibuildwheel` supports cross-compiling `ARM64` wheels on all Windows runners, but a native `ARM64` runner is required for testing. On non-native runners, tests for `ARM64` wheels will be automatically skipped with a warning. Add `"*-win_arm64"` to your `test-skip` setting to suppress the warning.
