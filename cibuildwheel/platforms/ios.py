@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
+from packaging.version import Version
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
@@ -113,6 +114,54 @@ def get_python_configurations(
     return python_configurations
 
 
+def _inject_support_files(installation_path: Path, python_version: str) -> None:
+    """Inject iOS cross-compilation sysconfig files into an XCFramework.
+
+    python.org distributions for 3.15+ omit BeeWare's ``platform-config/``
+    directories, so we create them here by copying the sysconfig data from
+    the package's ``lib-*`` directories.  BeeWare's Python-Apple-support
+    packages already include these files and don't need injection.
+
+    The cross-venv scripts are kept in cibuildwheel's own resources and
+    executed in-situ, so they are not copied here.
+    """
+    xcframework = installation_path / "Python.xcframework"
+    if not xcframework.exists():
+        return
+
+    for slice_path in xcframework.iterdir():
+        if not slice_path.is_dir() or slice_path.name == "build":
+            continue
+
+        # Create a platform-config directory for each architecture in this
+        # slice.  Each slice contains one or more lib-<arch> directories;
+        # the _sysconfigdata_ filename encodes the multiarch tag.
+        platform_config = slice_path / "platform-config"
+        for lib_dir in slice_path.glob("lib-*"):
+            if not lib_dir.is_dir():
+                continue
+            python_lib_dir = lib_dir / f"python{python_version}"
+            if not python_lib_dir.exists():
+                continue
+
+            # Derive the multiarch tag from the sysconfigdata filename,
+            # e.g. _sysconfigdata__ios_arm64-iphoneos.py → arm64-iphoneos
+            sysconfigdata_files = list(python_lib_dir.glob("_sysconfigdata_*.py"))
+            if not sysconfigdata_files:
+                continue
+            multiarch = sysconfigdata_files[0].stem.split("_ios_")[1]
+
+            multiarch_config = platform_config / multiarch
+            multiarch_config.mkdir(parents=True)
+
+            # Copy sysconfig data from the lib directory into platform-config
+            # so that make_cross_venv.py can find and localize it.
+            for sysconfig_file in python_lib_dir.glob("_sysconfigdata_*.py"):
+                shutil.copy(sysconfig_file, multiarch_config)
+            for sysconfig_file in python_lib_dir.glob("_sysconfig_vars_*.json"):
+                shutil.copy(sysconfig_file, multiarch_config)
+
+
 def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threading: bool) -> Path:
     if free_threading:
         msg = "Free threading builds aren't available for iOS (yet)"
@@ -130,6 +179,10 @@ def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threadin
             installation_path.mkdir(parents=True, exist_ok=True)
             call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
             downloaded_tar_gz.unlink()
+            # python.org 3.15+ distributions don't include BeeWare's
+            # platform-config/ directories; inject them from the lib data.
+            if Version(config.version) >= Version("3.15"):
+                _inject_support_files(installation_path, config.version)
 
     return installation_path
 
@@ -183,18 +236,35 @@ def cross_virtualenv(
     )
 
     # Convert the macOS virtual environment into an iOS virtual environment
-    # using the cross-platform conversion script in the iOS distribution.
+    # using make_cross_venv.py.
 
     # target_python is the path to the Python binary;
     # determine the root of the XCframework slice that is being used.
     slice_path = target_python.parent.parent
-    call(
-        "python",
-        str(slice_path / f"platform-config/{multiarch}/make_cross_venv.py"),
-        str(venv_path),
-        env=env,
-        cwd=venv_path,
-    )
+    platform_config_path = slice_path / f"platform-config/{multiarch}"
+    if Version(py_version) >= Version("3.15"):
+        # python.org 3.15+ distributions: platform-config has only sysconfig
+        # data (injected by _inject_support_files); cross-venv scripts come
+        # from cibuildwheel resources.
+        call(
+            "python",
+            str(resources.IOS_SUPPORT_FILES / "make_cross_venv.py"),
+            str(venv_path),
+            str(platform_config_path),
+            str(resources.IOS_SUPPORT_FILES),
+            env=env,
+            cwd=venv_path,
+        )
+    else:
+        # BeeWare distributions: platform-config already contains both
+        # sysconfig data and the make_cross_venv.py script.
+        call(
+            "python",
+            str(platform_config_path / "make_cross_venv.py"),
+            str(venv_path),
+            env=env,
+            cwd=venv_path,
+        )
 
     # When running on macOS, it's easy for the build environment to leak into
     # the target environment, especially when building for ARM64 (because the
@@ -312,8 +382,8 @@ def setup_python(
         / f"python{python_configuration.version}"
     )
 
-    assert target_python.exists(), (
-        f"{target_python.name} not found, has {list(target_install_path.iterdir())}"
+    assert target_python.parent.exists(), (
+        f"{target_python.parent} not found, has {list(target_install_path.iterdir())}"
     )
 
     log.step("Creating cross build environment...")
