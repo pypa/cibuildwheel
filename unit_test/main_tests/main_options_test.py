@@ -3,7 +3,6 @@ import tomllib
 from collections.abc import Mapping
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -15,6 +14,7 @@ from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from .conftest import ArgsInterceptor
 
