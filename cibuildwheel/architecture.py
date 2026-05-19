@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"platform", "re", "shutil", "subprocess"}
+
 import platform as platform_module
 import re
 import shutil

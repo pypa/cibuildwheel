@@ -1,5 +1,23 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "cibuildwheel.ci",
+    "cibuildwheel.errors",
+    "cibuildwheel.logger",
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.helpers",
+    "contextlib",
+    "io",
+    "json",
+    "platform",
+    "shlex",
+    "shutil",
+    "subprocess",
+    "textwrap",
+    "uuid",
+}
+
 import contextlib
 import dataclasses
 import io

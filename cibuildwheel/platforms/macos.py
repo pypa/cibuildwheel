@@ -1,5 +1,27 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "cibuildwheel.audit",
+    "cibuildwheel.ci",
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "cibuildwheel.venv",
+    "filelock",
+    "inspect",
+    "packaging",
+    "packaging.version",
+    "pathlib",
+    "platform",
+    "re",
+    "shutil",
+    "subprocess",
+}
+
 import dataclasses
 import functools
 import inspect

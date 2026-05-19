@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"bashlex", "subprocess"}
+
 import dataclasses
 import subprocess
 

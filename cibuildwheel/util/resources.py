@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"tomllib"}
+
 import functools
 import tomllib
 from pathlib import Path

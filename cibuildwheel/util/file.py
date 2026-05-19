@@ -1,6 +1,20 @@
 from __future__ import annotations
 
 import hashlib
+
+__lazy_modules__ = {
+    "certifi",
+    "cibuildwheel.errors",
+    "shutil",
+    "ssl",
+    "tarfile",
+    "typing",
+    "urllib",
+    "urllib.request",
+    "zipfile",
+}
+
+
 import os
 import shutil
 import ssl

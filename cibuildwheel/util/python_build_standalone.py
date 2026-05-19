@@ -1,5 +1,14 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.resources",
+    "filelock",
+    "fnmatch",
+    "json",
+    "platform",
+}
+
 import fnmatch
 import functools
 import hashlib

@@ -4,6 +4,8 @@ These are utilities for the `/bin` scripts, not for the `cibuildwheel` program.
 
 from __future__ import annotations
 
+__lazy_modules__ = {"io", "json", "urllib", "urllib.error", "urllib.request"}
+
 import json
 import time
 import typing

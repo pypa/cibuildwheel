@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"importlib", "json", "pprint", "shutil", "typing"}
+
 import json
 import pprint
 import shutil

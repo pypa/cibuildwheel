@@ -77,6 +77,14 @@ repos:
     files: '^(README\.md|docs/changelog\.md|docs/options\.md|bin/readme.*)$'
     additional_dependencies: [cogapp>=3.5]
 
+- repo: https://github.com/PyCQA/flake8
+  rev: c48217e1fc006c2dddd14df54e83b67da15de5cd  # frozen: 7.3.0
+  hooks:
+  - id: flake8
+    args: ["--select=LZY"]
+    additional_dependencies: [flake8-lazy==0.7.0]
+    files: '^cibuildwheel'
+
 - repo: https://github.com/codespell-project/codespell
   rev: 2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a  # frozen: v2.4.2
   hooks:

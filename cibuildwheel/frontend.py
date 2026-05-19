@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"cibuildwheel.util", "cibuildwheel.util.helpers", "shlex"}
+
 import dataclasses
 import shlex
 import typing

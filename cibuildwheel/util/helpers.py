@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"collections", "itertools", "re", "shlex", "textwrap"}
+
 import dataclasses
 import itertools
 import re

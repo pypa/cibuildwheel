@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"configparser", "contextlib", "dependency_groups"}
+
 import ast
 import configparser
 import contextlib

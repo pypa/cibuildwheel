@@ -1,5 +1,20 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "contextlib",
+    "filelock",
+    "packaging",
+    "packaging.markers",
+    "packaging.requirements",
+    "packaging.version",
+    "pathlib",
+    "shutil",
+    "tomllib",
+}
+
 import contextlib
 import functools
 import os
