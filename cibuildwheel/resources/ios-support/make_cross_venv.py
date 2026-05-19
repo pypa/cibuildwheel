@@ -105,25 +105,32 @@ def make_cross_venv(
         raise ValueError(msg)
 
     print(
-        f"Converting {venv_path} into a {platform_config_path.name} environment... ",
+        f"Converting {venv_path} into a {platform_config_path} environment... ",
         end="",
     )
 
     LIB_PATH = f"lib/python{sys.version_info[0]}.{sys.version_info[1]}"
 
+    # Derive the multiarch tag from the sysconfigdata filename if available;
+    # otherwise fall back to the directory name (BeeWare convention).
+    sysconfigdata_files = list(platform_config_path.glob("_sysconfigdata_*.py"))
+    if sysconfigdata_files:
+        multiarch_tag = sysconfigdata_files[0].stem.split("_ios_")[1]
+        cross_multiarch = f"_cross_{multiarch_tag.replace('-', '_')}"
+    else:
+        multiarch_tag = platform_config_path.name
+        cross_multiarch = f"_cross_{multiarch_tag.replace('-', '_')}"
+
     # Update path references in the sysconfigdata to reflect local conditions.
     venv_site_packages = venv_path / LIB_PATH / "site-packages"
     localize_sysconfigdata(platform_config_path, venv_site_packages)
     localize_sysconfig_vars(platform_config_path, venv_site_packages)
-
-    # Copy in the site-package environment modifications.
-    cross_multiarch = f"_cross_{platform_config_path.name.replace('-', '_')}"
     # The multiarch-specific script may be directly in scripts_path (BeeWare
     # convention, where all files are co-located) or in a named subdirectory
     # (cibuildwheel resource layout, where each multiarch has its own subdir).
     multiarch_script = scripts_path / f"{cross_multiarch}.py"
     if not multiarch_script.exists():
-        multiarch_script = scripts_path / platform_config_path.name / f"{cross_multiarch}.py"
+        multiarch_script = scripts_path / multiarch_tag / f"{cross_multiarch}.py"
     shutil.copy(
         multiarch_script,
         venv_site_packages / f"{cross_multiarch}.py",
