@@ -6,7 +6,6 @@ import sys
 import tarfile
 
 TYPE_CHECKING = False
-
 if TYPE_CHECKING:
     from pathlib import Path
 

@@ -7,7 +7,7 @@ import textwrap
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sequence, Set
 from pathlib import Path, PurePath, PurePosixPath
-from typing import TYPE_CHECKING, assert_never
+from typing import assert_never
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
@@ -22,6 +22,7 @@ from cibuildwheel.util.file import copy_test_sources
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from cibuildwheel.typing import PathOrStr
 
