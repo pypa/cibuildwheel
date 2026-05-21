@@ -34,7 +34,7 @@ from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
-from cibuildwheel.extra import dump_python_configurations, get_pyodide_xbuildenv_info
+from cibuildwheel.extra import dump_python_configurations
 from cibuildwheel.platforms.android import android_triplet
 
 log = logging.getLogger("cibw")
@@ -391,8 +391,11 @@ class CPythonIOSVersions:
 
 class PyodideVersions:
     def __init__(self, cutoff_date: date) -> None:
-        xbuildenv_info = get_pyodide_xbuildenv_info()
-        all_releases = xbuildenv_info["releases"]
+        response = requests.get(
+            "https://pyodide.github.io/pyodide/api/v2/pyodide-cross-build-environments.json"
+        )
+        response.raise_for_status()
+        all_releases = response.json()["releases"]
         self.releases = {
             version_str: release
             for version_str, release in all_releases.items()
