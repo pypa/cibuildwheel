@@ -1,16 +1,18 @@
 import contextlib
 import dataclasses
+import shutil
 import subprocess
 import sys
 import textwrap
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator, Sequence, Set
 from pathlib import Path, PurePath, PurePosixPath
-from typing import TYPE_CHECKING, assert_never
+from typing import assert_never
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
-from cibuildwheel.frontend import get_build_frontend_extra_flags
+from cibuildwheel.audit import needs_audit, run_audit
+from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config_settings
 from cibuildwheel.logger import log
 from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from cibuildwheel.options import BuildOptions, Options
@@ -20,6 +22,7 @@ from cibuildwheel.util.file import copy_test_sources
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from cibuildwheel.typing import PathOrStr
 
@@ -286,8 +289,11 @@ def build_in_container(
             extra_flags = get_build_frontend_extra_flags(
                 build_frontend,
                 build_options.build_verbosity,
-                build_options.config_settings,
-                py38=config.identifier[1:].startswith("p38"),
+                prepare_config_settings(
+                    build_options.config_settings,
+                    project=container_project_path,
+                    package=container_package_dir,
+                ),
             )
 
             match build_frontend.name:
@@ -368,6 +374,18 @@ def build_in_container(
 
             if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                 raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+
+            log.step_end()
+
+            if needs_audit(build_options.audit_command, repaired_wheel.name):
+                local_abi3audit_dir = local_identifier_tmp_dir / "audit"
+                local_abi3audit_dir.mkdir(parents=True, exist_ok=True)
+                try:
+                    container.copy_out(repaired_wheel_dir, local_abi3audit_dir)
+                    local_wheel = local_abi3audit_dir / repaired_wheel.name
+                    run_audit(tmp_dir=local_tmp_dir, build_options=build_options, wheel=local_wheel)
+                finally:
+                    shutil.rmtree(local_abi3audit_dir, ignore_errors=True)
 
         if build_options.test_command and build_options.test_selector(config.identifier):
             log.step("Testing wheel...")

@@ -125,6 +125,8 @@ class BuildOptions:
     test_groups: list[str]
     test_environment: ParsedEnvironment
     test_runtime: TestRuntimeConfig
+    audit_requires: list[str]
+    audit_command: list[str]
     build_verbosity: int
     build_frontend: BuildFrontendConfig
     config_settings: str
@@ -686,8 +688,6 @@ class Options:
             skip_config = ""
             architectures = Architecture.all_archs(self.platform)
             enable |= EnableGroup.all_groups()
-            if args.only.startswith("cp313t-"):
-                enable.add(EnableGroup.CPythonFreeThreading)
 
         build_selector = BuildSelector(
             build_config=build_config,
@@ -708,11 +708,12 @@ class Options:
 
     def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:
         error_set = {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
+        # Currently no warnings, next: https://github.com/pypa/manylinux/issues/1925
         warning_set: set[str] = set()
 
         if value in error_set:
             msg = (
-                f"cibuildwheel 3.x does not support the image {value!r}. Either upgrade to a "
+                f"cibuildwheel 4.x does not support the image {value!r}. Either upgrade to a "
                 "supported image or continue using the image by pinning it directly with"
                 " its full OCI registry '<name>{:<tag>|@<digest>}'."
             )
@@ -894,6 +895,15 @@ class Options:
 
             pyodide_version = self.reader.get("pyodide-version", env_plat=False)
 
+            audit_command_str = self.reader.get(
+                "audit-command", option_format=ListFormat(sep=" && ")
+            )
+            audit_command = audit_command_str.split(" && ") if audit_command_str else []
+
+            audit_requires = self.reader.get(
+                "audit-requires", option_format=ListFormat(sep=" ")
+            ).split()
+
             return BuildOptions(
                 globals=self.globals,
                 test_command=test_command,
@@ -917,6 +927,8 @@ class Options:
                 config_settings=config_settings,
                 container_engine=container_engine,
                 pyodide_version=pyodide_version or None,
+                audit_command=audit_command,
+                audit_requires=audit_requires,
             )
 
     def check_for_invalid_configuration(self, identifiers: Iterable[str]) -> None:

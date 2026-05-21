@@ -83,7 +83,7 @@ def update_constraints(session: nox.Session) -> None:
     ignore_cooldown = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
     exclude_newer_args = [] if ignore_cooldown else ["--exclude-newer=2 days"]
 
-    for minor_version in range(8, 15):
+    for minor_version in range(9, 16):
         python_version = f"3.{minor_version}"
         output_file = resources / f"constraints-python{python_version.replace('.', '')}.txt"
         session.run(
@@ -99,7 +99,7 @@ def update_constraints(session: nox.Session) -> None:
         )
 
     shutil.copyfile(
-        resources / "constraints-python314.txt",
+        resources / "constraints-python315.txt",
         resources / "constraints.txt",
     )
 

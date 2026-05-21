@@ -28,7 +28,6 @@ $defs:
     description: How to inherit the parent's value.
   enable:
     enum:
-      - cpython-freethreading
       - cpython-prerelease
       - graalpy
       - pyodide-prerelease
@@ -39,6 +38,12 @@ additionalProperties: false
 description: cibuildwheel's settings.
 type: object
 properties:
+  audit-command:
+    description: Execute a shell command to audit each wheel after it is repaired. Use {wheel} for each wheel path, or {abi3_wheel} to only audit abi3 wheels.
+    type: string_array
+  audit-requires:
+    description: Install Python dependencies for the audit step.
+    type: string_array
   archs:
     description: Change the architectures built on your machine by default.
     type: string_array
@@ -309,6 +314,8 @@ items:
       type: object
       additionalProperties: false
       properties:
+        audit-command: {"$ref": "#/$defs/inherit"}
+        audit-requires: {"$ref": "#/$defs/inherit"}
         before-all: {"$ref": "#/$defs/inherit"}
         before-build: {"$ref": "#/$defs/inherit"}
         xbuild-tools: {"$ref": "#/$defs/inherit"}

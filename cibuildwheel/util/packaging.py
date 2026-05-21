@@ -177,3 +177,9 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
             return wheel
 
     return None
+
+
+def is_abi3_wheel(wheel_name: str) -> bool:
+    """Check if a wheel uses the abi3 stable ABI based on its filename."""
+    _, _, _, tags = parse_wheel_filename(wheel_name)
+    return any(tag.abi == "abi3" for tag in tags)

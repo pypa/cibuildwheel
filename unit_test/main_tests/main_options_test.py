@@ -1,10 +1,8 @@
-import os
 import sys
 import tomllib
 from collections.abc import Mapping
 from fnmatch import fnmatch
 from pathlib import Path
-from typing import TYPE_CHECKING
 
 import pytest
 
@@ -16,6 +14,7 @@ from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from .conftest import ArgsInterceptor
 
@@ -168,78 +167,6 @@ def test_empty_selector(monkeypatch: pytest.MonkeyPatch) -> None:
     assert e.value.code == 3
 
 
-@pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_cp313t_warning1(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
-) -> None:
-    monkeypatch.setenv("CIBW_ENABLE", "cpython-freethreading")
-
-    main()
-
-    _, err = capsys.readouterr()
-    print(err)
-    assert "'cpython-freethreading' enable is deprecated" in err
-
-
-@pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_cp313t_warning2(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
-) -> None:
-    local_path = tmp_path / "tmp_project"
-    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
-    local_path.joinpath("setup.py").touch()
-
-    monkeypatch.setattr(
-        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
-    )
-    monkeypatch.setenv("CIBW_ENABLE", "cpython-freethreading")
-
-    main()
-
-    _, err = capsys.readouterr()
-    print(err)
-    assert "'cpython-freethreading' enable is deprecated" in err
-
-
-@pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_cp313t_warning3(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
-) -> None:
-    local_path = tmp_path / "tmp_project"
-    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
-    local_path.joinpath("setup.py").touch()
-
-    monkeypatch.setattr(
-        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
-    )
-
-    main()
-
-    _, err = capsys.readouterr()
-    print(err)
-    assert "'cpython-freethreading' enable is deprecated" in err
-
-
-@pytest.mark.usefixtures("platform", "intercepted_build_args")
-def test_cp313t_warning4(
-    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str], tmp_path: Path
-) -> None:
-    local_path = tmp_path / "tmp_project"
-    os.mkdir(local_path)  # noqa:PTH102 Path.mkdir has been monkeypatched already
-    local_path.joinpath("setup.py").touch()
-
-    monkeypatch.setattr(
-        sys, "argv", ["cibuildwheel", "--only", "cp313t-manylinux_x86_64", str(local_path)]
-    )
-    monkeypatch.setenv("CIBW_ENABLE", "all")
-
-    main()
-
-    _, err = capsys.readouterr()
-    print(err)
-    assert "'cpython-freethreading' enable is deprecated" in err
-
-
 @pytest.mark.parametrize(
     ("architecture", "image", "full_image"),
     [
@@ -288,14 +215,16 @@ def get_default_repair_command(platform: str) -> str:
         return "auditwheel repair -w {dest_dir} {wheel}"
     elif platform == "macos":
         return "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
-    elif platform in {"windows", "pyodide"}:
+    elif platform == "windows":
+        return "delvewheel repair -w {dest_dir} -v {wheel}"
+    elif platform == "pyodide":
         return ""
     else:
         msg = f"Unknown platform: {platform!r}"
         raise ValueError(msg)
 
 
-@pytest.mark.parametrize("repair_command", [None, "repair", "repair -w {dest_dir} {wheel}"])
+@pytest.mark.parametrize("repair_command", [None, "", "repair", "repair -w {dest_dir} {wheel}"])
 @pytest.mark.parametrize("platform_specific", [False, True])
 def test_repair_command(
     repair_command: str | None,
@@ -315,7 +244,9 @@ def test_repair_command(
 
     build_options = intercepted_build_args.args[0].build_options(identifier=None)
 
-    expected_repair = repair_command or get_default_repair_command(platform)
+    expected_repair = (
+        get_default_repair_command(platform) if repair_command is None else repair_command
+    )
     assert build_options.repair_command == expected_repair
 
 
@@ -368,6 +299,30 @@ def test_test_requires(
     build_options = intercepted_build_args.args[0].build_options(identifier=None)
 
     assert build_options.test_requires == (test_requires or "").split()
+
+
+@pytest.mark.parametrize("audit_requires", [None, "abi3audit", "abi3audit custom-audit-tool"])
+@pytest.mark.parametrize("platform_specific", [False, True])
+def test_audit_requires(
+    audit_requires: str | None,
+    platform_specific: bool,
+    platform: str,
+    intercepted_build_args: "ArgsInterceptor",
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    if audit_requires is not None:
+        if platform_specific:
+            monkeypatch.setenv("CIBW_AUDIT_REQUIRES_" + platform.upper(), audit_requires)
+            monkeypatch.setenv("CIBW_AUDIT_REQUIRES", "overwritten")
+        else:
+            monkeypatch.setenv("CIBW_AUDIT_REQUIRES", audit_requires)
+
+    main()
+
+    build_options = intercepted_build_args.args[0].build_options(identifier=None)
+
+    expected = (audit_requires or "abi3audit").split()
+    assert build_options.audit_requires == expected
 
 
 @pytest.mark.parametrize("test_extras", [None, "extras"])
@@ -506,19 +461,26 @@ def test_config_settings(
     ],
 )
 @pytest.mark.parametrize(
-    "pattern",
+    ("pattern", "series"),
     [
-        "cp27-*",
-        "cp35-*",
-        "?p36-*",
-        "?p27*",
-        "?p2*",
-        "?p35*",
+        ("cp27-*", 1),
+        ("cp35-*", 1),
+        ("?p36-*", 2),
+        ("?p37-*", 2),
+        ("?p38-*", 3),
+        ("?p27*", 1),
+        ("?p2*", 1),
+        ("?p35*", 1),
+        ("cp313t*", None),
     ],
 )
 @pytest.mark.usefixtures("platform", "intercepted_build_args", "allow_empty")
 def test_build_selector_deprecated_error(
-    monkeypatch: pytest.MonkeyPatch, selector: str, pattern: str, capsys: pytest.CaptureFixture[str]
+    monkeypatch: pytest.MonkeyPatch,
+    selector: str,
+    pattern: str,
+    series: int,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.setenv(selector, pattern)
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
@@ -532,8 +494,10 @@ def test_build_selector_deprecated_error(
         main()
 
     stderr = capsys.readouterr().err
-    series = "2" if "6" in pattern else "1"
-    msg = f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the {series}.x series or update"
+    if pattern == "cp313t*":
+        msg = "cibuildwheel 4.x no longer supports Python 3.13 free-threading. Please use the 3.x series or update"
+    else:
+        msg = f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the {series}.x series or update"
     assert msg in stderr
 
 

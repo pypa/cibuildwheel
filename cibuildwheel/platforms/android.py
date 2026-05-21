@@ -24,7 +24,12 @@ from filelock import FileLock
 
 from cibuildwheel import errors, platforms  # pylint: disable=cyclic-import
 from cibuildwheel.architecture import Architecture, arch_synonym
-from cibuildwheel.frontend import get_build_frontend_extra_flags, parse_config_settings
+from cibuildwheel.audit import run_audit
+from cibuildwheel.frontend import (
+    get_build_frontend_extra_flags,
+    parse_config_settings,
+    prepare_config_settings,
+)
 from cibuildwheel.logger import log
 from cibuildwheel.options import BuildOptions, Options
 from cibuildwheel.selector import BuildSelector
@@ -150,6 +155,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 before_build(state)
                 built_wheel = build_wheel(state)
                 repaired_wheel = repair_wheel(state, built_wheel)
+                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
 
             test_wheel(state, repaired_wheel, build_frontend=build_options.build_frontend.name)
 
@@ -466,8 +472,11 @@ def build_wheel(state: BuildState) -> Path:
                 *get_build_frontend_extra_flags(
                     state.options.build_frontend,
                     state.options.build_verbosity,
-                    state.options.config_settings,
-                    py38=False,
+                    prepare_config_settings(
+                        state.options.config_settings,
+                        project=".",
+                        package=state.options.package_dir,
+                    ),
                 ),
                 env=state.android_env,
             )
@@ -484,8 +493,11 @@ def build_wheel(state: BuildState) -> Path:
                 *get_build_frontend_extra_flags(
                     state.options.build_frontend,
                     state.options.build_verbosity,
-                    state.options.config_settings,
-                    py38=False,
+                    prepare_config_settings(
+                        state.options.config_settings,
+                        project=".",
+                        package=state.options.package_dir,
+                    ),
                 ),
                 env=state.android_env,
             )

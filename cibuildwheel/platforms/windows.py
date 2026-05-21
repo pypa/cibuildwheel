@@ -14,8 +14,13 @@ from filelock import FileLock
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
+from cibuildwheel.audit import run_audit
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import BuildFrontendName, get_build_frontend_extra_flags
+from cibuildwheel.frontend import (
+    BuildFrontendName,
+    get_build_frontend_extra_flags,
+    prepare_config_settings,
+)
 from cibuildwheel.logger import log
 from cibuildwheel.options import Options
 from cibuildwheel.selector import BuildSelector
@@ -30,7 +35,7 @@ from cibuildwheel.util.file import (
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
-from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
+from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
 
 
 def get_nuget_args(
@@ -238,11 +243,6 @@ def setup_rust_cross_compile(
         )
 
 
-def can_use_uv(python_configuration: PythonConfiguration) -> bool:
-    conditions = (not python_configuration.identifier.startswith("pp38-"),)
-    return all(conditions)
-
-
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -274,9 +274,6 @@ def setup_python(
         raise ValueError(msg)
     assert base_python.exists()
 
-    if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
-        build_frontend = "build"
-
     use_uv = build_frontend in {"build[uv]", "uv"}
     uv_path = find_uv()
 
@@ -288,6 +285,7 @@ def setup_python(
         venv_path,
         dependency_constraint,
         use_uv=use_uv,
+        marker_env=target_marker_env(implementation_id=implementation_id),
     )
 
     # set up environment variables for run_with_env
@@ -321,12 +319,22 @@ def setup_python(
 
     log.step("Installing build tools...")
     match build_frontend:
+        case "pip":
+            call(
+                "pip",
+                "install",
+                "--upgrade",
+                "delvewheel",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
         case "build":
             call(
                 "pip",
                 "install",
                 "--upgrade",
                 "build[virtualenv]",
+                "delvewheel",
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
@@ -340,9 +348,25 @@ def setup_python(
                 where_python,
                 "--upgrade",
                 "build[virtualenv]",
+                "delvewheel",
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
+        case "uv":
+            assert uv_path is not None
+            call(
+                uv_path,
+                "pip",
+                "install",
+                "--python",
+                where_python,
+                "--upgrade",
+                "delvewheel",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
+        case _:
+            assert_never(build_frontend)
 
     if python_libs_base:
         # Set up the environment for various backends to enable cross-compilation
@@ -415,7 +439,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
-            use_uv = build_frontend.name in {"build[uv]", "uv"} and can_use_uv(config)
+            use_uv = build_frontend.name in {"build[uv]", "uv"}
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -462,8 +486,11 @@ def build(options: Options, tmp_path: Path) -> None:
                 extra_flags = get_build_frontend_extra_flags(
                     build_frontend,
                     build_options.build_verbosity,
-                    build_options.config_settings,
-                    py38=config.identifier[1:].startswith("p38"),
+                    prepare_config_settings(
+                        build_options.config_settings,
+                        project=".",
+                        package=options.globals.package_dir,
+                    ),
                 )
 
                 if (
@@ -558,6 +585,8 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+
+                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
 
             test_selected = options.globals.test_selector(config.identifier)
             if test_selected and config.arch == "ARM64" != platform_module.machine():
