@@ -6,11 +6,7 @@
 #   "packaging",
 #   "requests",
 #   "rich",
-#   "cibuildwheel",
 # ]
-#
-# [tool.uv.sources]
-# cibuildwheel = { path = ".." }
 # ///
 
 
@@ -18,7 +14,6 @@ import dataclasses
 import difflib
 import logging
 import tomllib
-from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Final
 
@@ -26,7 +21,6 @@ import click
 import packaging.specifiers
 import requests
 import rich
-from _cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 from packaging.version import InvalidVersion, Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
@@ -53,11 +47,6 @@ def parse_nodejs_index() -> list[VersionTuple]:
     response = requests.get(NODEJS_INDEX)
     response.raise_for_status()
     versions_info = response.json()
-    cutoff_date: date = (
-        date.max
-        if IGNORE_COOLDOWN
-        else (datetime.now(tz=UTC) - timedelta(days=COOLDOWN_DAYS)).date()
-    )
     for version_info in versions_info:
         version_string = version_info.get("version", "???")
         if not version_info.get("lts", False):
@@ -67,9 +56,6 @@ def parse_nodejs_index() -> list[VersionTuple]:
             log.warning(
                 "Ignoring release %r which does not include a linux-x64 binary", version_string
             )
-            continue
-        if date.fromisoformat(version_info["date"]) > cutoff_date:
-            log.info("Ignoring release %r within cooldown period", version_string)
             continue
         try:
             version = Version(version_string)
