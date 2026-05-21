@@ -435,9 +435,14 @@ class CPythonIOSVersions:
 
 
 class PyodideVersions:
-    def __init__(self) -> None:
+    def __init__(self, cutoff_date: date) -> None:
         xbuildenv_info = get_pyodide_xbuildenv_info()
-        self.releases = xbuildenv_info["releases"]
+        all_releases = xbuildenv_info["releases"]
+        self.releases = {
+            version_str: release
+            for version_str, release in all_releases.items()
+            if datetime.fromisoformat(release["published_at"]).date() <= cutoff_date
+        }
 
     def update_version_pyodide(
         self, identifier: str, version: Version, spec: Specifier, node_version: str
@@ -496,7 +501,7 @@ class AllVersions:
 
         self.graalpy = GraalPyVersions(cutoff_date)
 
-        self.pyodide = PyodideVersions()
+        self.pyodide = PyodideVersions(cutoff_date)
 
     def update_config(self, config: MutableMapping[str, str]) -> None:
         identifier = config["identifier"]

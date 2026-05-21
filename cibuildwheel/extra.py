@@ -85,6 +85,9 @@ class PyodideXBuildEnvRelease(typing.TypedDict):
     version: str
     python_version: str
     emscripten_version: str
+    published_at: str
+    url: NotRequired[str]
+    sha256: NotRequired[str]
     min_pyodide_build_version: NotRequired[str]
     max_pyodide_build_version: NotRequired[str]
 
@@ -95,7 +98,7 @@ class PyodideXBuildEnvInfo(typing.TypedDict):
 
 def get_pyodide_xbuildenv_info() -> PyodideXBuildEnvInfo:
     xbuildenv_info_url = (
-        "https://pyodide.github.io/pyodide/api/pyodide-cross-build-environments.json"
+        "https://pyodide.github.io/pyodide/api/v2/pyodide-cross-build-environments.json"
     )
     with urllib.request.urlopen(xbuildenv_info_url) as response:
         return typing.cast("PyodideXBuildEnvInfo", json.loads(response.read().decode("utf-8")))
