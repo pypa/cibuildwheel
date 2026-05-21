@@ -81,7 +81,7 @@ def update_constraints(session: nox.Session) -> None:
 
     # NOTE: Keep this in sync with bin/_cooldown.py
     ignore_cooldown = os.environ.get("CIBW_IGNORE_COOLDOWN", "").lower() in ("1", "true")
-    exclude_newer_args = [] if ignore_cooldown else ["--exclude-newer=2 days"]
+    exclude_newer_args = [] if ignore_cooldown else ["--exclude-newer=3 days"]
 
     for minor_version in range(9, 16):
         python_version = f"3.{minor_version}"
