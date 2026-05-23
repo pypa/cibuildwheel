@@ -29,16 +29,16 @@ def localized_vars(orig_vars: dict[str, Any], slice_path: Path) -> dict[str, Any
     return localized_vars
 
 
-def localize_sysconfigdata(platform_config_path: Path, venv_site_packages: Path) -> None:
+def localize_sysconfigdata(sysconfig_path: Path, venv_site_packages: Path) -> None:
     """Localize a sysconfigdata python module.
 
-    :param platform_config_path: The platform config that contains the
+    :param sysconfig_path: The platform config that contains the
         sysconfigdata module to localize.
     :param venv_site_packages: The site packages folder where the localized
         sysconfigdata module should be output.
     """
     # Find the "_sysconfigdata_*.py" file in the platform config
-    sysconfigdata_path = next(platform_config_path.glob("_sysconfigdata_*.py"))
+    sysconfigdata_path = next(sysconfig_path.glob("_sysconfigdata_*.py"))
 
     # Import the sysconfigdata module
     spec = importlib_util.spec_from_file_location(sysconfigdata_path.stem, sysconfigdata_path)
@@ -61,16 +61,16 @@ def localize_sysconfigdata(platform_config_path: Path, venv_site_packages: Path)
         )
 
 
-def localize_sysconfig_vars(platform_config_path: Path, venv_site_packages: Path) -> None:
+def localize_sysconfig_vars(sysconfig_path: Path, venv_site_packages: Path) -> None:
     """Localize a sysconfig_vars.json file.
 
-    :param platform_config_path: The platform config that contains the
+    :param sysconfig_path: The platform config that contains the
         sysconfigdata module to localize.
     :param venv_site_packages: The site-packages folder where the localized
         sysconfig_vars.json file should be output.
     """
     # Find the "_sysconfig_vars_*.json" file in the platform config
-    sysconfig_vars_path = next(platform_config_path.glob("_sysconfig_vars_*.json"))
+    sysconfig_vars_path = next(sysconfig_path.glob("_sysconfig_vars_*.json"))
 
     with sysconfig_vars_path.open("rb") as f:
         build_time_vars = json.load(f)
@@ -82,21 +82,17 @@ def localize_sysconfig_vars(platform_config_path: Path, venv_site_packages: Path
 
 def make_cross_venv(
     venv_path: Path,
+    sysconfig_path: Path,
     platform_config_path: Path,
-    scripts_path: Path | None = None,
 ) -> None:
     """Convert a virtual environment into a cross-platform environment.
 
     :param venv_path: The path to the root of the venv.
-    :param platform_config_path: The path containing the platform config
-        (sysconfigdata files).
-    :param scripts_path: The path containing the cross-venv support scripts
-        (_cross_venv.py and the multiarch-specific _cross_*.py).  Defaults to
-        ``platform_config_path`` for BeeWare-style packages where these files
-        are co-located with the sysconfig data.
+    :param sysconfig_path: The path containing sysconfigdata files for the
+        target platform.
+    :param platform_config_path: The path containing the cross-venv support
+        scripts (_cross_venv.py and the multiarch-specific _cross_*.py).
     """
-    if scripts_path is None:
-        scripts_path = platform_config_path
     if not venv_path.exists():
         msg = f"Virtual environment {venv_path} does not exist."
         raise ValueError(msg)
@@ -104,39 +100,39 @@ def make_cross_venv(
         msg = f"{venv_path} does not appear to be a virtual environment."
         raise ValueError(msg)
 
-    print(
-        f"Converting {venv_path} into a {platform_config_path} environment... ",
-        end="",
-    )
-
     LIB_PATH = f"lib/python{sys.version_info[0]}.{sys.version_info[1]}"
 
     # Derive the multiarch tag from the sysconfigdata filename if available;
     # otherwise fall back to the directory name (BeeWare convention).
-    sysconfigdata_files = list(platform_config_path.glob("_sysconfigdata_*.py"))
+    sysconfigdata_files = list(sysconfig_path.glob("_sysconfigdata_*.py"))
     if sysconfigdata_files:
         multiarch_tag = sysconfigdata_files[0].stem.split("_ios_")[1]
         cross_multiarch = f"_cross_{multiarch_tag.replace('-', '_')}"
     else:
-        multiarch_tag = platform_config_path.name
+        multiarch_tag = sysconfig_path.name
         cross_multiarch = f"_cross_{multiarch_tag.replace('-', '_')}"
+
+    print(
+        f"Converting {venv_path} into a {multiarch_tag} environment... ",
+        end="",
+    )
 
     # Update path references in the sysconfigdata to reflect local conditions.
     venv_site_packages = venv_path / LIB_PATH / "site-packages"
-    localize_sysconfigdata(platform_config_path, venv_site_packages)
-    localize_sysconfig_vars(platform_config_path, venv_site_packages)
-    # The multiarch-specific script may be directly in scripts_path (BeeWare
+    localize_sysconfigdata(sysconfig_path, venv_site_packages)
+    localize_sysconfig_vars(sysconfig_path, venv_site_packages)
+    # The multiarch-specific script may be directly in platform_config_path (BeeWare
     # convention, where all files are co-located) or in a named subdirectory
     # (cibuildwheel resource layout, where each multiarch has its own subdir).
-    multiarch_script = scripts_path / f"{cross_multiarch}.py"
+    multiarch_script = platform_config_path / f"{cross_multiarch}.py"
     if not multiarch_script.exists():
-        multiarch_script = scripts_path / multiarch_tag / f"{cross_multiarch}.py"
+        multiarch_script = platform_config_path / multiarch_tag / f"{cross_multiarch}.py"
     shutil.copy(
         multiarch_script,
         venv_site_packages / f"{cross_multiarch}.py",
     )
     shutil.copy(
-        scripts_path / "_cross_venv.py",
+        platform_config_path / "_cross_venv.py",
         venv_site_packages / "_cross_venv.py",
     )
     # Write the .pth file that will enable the cross-env modifications
@@ -149,28 +145,31 @@ def make_cross_venv(
 
 if __name__ == "__main__":
     try:
-        platform_config_path = Path(sys.argv[2]).resolve()
+        sysconfig_path = Path(sys.argv[2]).resolve()
     except IndexError:
-        platform_config_path = Path(__file__).parent
+        sysconfig_path = Path(__file__).parent
 
     try:
-        scripts_path: Path | None = Path(sys.argv[3]).resolve()
+        platform_config_path = Path(sys.argv[3]).resolve()
     except IndexError:
-        scripts_path = None
+        platform_config_path = sysconfig_path
 
     try:
         venv_path = Path(sys.argv[1]).resolve()
-        make_cross_venv(venv_path, platform_config_path, scripts_path)
+        make_cross_venv(venv_path, sysconfig_path, platform_config_path)
     except IndexError:
         print("""
-Convert a virtual environment in to a cross-platform environment.
+Convert a virtual environment into a cross-platform environment.
 
 Usage:
-    make_cross_venv <venv> (<platform config>) (<scripts path>)
+    make_cross_venv <venv> (<sysconfig path>) (<platform config path>)
 
-If an explicit platform config isn't provided, it is assumed the directory
-containing the make_cross_venv script *is* a platform config.
+The sysconfig path is the path that contains the `_sysconfigdata-*.py` file
+for the platform being targeted. If an explicit sysconfig path isn't
+provided, it is assumed the directory containing the make_cross_venv script
+also contains the sysconfig data for the interpreter.
 
-If an explicit scripts path isn't provided, it defaults to the platform config
-path (the BeeWare convention where scripts are co-located with sysconfig data).
+The platform config path is the path that contains the cross-venv support
+scripts. If an explicit platform config path isn't provided, it is assumed
+that the sysconfig path also contains the platform configuration files.
 """)
