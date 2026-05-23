@@ -243,7 +243,10 @@ flake8-annotations.mypy-init-return = true
 ignore = ["PC170", "PP303"]
 
 [tool.check-wheel-contents]
-ignore = ["W002"]  # constraints-*.txt are allowed to be duplicates of one another
+ignore = [
+  "W002",  # constraints-*.txt are allowed to be duplicates of one another
+  "W004",  # "-" is fine for our iOS support files for now
+]
 
 [tool.codespell]
 ignore-words-list = [

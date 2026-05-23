@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
+from packaging.version import Version
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
@@ -183,18 +184,37 @@ def cross_virtualenv(
     )
 
     # Convert the macOS virtual environment into an iOS virtual environment
-    # using the cross-platform conversion script in the iOS distribution.
+    # using make_cross_venv.py.
 
     # target_python is the path to the Python binary;
     # determine the root of the XCframework slice that is being used.
     slice_path = target_python.parent.parent
-    call(
-        "python",
-        str(slice_path / f"platform-config/{multiarch}/make_cross_venv.py"),
-        str(venv_path),
-        env=env,
-        cwd=venv_path,
-    )
+    if Version(py_version) >= Version("3.15"):
+        # python.org 3.15+ distributions: sysconfig data lives in the
+        # stdlib directory (lib-<arch>/python<version>); cross-venv scripts
+        # come from cibuildwheel resources.
+        arch = multiarch.split("-", maxsplit=1)[0]
+        stdlib_path = slice_path / f"lib-{arch}" / f"python{py_version}"
+        call(
+            "python",
+            str(resources.IOS_SUPPORT_FILES / "make_cross_venv.py"),
+            str(venv_path),
+            str(stdlib_path),
+            str(resources.IOS_SUPPORT_FILES),
+            env=env,
+            cwd=venv_path,
+        )
+    else:
+        # BeeWare distributions: platform-config already contains both
+        # sysconfig data and the make_cross_venv.py script.
+        platform_config_path = slice_path / f"platform-config/{multiarch}"
+        call(
+            "python",
+            str(platform_config_path / "make_cross_venv.py"),
+            str(venv_path),
+            env=env,
+            cwd=venv_path,
+        )
 
     # When running on macOS, it's easy for the build environment to leak into
     # the target environment, especially when building for ARM64 (because the
@@ -312,8 +332,8 @@ def setup_python(
         / f"python{python_configuration.version}"
     )
 
-    assert target_python.exists(), (
-        f"{target_python.name} not found, has {list(target_install_path.iterdir())}"
+    assert target_python.parent.exists(), (
+        f"{target_python.parent} not found, has {list(target_install_path.iterdir())}"
     )
 
     log.step("Creating cross build environment...")
