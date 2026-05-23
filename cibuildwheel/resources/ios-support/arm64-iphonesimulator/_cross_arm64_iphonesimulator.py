@@ -24,6 +24,7 @@ subprocess._can_fork_exec = True
 # platform module patches
 ###########################################################################
 
+
 def cross_system():
     return "iOS"
 
@@ -57,6 +58,7 @@ platform.ios_ver = cross_ios_ver
 ###########################################################################
 # sysconfig module patches
 ###########################################################################
+
 
 def cross_get_platform():
     return "ios-13.0-arm64-iphonesimulator"

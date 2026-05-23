@@ -32,9 +32,7 @@ def patch_env_create(env):
             f"{json_name}.json",
         ]:
             src = SITE_PACKAGE_PATH / filename
-            target = Path(path) / src.relative_to(
-                SITE_PACKAGE_PATH.parent.parent.parent
-            )
+            target = Path(path) / src.relative_to(SITE_PACKAGE_PATH.parent.parent.parent)
             if not target.exists():
                 shutil.copy(src, target)
         return result
