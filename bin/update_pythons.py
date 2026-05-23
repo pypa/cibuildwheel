@@ -12,14 +12,13 @@
 # [tool.uv.sources]
 # cibuildwheel = { path = ".." }
 # ///
-
+from __future__ import annotations
 
 import difflib
 import logging
 import operator
 import re
 import tomllib
-from collections.abc import Mapping, MutableMapping
 from pathlib import Path
 from typing import Any, Final, Literal, TypedDict
 from xml.etree import ElementTree as ET
@@ -34,6 +33,10 @@ from rich.syntax import Syntax
 
 from cibuildwheel.extra import dump_python_configurations, get_pyodide_xbuildenv_info
 from cibuildwheel.platforms.android import android_triplet
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Mapping, MutableMapping
 
 log = logging.getLogger("cibw")
 

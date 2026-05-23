@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
 import platform as platform_module
 import textwrap
 import unittest.mock
-from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
@@ -24,6 +25,10 @@ from cibuildwheel.options import (
 from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import functools
 import json
@@ -7,7 +9,6 @@ import subprocess
 import sys
 import tomllib
 import typing
-from collections.abc import Set
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Final, TypedDict
@@ -17,11 +18,8 @@ from filelock import FileLock
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
-from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config_settings
 from cibuildwheel.logger import log
-from cibuildwheel.options import Options
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import (
@@ -39,6 +37,14 @@ from cibuildwheel.util.python_build_standalone import (
     create_python_build_standalone_environment,
 )
 from cibuildwheel.venv import constraint_flags, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Set
+
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 IS_WIN: Final[bool] = sys.platform.startswith("win")
 

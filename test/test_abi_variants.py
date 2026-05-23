@@ -1,9 +1,14 @@
-import textwrap
-from pathlib import Path
+from __future__ import annotations
 
-import pytest
+import textwrap
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    import pytest
 
 pyproject_toml = r"""
 [build-system]

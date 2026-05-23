@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import functools
 import inspect
@@ -8,32 +10,37 @@ import shutil
 import subprocess
 import sys
 import typing
-from collections.abc import Set
 from pathlib import Path
-from typing import Literal, assert_never
+from typing import assert_never
 
 from filelock import FileLock
 from packaging.version import Version
 
 from cibuildwheel import errors
-from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
 from cibuildwheel.ci import detect_ci_provider
-from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import (
     BuildFrontendName,
     get_build_frontend_extra_flags,
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
-from cibuildwheel.options import Options
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
 from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Set
+    from typing import Literal
+
+    from cibuildwheel.architecture import Architecture
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 
 @functools.cache

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import subprocess
 from pathlib import Path
 
@@ -6,6 +8,10 @@ import pytest
 from test import test_projects
 
 from . import utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 pure_python_project = test_projects.TestProject()
 pure_python_project.files["setup.py"] = """

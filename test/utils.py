@@ -4,11 +4,12 @@ Utility functions used by the cibuildwheel tests.
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 """
 
+from __future__ import annotations
+
 import os
 import platform as pm
 import subprocess
 import sys
-from collections.abc import Generator, Mapping, Sequence
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Final
@@ -19,6 +20,10 @@ from cibuildwheel.architecture import Architecture
 from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.selector import EnableGroup
 from cibuildwheel.util.file import CIBW_CACHE_PATH
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Generator, Mapping, Sequence
 
 EMULATED_ARCHS: Final[list[str]] = sorted(
     arch.value for arch in (Architecture.all_archs("linux") - Architecture.auto_archs("linux"))

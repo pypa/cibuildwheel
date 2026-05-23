@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import textwrap
-from pathlib import Path
 
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 project_with_manylinux_symbols = test_projects.new_c_project(
     spam_c_top_level_add=textwrap.dedent(

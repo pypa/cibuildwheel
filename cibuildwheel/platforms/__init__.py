@@ -1,14 +1,21 @@
+from __future__ import annotations
+
 import sys
-from collections.abc import Sequence
-from pathlib import Path
-from typing import Final, Protocol
+from typing import Protocol
 
 from cibuildwheel import errors
-from cibuildwheel.architecture import Architecture
-from cibuildwheel.options import Options
 from cibuildwheel.platforms import android, ios, linux, macos, pyodide, windows
-from cibuildwheel.selector import BuildSelector
-from cibuildwheel.typing import GenericPythonConfiguration, PlatformName
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from pathlib import Path
+    from typing import Final
+
+    from cibuildwheel.architecture import Architecture
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
+    from cibuildwheel.typing import GenericPythonConfiguration, PlatformName
 
 
 class PlatformModule(Protocol):
