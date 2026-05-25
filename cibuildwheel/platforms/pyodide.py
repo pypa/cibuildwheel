@@ -11,7 +11,7 @@ import tomllib
 import typing
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Final, TypedDict
+from typing import TYPE_CHECKING, Final, TypedDict
 
 from filelock import FileLock
 
@@ -38,7 +38,6 @@ from cibuildwheel.util.python_build_standalone import (
 )
 from cibuildwheel.venv import constraint_flags, virtualenv
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Set
 

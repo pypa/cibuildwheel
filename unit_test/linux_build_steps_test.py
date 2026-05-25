@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import textwrap
 from pprint import pprint
+from typing import TYPE_CHECKING
 
 import cibuildwheel.platforms.linux
 from cibuildwheel.oci_container import OCIContainerEngineConfig
 from cibuildwheel.options import CommandLineArguments, Options
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

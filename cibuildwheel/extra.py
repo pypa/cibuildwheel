@@ -10,14 +10,12 @@ import typing
 import urllib.error
 import urllib.request
 from io import StringIO
-from typing import NotRequired, Protocol
+from typing import TYPE_CHECKING, Any, NotRequired, Protocol
 
 from cibuildwheel import __version__ as cibw_version
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
-    from typing import Any
 
 
 __all__ = ("Printable", "dump_python_configurations")

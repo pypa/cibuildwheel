@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import json
+from typing import TYPE_CHECKING
 
 from cibuildwheel.util import resources
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from typing import Any
 

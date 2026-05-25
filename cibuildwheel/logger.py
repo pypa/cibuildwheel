@@ -12,15 +12,14 @@ import sys
 import textwrap
 import time
 from pathlib import Path
+from typing import IO, TYPE_CHECKING, AnyStr, Final, Literal
 
 import humanize
 
 from cibuildwheel.ci import CIProvider, detect_ci_provider, filter_ansi_codes
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator
-    from typing import IO, AnyStr, Final, Literal
 
     from cibuildwheel.options import Options
 

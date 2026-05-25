@@ -6,8 +6,8 @@ import re
 import shlex
 import textwrap
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     import os
     from collections.abc import Sequence

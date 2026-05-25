@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import tomllib
 from textwrap import dedent
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -11,7 +12,6 @@ from cibuildwheel.projectfiles import (
     setup_py_python_requires,
 )
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

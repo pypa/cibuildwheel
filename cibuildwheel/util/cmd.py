@@ -6,13 +6,12 @@ import shutil
 import subprocess
 import sys
 import typing
+from typing import TYPE_CHECKING, Final, Literal
 
 from cibuildwheel.errors import FatalError
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
-    from typing import Final, Literal
 
     from cibuildwheel.typing import PathOrStr
 

@@ -11,6 +11,7 @@ import textwrap
 import time
 from contextlib import nullcontext
 from pathlib import Path, PurePath, PurePosixPath
+from typing import TYPE_CHECKING
 
 import pytest
 import tomli_w
@@ -26,7 +27,6 @@ from cibuildwheel.oci_container import (
     _check_engine_version,
 )
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterator
 

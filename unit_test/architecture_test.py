@@ -3,13 +3,13 @@ from __future__ import annotations
 import platform as platform_module
 import shutil
 import sys
+from typing import TYPE_CHECKING
 
 import pytest
 
 import cibuildwheel.architecture
 from cibuildwheel.architecture import Architecture, arch_synonym
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from cibuildwheel.typing import PlatformName
 

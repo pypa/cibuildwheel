@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import packaging.utils
 
 from . import test_projects, utils
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

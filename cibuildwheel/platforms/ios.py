@@ -9,7 +9,7 @@ import subprocess
 import sys
 import textwrap
 from pathlib import Path
-from typing import assert_never
+from typing import TYPE_CHECKING, assert_never
 
 from filelock import FileLock
 
@@ -29,7 +29,6 @@ from cibuildwheel.util.helpers import prepare_command, unwrap_preserving_paragra
 from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.venv import constraint_flags, virtualenv
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Sequence, Set
 

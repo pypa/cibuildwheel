@@ -6,10 +6,10 @@ import sys
 import textwrap
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import TYPE_CHECKING
 
 from . import test_projects, utils
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Mapping
 

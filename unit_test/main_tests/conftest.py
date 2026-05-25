@@ -5,7 +5,7 @@ import platform as platform_module
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import pytest
 
@@ -14,7 +14,6 @@ from cibuildwheel.logger import Logger
 from cibuildwheel.platforms import android, ios, linux, macos, pyodide, windows
 from cibuildwheel.util import file
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterator
 

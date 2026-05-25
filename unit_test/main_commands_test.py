@@ -3,13 +3,13 @@ from __future__ import annotations
 import errno
 import shutil
 import sys
+from typing import TYPE_CHECKING
 
 import pytest
 
 import cibuildwheel.__main__ as main_module
 from cibuildwheel.__main__ import main
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

@@ -7,13 +7,12 @@ import subprocess
 import sys
 import typing
 from enum import StrEnum, auto
+from typing import TYPE_CHECKING, Final, Literal, Self
 
 from cibuildwheel import errors
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Set
-    from typing import Final, Literal, Self
 
     from cibuildwheel.typing import PlatformName
 

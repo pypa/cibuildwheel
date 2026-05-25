@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import ast
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 import click
 import yaml
@@ -36,7 +37,6 @@ from rich import print
 
 from cibuildwheel.projectfiles import Analyzer
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator
 

@@ -7,7 +7,7 @@ import tarfile
 import time
 import urllib.request
 from pathlib import Path, PurePath
-from typing import Final
+from typing import TYPE_CHECKING, Final
 from zipfile import ZipFile
 
 import certifi
@@ -15,7 +15,6 @@ from platformdirs import user_cache_path
 
 from cibuildwheel.errors import FatalError
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable
 

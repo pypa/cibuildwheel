@@ -3,11 +3,9 @@ from __future__ import annotations
 import functools
 import tomllib
 from pathlib import Path
+from typing import TYPE_CHECKING, Final
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from typing import Final
-
     from cibuildwheel.typing import PlatformName
 
 PATH: Final[Path] = Path(__file__).parent.parent / "resources"

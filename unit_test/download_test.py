@@ -1,13 +1,13 @@
 from __future__ import annotations
 
 import ssl
+from typing import TYPE_CHECKING
 
 import certifi
 import pytest
 
 from cibuildwheel.util.file import download
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

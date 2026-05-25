@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
+from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
 import pytest
@@ -9,7 +10,6 @@ import pytest
 from cibuildwheel import errors
 from cibuildwheel.audit import needs_audit, run_audit
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     import contextlib
 

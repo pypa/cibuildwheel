@@ -3,7 +3,7 @@ from __future__ import annotations
 import shlex
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
-from typing import TypeVar
+from typing import TYPE_CHECKING, Literal, Self, TypeVar
 
 from packaging.utils import parse_wheel_filename
 
@@ -11,10 +11,8 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call
 from cibuildwheel.util.helpers import parse_key_value_string, unwrap
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
-    from typing import Literal, Self
 
 
 @dataclass(kw_only=True)

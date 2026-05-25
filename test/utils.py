@@ -12,7 +12,7 @@ import subprocess
 import sys
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Final
+from typing import TYPE_CHECKING, Final
 
 import pytest
 
@@ -21,7 +21,6 @@ from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.selector import EnableGroup
 from cibuildwheel.util.file import CIBW_CACHE_PATH
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator, Mapping, Sequence
 

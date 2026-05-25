@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 import textwrap
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -12,7 +13,6 @@ from cibuildwheel.util.file import CIBW_CACHE_PATH
 
 from . import test_projects, utils
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

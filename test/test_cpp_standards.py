@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import jinja2
 
 from . import utils
 from .test_projects import TestProject
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

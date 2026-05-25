@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import textwrap
+from typing import TYPE_CHECKING
 
 import packaging.utils
 import pytest
@@ -10,7 +11,6 @@ from cibuildwheel.selector import EnableGroup
 
 from . import test_projects, utils
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

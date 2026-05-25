@@ -3,6 +3,7 @@ from __future__ import annotations
 import subprocess
 import textwrap
 from contextlib import nullcontext as does_not_raise
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -10,7 +11,6 @@ from test import test_projects
 
 from . import utils
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

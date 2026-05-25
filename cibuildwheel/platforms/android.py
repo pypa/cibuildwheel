@@ -15,7 +15,7 @@ from pathlib import Path
 from pprint import pprint
 from runpy import run_path
 from textwrap import dedent
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from build import ProjectBuilder
 from build.env import IsolatedEnv
@@ -40,7 +40,6 @@ from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
 from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterable, Iterator, MutableMapping
 

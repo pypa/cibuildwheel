@@ -1,16 +1,14 @@
 from __future__ import annotations
 
 import sys
-from typing import Protocol
+from typing import TYPE_CHECKING, Final, Protocol
 
 from cibuildwheel import errors
 from cibuildwheel.platforms import android, ios, linux, macos, pyodide, windows
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Sequence
     from pathlib import Path
-    from typing import Final
 
     from cibuildwheel.architecture import Architecture
     from cibuildwheel.options import Options

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import shlex
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import pytest
 
@@ -15,7 +15,6 @@ from cibuildwheel.options import (
     _resolve_cascade,
 )
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

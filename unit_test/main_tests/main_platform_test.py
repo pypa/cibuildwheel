@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from typing import TYPE_CHECKING
 
 import pytest
 
@@ -10,7 +11,6 @@ from cibuildwheel.selector import EnableGroup
 
 from ..conftest import MOCK_PACKAGE_DIR
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from cibuildwheel.typing import PlatformName
 

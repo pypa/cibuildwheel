@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import contextlib
 import sys
+from typing import TYPE_CHECKING
 
 import pytest
 import setuptools._distutils.util
@@ -10,7 +11,6 @@ from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.errors import FatalError
 from cibuildwheel.platforms.windows import PythonConfiguration, setup_setuptools_cross_compile
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator
     from pathlib import Path

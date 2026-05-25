@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+from typing import TYPE_CHECKING
 
 import pytest
 from filelock import FileLock
@@ -17,7 +18,6 @@ from cibuildwheel.venv import find_uv
 from . import utils
 from .utils import DEFAULT_CIBW_ENABLE, EMULATED_ARCHS, get_platform
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator
 

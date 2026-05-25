@@ -3,13 +3,12 @@ from __future__ import annotations
 import ast
 import configparser
 import contextlib
+from typing import TYPE_CHECKING, Any
 
 import dependency_groups
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
-    from typing import Any
 
 
 def get_parent(node: ast.AST | None, depth: int = 1) -> ast.AST | None:

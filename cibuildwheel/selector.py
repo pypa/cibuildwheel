@@ -4,14 +4,12 @@ import dataclasses
 import itertools
 from enum import StrEnum
 from fnmatch import fnmatch
+from typing import TYPE_CHECKING, Self
 
 import bracex
 from packaging.version import Version
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from typing import Self
-
     from packaging.specifiers import SpecifierSet
 
 

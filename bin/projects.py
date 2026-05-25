@@ -28,13 +28,12 @@ import xml.dom.minidom
 from datetime import UTC, datetime
 from io import StringIO
 from pathlib import Path
-from typing import Any, Self, TextIO
+from typing import TYPE_CHECKING, Any, Self, TextIO
 
 import click
 import yaml
 from github import Auth, Github, GithubException
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterable, Mapping, Sequence
 

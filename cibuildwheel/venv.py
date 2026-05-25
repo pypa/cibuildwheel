@@ -7,7 +7,7 @@ import shutil
 import sys
 import tomllib
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, Final, cast
 
 from filelock import FileLock
 from packaging.markers import default_environment
@@ -18,10 +18,8 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call
 from cibuildwheel.util.file import CIBW_CACHE_PATH, download
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Sequence
-    from typing import Final
 
 _IS_WIN: Final[bool] = sys.platform.startswith("win")
 

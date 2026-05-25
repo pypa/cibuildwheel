@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import dataclasses
-from typing import Protocol
+from typing import TYPE_CHECKING, Any, Protocol
 
 import bashlex
 import bashlex.errors
 
 from cibuildwheel import bashlex_eval
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
-    from typing import Any
 
 
 class EnvironmentParseError(Exception):

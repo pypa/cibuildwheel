@@ -14,7 +14,7 @@ import typing
 import uuid
 from enum import Enum
 from pathlib import PurePosixPath
-from typing import Literal, assert_never
+from typing import IO, TYPE_CHECKING, Literal, Self, assert_never
 
 from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.errors import OCIEngineTooOldError
@@ -22,12 +22,10 @@ from cibuildwheel.logger import log
 from cibuildwheel.util.cmd import call
 from cibuildwheel.util.helpers import FlexibleVersion, parse_key_value_string, strtobool
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
     from pathlib import Path, PurePath
     from types import TracebackType
-    from typing import IO, Self
 
     from cibuildwheel.typing import PathOrStr
 

@@ -3,6 +3,7 @@ from __future__ import annotations
 import subprocess
 import sys
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from cibuildwheel import errors
 from cibuildwheel.logger import log
@@ -11,7 +12,6 @@ from cibuildwheel.util.helpers import prepare_command
 from cibuildwheel.util.packaging import is_abi3_wheel
 from cibuildwheel.venv import activate_virtualenv, find_uv, virtualenv
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from cibuildwheel.options import BuildOptions
 

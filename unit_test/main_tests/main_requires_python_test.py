@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import sys
 import textwrap
+from typing import TYPE_CHECKING
 
 import pytest
 from packaging.specifiers import SpecifierSet
 
 from cibuildwheel.__main__ import main
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

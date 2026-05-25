@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
 
 import jinja2
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

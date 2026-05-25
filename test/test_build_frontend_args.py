@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import subprocess
+from typing import TYPE_CHECKING
 
 import pytest
 
 from . import test_projects, utils
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
 

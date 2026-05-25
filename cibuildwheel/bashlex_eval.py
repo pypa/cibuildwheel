@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import dataclasses
 import subprocess
+from typing import TYPE_CHECKING
 
 import bashlex
 
-TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import (
         Callable,
