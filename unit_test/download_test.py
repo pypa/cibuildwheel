@@ -1,15 +1,10 @@
-from __future__ import annotations
-
 import ssl
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import certifi
 import pytest
 
 from cibuildwheel.util.file import download
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 DOWNLOAD_URL = "https://cdn.jsdelivr.net/gh/pypa/cibuildwheel@v1.6.3/requirements-dev.txt"
 

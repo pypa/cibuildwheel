@@ -1,18 +1,13 @@
-from __future__ import annotations
-
 import sys
 import textwrap
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 from packaging.specifiers import SpecifierSet
 
 from cibuildwheel.__main__ import main
 
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from .conftest import ArgsInterceptor
+from .conftest import ArgsInterceptor
 
 
 @pytest.fixture(autouse=True)

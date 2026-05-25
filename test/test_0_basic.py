@@ -1,7 +1,5 @@
-from __future__ import annotations
-
 import textwrap
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import packaging.utils
 import pytest
@@ -10,9 +8,6 @@ from cibuildwheel.logger import Logger
 from cibuildwheel.selector import EnableGroup
 
 from . import test_projects, utils
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 basic_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(

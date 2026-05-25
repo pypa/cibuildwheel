@@ -1,17 +1,12 @@
-from __future__ import annotations
-
 import errno
 import shutil
 import sys
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 import cibuildwheel.__main__ as main_module
 from cibuildwheel.__main__ import main
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def test_clean_cache_when_cache_exists(

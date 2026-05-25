@@ -1,12 +1,7 @@
-from __future__ import annotations
-
 import textwrap
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from . import test_projects, utils
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 project_with_skip_asserts = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(

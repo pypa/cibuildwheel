@@ -1,15 +1,10 @@
-from __future__ import annotations
-
 import subprocess
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from . import utils
 from .test_projects import TestProject, new_c_project
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 SO_FILE_WARNING = "NOTE: Shared object (.so) files found in this project."
 

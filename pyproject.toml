@@ -234,8 +234,8 @@ future-annotations = true
 "typing.Set".msg = "Use collections.abc.Set instead."
 
 [tool.ruff.lint.per-file-ignores]
-"unit_test/*" = ["PLC1901", "TID252"]
-"test/*" = ["TID252"]
+"unit_test/*" = ["PLC1901", "TC", "TID252"]
+"test/*" = ["TC", "TID252"]
 "bin/*" = ["TID251"]
 "cibuildwheel/resources/install_certifi.py" = ["PTH"]
 

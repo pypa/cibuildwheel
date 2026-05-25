@@ -1,14 +1,9 @@
-from __future__ import annotations
-
 import textwrap
-from typing import TYPE_CHECKING
+from pathlib import Path
+
+import pytest
 
 from . import test_projects, utils
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    import pytest
 
 pyproject_toml = r"""
 [build-system]

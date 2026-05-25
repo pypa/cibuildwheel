@@ -1,14 +1,9 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import jinja2
 
 from . import utils
 from .test_projects import TestProject
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 cpp_test_project = TestProject()
 

@@ -1,11 +1,6 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 from . import test_projects, utils
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 before_test_project = test_projects.new_c_project()
 before_test_project.files["test/spam_test.py"] = r"""

@@ -1,11 +1,10 @@
-from __future__ import annotations
-
 import contextlib
 import platform as platform_module
 import subprocess
 import sys
+from collections.abc import Generator, Iterator
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import pytest
 
@@ -13,9 +12,6 @@ from cibuildwheel import architecture
 from cibuildwheel.logger import Logger
 from cibuildwheel.platforms import android, ios, linux, macos, pyodide, windows
 from cibuildwheel.util import file
-
-if TYPE_CHECKING:
-    from collections.abc import Generator, Iterator
 
 
 class ArgsInterceptor:

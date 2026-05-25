@@ -1,17 +1,12 @@
-from __future__ import annotations
-
 import platform as platform_module
 import shutil
 import sys
-from typing import TYPE_CHECKING
 
 import pytest
 
 import cibuildwheel.architecture
 from cibuildwheel.architecture import Architecture, arch_synonym
-
-if TYPE_CHECKING:
-    from cibuildwheel.typing import PlatformName
+from cibuildwheel.typing import PlatformName
 
 
 @pytest.fixture(

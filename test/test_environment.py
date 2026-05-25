@@ -1,17 +1,12 @@
-from __future__ import annotations
-
 import os
 import subprocess
 import sys
 import textwrap
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from . import test_projects, utils
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 project_with_environment_asserts = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(

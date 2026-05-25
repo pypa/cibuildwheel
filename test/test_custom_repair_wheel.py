@@ -1,18 +1,13 @@
-from __future__ import annotations
-
 import subprocess
 import textwrap
 from contextlib import nullcontext as does_not_raise
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from test import test_projects
 
 from . import utils
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 basic_project = test_projects.new_c_project()
 basic_project.files["repair.py"] = """

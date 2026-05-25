@@ -1,20 +1,15 @@
-from __future__ import annotations
-
 import contextlib
 import os
 import subprocess
 import sys
 import textwrap
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from cibuildwheel.util.file import CIBW_CACHE_PATH
 
 from . import test_projects, utils
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 pytestmark = pytest.mark.pyodide
 

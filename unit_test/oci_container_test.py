@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import contextlib
 import json
 import os
@@ -9,9 +7,9 @@ import subprocess
 import sys
 import textwrap
 import time
+from collections.abc import Iterator
 from contextlib import nullcontext
 from pathlib import Path, PurePath, PurePosixPath
-from typing import TYPE_CHECKING
 
 import pytest
 import tomli_w
@@ -26,9 +24,6 @@ from cibuildwheel.oci_container import (
     OCIPlatform,
     _check_engine_version,
 )
-
-if TYPE_CHECKING:
-    from collections.abc import Iterator
 
 # Test utilities
 

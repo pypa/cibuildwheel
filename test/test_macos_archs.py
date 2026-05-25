@@ -1,14 +1,9 @@
-from __future__ import annotations
-
 import platform
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from . import test_projects, utils
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 basic_project = test_projects.new_c_project()
 basic_project.files["tests/test_suite.py"] = r"""

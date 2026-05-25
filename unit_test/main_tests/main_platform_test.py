@@ -1,20 +1,14 @@
-from __future__ import annotations
-
 import sys
-from typing import TYPE_CHECKING
 
 import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.selector import EnableGroup
+from cibuildwheel.typing import PlatformName
 
 from ..conftest import MOCK_PACKAGE_DIR
-
-if TYPE_CHECKING:
-    from cibuildwheel.typing import PlatformName
-
-    from .conftest import ArgsInterceptor
+from .conftest import ArgsInterceptor
 
 
 @pytest.mark.parametrize("option_value", [None, "auto", ""])

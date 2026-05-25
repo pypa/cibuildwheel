@@ -1,17 +1,12 @@
-from __future__ import annotations
-
+import contextlib
 import subprocess
 from pathlib import Path
-from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
 import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.audit import needs_audit, run_audit
-
-if TYPE_CHECKING:
-    import contextlib
 
 
 def mock_virtualenv() -> contextlib.AbstractContextManager[Mock]:

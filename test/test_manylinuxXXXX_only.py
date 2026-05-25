@@ -1,15 +1,10 @@
-from __future__ import annotations
-
 import platform
 import textwrap
-from typing import TYPE_CHECKING
+from pathlib import Path
 
 import pytest
 
 from . import test_projects, utils
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 # TODO: specify these at runtime according to manylinux_image
 project_with_manylinux_symbols = test_projects.new_c_project(

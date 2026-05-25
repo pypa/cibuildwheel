@@ -1,7 +1,6 @@
-from __future__ import annotations
-
 import shlex
-from typing import TYPE_CHECKING, Any, cast
+from pathlib import Path
+from typing import Any, cast
 
 import pytest
 
@@ -14,11 +13,7 @@ from cibuildwheel.options import (
     ShlexTableFormat,
     _resolve_cascade,
 )
-
-if TYPE_CHECKING:
-    from pathlib import Path
-
-    from cibuildwheel.typing import PlatformName
+from cibuildwheel.typing import PlatformName
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
