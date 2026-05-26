@@ -525,13 +525,12 @@ class OCIContainer:
         return self.call(command, env=environment, capture_output=True)
 
     def debug_info(self) -> str:
+        command = [self.engine.name, "info"]
         if self.engine.name == "podman":
-            command = f"{self.engine.name} info --debug"
-        else:
-            command = f"{self.engine.name} info"
+            command.append("--debug")
+
         completed = subprocess.run(
             command,
-            shell=True,
             check=True,
             cwd=self.cwd,
             stdin=subprocess.PIPE,

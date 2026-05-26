@@ -11,12 +11,13 @@ import textwrap
 import time
 from collections.abc import Generator
 from pathlib import Path
-from typing import IO, TYPE_CHECKING, AnyStr, Final, Literal
+from typing import IO, AnyStr, Final, Literal
 
 import humanize
 
 from cibuildwheel.ci import CIProvider, detect_ci_provider, filter_ansi_codes
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
     from cibuildwheel.options import Options
 

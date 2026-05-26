@@ -6,9 +6,10 @@ import sys
 import tomllib
 from collections.abc import Sequence
 from pathlib import Path
-from typing import Final
+from typing import Final, cast
 
 from filelock import FileLock
+from packaging.markers import default_environment
 from packaging.requirements import InvalidRequirement, Requirement
 from packaging.version import Version
 
@@ -17,6 +18,24 @@ from cibuildwheel.util.cmd import call
 from cibuildwheel.util.file import CIBW_CACHE_PATH, download
 
 _IS_WIN: Final[bool] = sys.platform.startswith("win")
+
+
+def target_marker_env(
+    *,
+    implementation_id: str,
+) -> dict[str, str]:
+    """
+    Build a PEP 508 marker environment dict for the target Python,
+    overriding the host's values with the target implementation info.
+    """
+    env = cast("dict[str, str]", default_environment())
+    if implementation_id.startswith("gp"):
+        env["implementation_name"] = "graalpy"
+        env["platform_python_implementation"] = "GraalPy"
+    elif implementation_id.startswith("pp"):
+        env["implementation_name"] = "pypy"
+        env["platform_python_implementation"] = "PyPy"
+    return env
 
 
 @functools.cache
@@ -47,6 +66,7 @@ def constraint_flags(
 
 def _parse_pip_constraint_for_virtualenv(
     constraint_path: Path | None,
+    marker_env: dict[str, str] | None = None,
 ) -> str:
     """
     Parses the constraints file referenced by `dependency_constraint_flags` and returns a dict where
@@ -56,7 +76,12 @@ def _parse_pip_constraint_for_virtualenv(
     The function does not try to be too smart and just handles basic constraints.
     If it can't get an exact version, the real constraint will be handled by the
     {macos|windows}.setup_python function.
+    If marker_env is provided, marker-bearing constraints are evaluated against it;
+    otherwise, marker-bearing constraints are skipped.
     """
+    env: dict[str, str] = (
+        marker_env if marker_env is not None else cast("dict[str, str]", default_environment())
+    )
     if constraint_path:
         assert constraint_path.exists()
         with constraint_path.open(encoding="utf-8") as constraint_file:
@@ -72,10 +97,11 @@ def _parse_pip_constraint_for_virtualenv(
                     if (
                         package != "pip"
                         or requirement.url is not None
-                        or requirement.marker is not None
                         or len(requirement.extras) != 0
                         or len(requirement.specifier) != 1
                     ):
+                        continue
+                    if requirement.marker is not None and not requirement.marker.evaluate(env):
                         continue
                     specifier = next(iter(requirement.specifier))
                     if specifier.operator != "==":
@@ -95,6 +121,7 @@ def virtualenv(
     use_uv: bool,
     env: dict[str, str] | None = None,
     pip_version: str | None = None,
+    marker_env: dict[str, str] | None = None,
 ) -> dict[str, str]:
     """
     Create a virtual environment. If `use_uv` is True,
@@ -114,7 +141,7 @@ def virtualenv(
     else:
         virtualenv_app, virtualenv_version = _ensure_virtualenv(version)
         if pip_version is None:
-            pip_version = _parse_pip_constraint_for_virtualenv(dependency_constraint)
+            pip_version = _parse_pip_constraint_for_virtualenv(dependency_constraint, marker_env)
         additional_flags = [f"--pip={pip_version}", "--no-setuptools"]
         if virtualenv_version < Version("20.31") or Version(version) < Version("3.9"):
             additional_flags.append("--no-wheel")
@@ -139,10 +166,7 @@ def virtualenv(
             python,
             venv_path,
         )
-    paths = [str(venv_path), str(venv_path / "Scripts")] if _IS_WIN else [str(venv_path / "bin")]
-    venv_env = os.environ.copy() if env is None else env.copy()
-    venv_env["PATH"] = os.pathsep.join([*paths, venv_env["PATH"]])
-    venv_env["VIRTUAL_ENV"] = str(venv_path)
+    venv_env = activate_virtualenv(venv_path, env=env)
     if not use_uv and pip_version == "embed":
         call(
             "python",
@@ -155,6 +179,20 @@ def virtualenv(
             env=venv_env,
             cwd=venv_path,
         )
+    return venv_env
+
+
+def activate_virtualenv(
+    venv_path: Path,
+    env: dict[str, str] | None = None,
+) -> dict[str, str]:
+    """
+    Return a copy of the environment with the virtualenv at `venv_path` activated.
+    """
+    paths = [str(venv_path), str(venv_path / "Scripts")] if _IS_WIN else [str(venv_path / "bin")]
+    venv_env = os.environ.copy() if env is None else env.copy()
+    venv_env["PATH"] = os.pathsep.join([*paths, venv_env["PATH"]])
+    venv_env["VIRTUAL_ENV"] = str(venv_path)
     return venv_env
 
 

@@ -308,7 +308,7 @@ def test_pyodide_on_windows(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     monkeypatch.setattr(sys, "platform", "win32")
-    monkeypatch.setattr(sys, "argv", [*sys.argv, "--only", "cp312-pyodide_wasm32"])
+    monkeypatch.setattr(sys, "argv", [*sys.argv, "--only", "cp314-pyodide_wasm32"])
 
     with pytest.raises(SystemExit) as exit:
         main()

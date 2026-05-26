@@ -1,5 +1,4 @@
 import json
-import platform
 import re
 import subprocess
 import textwrap
@@ -11,7 +10,7 @@ from cibuildwheel.util import resources
 
 from . import test_projects, utils
 
-VERSION_REGEX = r"([\w-]+)==([^\s]+)"
+VERSION_REGEX = r"([\w-]+)==([^;\s]+)"
 
 CHECK_VERSIONS_SCRIPT = """\
 '''
@@ -74,23 +73,23 @@ def test_check_versions_script(
 def get_versions_from_constraint_file(constraint_file: Path) -> dict[str, str]:
     constraint_file_text = constraint_file.read_text(encoding="utf-8")
 
-    return dict(re.findall(VERSION_REGEX, constraint_file_text))
+    # Use the first occurrence of each package name. The marker-bearing lines
+    # (such as the GraalPy-specific pip pin) come after the default pin, so the
+    # first match is the one that applies to the majority of builds.
+    result: dict[str, str] = {}
+    for name, version in re.findall(VERSION_REGEX, constraint_file_text):
+        result.setdefault(name, version)
+    return result
 
 
-@pytest.mark.parametrize("python_version", ["3.8", "3.12"])
+@pytest.mark.parametrize("python_version", ["3.9", "3.13"])
 def test_pinned_versions(
     tmp_path: Path, python_version: str, build_frontend_env_nouv: dict[str, str]
 ) -> None:
     if utils.get_platform() == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
-    if python_version != "3.12" and utils.get_platform() == "pyodide":
+    if python_version != "3.13" and utils.get_platform() == "pyodide":
         pytest.skip(f"pyodide does not support Python {python_version}")
-    if (
-        python_version == "3.8"
-        and utils.get_platform() == "windows"
-        and platform.machine() == "ARM64"
-    ):
-        pytest.skip(f"Windows ARM64 does not support Python {python_version}")
 
     project_dir = tmp_path / "project"
     test_projects.new_c_project().generate(project_dir)
@@ -124,7 +123,7 @@ def test_pinned_versions(
     expected_wheels = [
         w
         for w in utils.expected_wheels("spam", "0.1.0")
-        if f"-cp{version_no_dot}" in w or f"-pp{version_no_dot}" in w
+        if f"-cp{version_no_dot}-cp{version_no_dot}-" in w or f"-pp{version_no_dot}-" in w
     ]
 
     assert set(actual_wheels) == set(expected_wheels)
@@ -140,11 +139,20 @@ def test_dependency_constraints(
     project_dir = tmp_path / "project"
     test_projects.new_c_project().generate(project_dir)
 
-    tool_versions = {
-        "pip": "23.1.2",
-        "build": "1.2.2",
-        "delocate": "0.10.3",
-    }
+    if utils.get_platform() == "pyodide":
+        # pyodide-build 0.34+ requires build~=1.4.0, so we must use a
+        # compatible version here. delocate is macOS-only and not used on pyodide.
+        tool_versions = {
+            "pip": "23.1.2",
+            "build": "1.4.2",
+            "delocate": "0.10.3",
+        }
+    else:
+        tool_versions = {
+            "pip": "23.1.2",
+            "build": "1.2.2",
+            "delocate": "0.10.3",
+        }
 
     if method == "file":
         constraints_file = tmp_path / "constraints file.txt"

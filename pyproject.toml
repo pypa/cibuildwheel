@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "3.4.1"
+version = "4.0.0rc1"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -32,6 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Build Tools",
 ]
@@ -64,7 +65,7 @@ Homepage = "https://github.com/pypa/cibuildwheel"
 [dependency-groups]
 docs = [
     "jinja2>=3.1.2",
-    "mkdocs-include-markdown-plugin==6.2.2",
+    "mkdocs-include-markdown-plugin==7.1.8",
     "mkdocs-macros-plugin>=1.4.1",
     "mkdocs==1.6.1",
     "pymdown-extensions",
@@ -226,6 +227,7 @@ flake8-annotations.mypy-init-return = true
 "typing.Iterator".msg = "Use collections.abc.Iterator instead."
 "typing.Sequence".msg = "Use collections.abc.Sequence instead."
 "typing.Set".msg = "Use collections.abc.Set instead."
+"typing.TYPE_CHECKING".msg = "Use TYPE_CHECKING=False instead"
 
 [tool.ruff.lint.per-file-ignores]
 "unit_test/*" = ["PLC1901", "TID252"]
@@ -237,12 +239,16 @@ flake8-annotations.mypy-init-return = true
 ignore = ["PC170", "PP303"]
 
 [tool.check-wheel-contents]
-ignore = ["W002"]  # constraints-*.txt are allowed to be duplicates of one another
+ignore = [
+  "W002",  # constraints-*.txt are allowed to be duplicates of one another
+  "W004",  # "-" is fine for our iOS support files for now
+]
 
 [tool.codespell]
 ignore-words-list = [
     "sur",
     "assertin",
+    "Fo",
 ]
 skip = [
     '^docs/working-examples\.md',

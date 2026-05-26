@@ -11,11 +11,17 @@ from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
+from packaging.version import Version
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
+from cibuildwheel.audit import run_audit
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import BuildFrontendName, get_build_frontend_extra_flags
+from cibuildwheel.frontend import (
+    BuildFrontendName,
+    get_build_frontend_extra_flags,
+    prepare_config_settings,
+)
 from cibuildwheel.logger import log
 from cibuildwheel.options import Options
 from cibuildwheel.platforms.macos import install_cpython as install_build_cpython
@@ -178,18 +184,37 @@ def cross_virtualenv(
     )
 
     # Convert the macOS virtual environment into an iOS virtual environment
-    # using the cross-platform conversion script in the iOS distribution.
+    # using make_cross_venv.py.
 
     # target_python is the path to the Python binary;
     # determine the root of the XCframework slice that is being used.
     slice_path = target_python.parent.parent
-    call(
-        "python",
-        str(slice_path / f"platform-config/{multiarch}/make_cross_venv.py"),
-        str(venv_path),
-        env=env,
-        cwd=venv_path,
-    )
+    if Version(py_version) >= Version("3.15"):
+        # python.org 3.15+ distributions: sysconfig data lives in the
+        # stdlib directory (lib-<arch>/python<version>); cross-venv scripts
+        # come from cibuildwheel resources.
+        arch = multiarch.split("-", maxsplit=1)[0]
+        stdlib_path = slice_path / f"lib-{arch}" / f"python{py_version}"
+        call(
+            "python",
+            str(resources.IOS_SUPPORT_FILES / "make_cross_venv.py"),
+            str(venv_path),
+            str(stdlib_path),
+            str(resources.IOS_SUPPORT_FILES),
+            env=env,
+            cwd=venv_path,
+        )
+    else:
+        # BeeWare distributions: platform-config already contains both
+        # sysconfig data and the make_cross_venv.py script.
+        platform_config_path = slice_path / f"platform-config/{multiarch}"
+        call(
+            "python",
+            str(platform_config_path / "make_cross_venv.py"),
+            str(venv_path),
+            env=env,
+            cwd=venv_path,
+        )
 
     # When running on macOS, it's easy for the build environment to leak into
     # the target environment, especially when building for ARM64 (because the
@@ -307,8 +332,8 @@ def setup_python(
         / f"python{python_configuration.version}"
     )
 
-    assert target_python.exists(), (
-        f"{target_python.name} not found, has {list(target_install_path.iterdir())}"
+    assert target_python.parent.exists(), (
+        f"{target_python.parent} not found, has {list(target_install_path.iterdir())}"
     )
 
     log.step("Creating cross build environment...")
@@ -355,7 +380,7 @@ def setup_python(
             "entry or insert python above it."
         )
         raise errors.FatalError(msg)
-    call("python", "--version", env=env)
+    call("python", "-V", "-V", env=env)
 
     # Check what pip version we're on
     assert (venv_bin_path / "pip").exists()
@@ -477,8 +502,11 @@ def build(options: Options, tmp_path: Path) -> None:
                 extra_flags = get_build_frontend_extra_flags(
                     build_frontend,
                     build_options.build_verbosity,
-                    build_options.config_settings,
-                    py38=False,
+                    prepare_config_settings(
+                        build_options.config_settings,
+                        project=".",
+                        package=build_options.package_dir,
+                    ),
                 )
 
                 match build_frontend.name:
@@ -539,9 +567,11 @@ def build(options: Options, tmp_path: Path) -> None:
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
 
-                test_wheel = repaired_wheel
-
                 log.step_end()
+
+                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
+
+                test_wheel = repaired_wheel
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 if not config.is_simulator:

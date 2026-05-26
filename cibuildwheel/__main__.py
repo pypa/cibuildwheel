@@ -5,7 +5,6 @@ import functools
 import os
 import shutil
 import sys
-import tarfile
 import textwrap
 import traceback
 import typing
@@ -16,6 +15,7 @@ from typing import Any, Literal, TextIO
 
 import cibuildwheel
 from cibuildwheel import errors
+from cibuildwheel._compat.tarfile import TarFile, safe_extractall
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
@@ -262,8 +262,8 @@ def main_inner(global_options: GlobalOptions) -> None:
     # Tarfile builds require extraction and changing the directory
     temp_dir = Path(mkdtemp(prefix="cibw-sdist-")).resolve(strict=True)
     try:
-        with tarfile.open(args.package_dir) as tar:
-            tar.extractall(path=temp_dir)
+        with TarFile.open(args.package_dir) as tar:
+            safe_extractall(tar, temp_dir)
 
         # The extract directory is now the project dir
         try:
@@ -468,13 +468,6 @@ def detect_warnings(*, options: Options) -> Generator[str, None, None]:
     build_selector = options.globals.build_selector
     test_selector = options.globals.test_selector
 
-    if EnableGroup.CPythonFreeThreading in build_selector.enable:
-        yield (
-            "'cpython-freethreading' enable is deprecated and will be removed in a future version. "
-            "It should be removed from tool.cibuildwheel.enable in pyproject.toml "
-            "or CIBW_ENABLE environment variable."
-        )
-
     all_valid_identifiers = [
         config.identifier
         for module in ALL_PLATFORM_MODULES.values()
@@ -540,10 +533,16 @@ def check_for_invalid_selectors(
                 msg += "This selector matches a group that wasn't enabled. Enable it using the `enable` option or remove this selector. "
 
             if "p2" in selector_ or "p35" in selector_:
-                msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update `{selector_name}`. "
+                msg += f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the 1.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
             if "p36" in selector_ or "p37" in selector_:
-                msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update `{selector_name}`. "
+                msg += f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the 2.x series or update `{selector_name}`. "
+                error_type = errors.DeprecationError
+            if "p38" in selector_:
+                msg += f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the 3.x series or update `{selector_name}`. "
+                error_type = errors.DeprecationError
+            if "cp313t" in selector_:
+                msg += f"cibuildwheel 4.x no longer supports Python 3.13 free-threading. Please use the 3.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
 
             if selector_name == "build":

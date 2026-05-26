@@ -157,6 +157,8 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 |  | [`container-engine`](https://cibuildwheel.pypa.io/en/stable/options/#container-engine) | Specify the container engine to use when building Linux wheels |
 |  | [`dependency-versions`](https://cibuildwheel.pypa.io/en/stable/options/#dependency-versions) | Control the versions of the tools cibuildwheel uses |
 |  | [`pyodide-version`](https://cibuildwheel.pypa.io/en/stable/options/#pyodide-version) | Specify the Pyodide version to use for `pyodide` platform builds |
+| **Auditing** | [`audit-requires`](https://cibuildwheel.pypa.io/en/stable/options/#audit-requires) | Install Python dependencies for the audit step |
+|  | [`audit-command`](https://cibuildwheel.pypa.io/en/stable/options/#audit-command) | Use a tool to check wheels before the end of the run |
 | **Testing** | [`test-command`](https://cibuildwheel.pypa.io/en/stable/options/#test-command) | The command to test each built wheel |
 |  | [`before-test`](https://cibuildwheel.pypa.io/en/stable/options/#before-test) | Execute a shell command before testing each wheel |
 |  | [`test-sources`](https://cibuildwheel.pypa.io/en/stable/options/#test-sources) | Paths that are copied into the working directory of the tests |
@@ -171,7 +173,7 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 |  | [`build-verbosity`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity) | Increase/decrease the output of the build |
 
 
-<!--[[[end]]] (sum: 0/raR2tq9e) -->
+<!--[[[end]]] (sum: Of/28Z7Nut) -->
 
 These options can be specified in a pyproject.toml file, or as environment variables, see [configuration docs](https://cibuildwheel.pypa.io/en/latest/configuration/).
 
@@ -238,6 +240,35 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v4.0.0rc1
+
+_14 May 2026_
+
+- 🌟 Adds wheel auditing with `abi3audit` as a default after the repair step, with new [`audit-requires`](https://cibuildwheel.pypa.io/en/stable/options/#audit-requires) and [`audit-command`](https://cibuildwheel.pypa.io/en/stable/options/#audit-command) options (#2805)
+- 🌟 Adds `pyemscripten` platform tag support (PEP 783), updates Pyodide to 314.0.0a1, and adds a `pyodide-eol` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) flag for building end-of-life Pyodide versions (#2812, #2848)
+- 🌟 Sets up `delvewheel` as the default [`repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command) for Windows, so extension module DLLs are now bundled automatically. Skip by setting it to empty if not needed. (#2831)
+- ✨ Adds CPython 3.15 support, under the [`enable` option](https://cibuildwheel.pypa.io/en/stable/options/#enable) `cpython-prerelease`. This version of cibuildwheel uses 3.15.0b1. (#2833, #2850)
+
+    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.14 will be available in cibuildwheel without the flag._ (#2390)
+- ✨ Adds `{project}` and `{package}` placeholders to [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) (#2827)
+- ⚠️ Drops support for Python 3.8 (#2686)
+- ⚠️ Removes the experimental CPython 3.13 free-threading builds and the `cpython-freethreading` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) option. CPython 3.14+ free-threading support remains available without the enable flag. (#2684)
+- ⚠️ Drops support for Cirrus CI, which is shutting down June 1, 2026 (#2817)
+- 🐛 Fixes `UV_PYTHON` not being set for [`before-build`](https://cibuildwheel.pypa.io/en/stable/options/#before-build) on Linux when using `uv` as the [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) (#2830)
+- 🛠 Updates Android to Python 3.13.13 and 3.14.4 (#2821)
+- 🛠 Applies Pyodide-specific patches to the Emscripten toolchain installation (#2800)
+- 🛠 Updates dependencies and container pins (#2845, #2837, #2821, #2818, #2810, #2838, #2813)
+- 🛠 Uses `python -V -V` for Windows build diagnostics (#2832)
+- 📚 Documents platform-specific [`before-build`](https://cibuildwheel.pypa.io/en/stable/options/#before-build) configuration (#2834)
+- 📚 Updates the "How it works" diagram with details of Android, iOS, and Pyodide builds (#2816)
+- 📚 Adds Pyodide icon and regenerates working examples data for Android, iOS, and Pyodide (#2815, #2811)
+- 📚 Links back to source in docs (#2806)
+- 💼 Adds PEP 723 metadata for `bin/` scripts and drops the `bin` dependency group (#2819)
+- 💼 Updates CI action pins and dev dependencies (#2851, #2843, #2826, #2823, #2820, #2807)
+- 🧪 Fixes Android tests using the `uv` frontend (#2809)
+- 🧪 Fixes the update-dependencies workflow to use `uv` to run `nox` (#2808)
+
+
 ### v3.4.1
 
 _2 April 2026_
@@ -280,15 +311,7 @@ _12 November 2025_
 - 🛠 Improve the handling of `test-command` on Android, enabling more options to be passed (#2590)
 - 📚 Docs improvements (#2618)
 
-### v3.2.1
-
-_12 October 2025_
-
-- 🛠 Update to CPython 3.14.0 final (#2614)
-- 🐛 Fix the default MACOSX_DEPLOYMENT_TARGET on Python 3.14 (#2613)
-- 📚 Docs improvements (#2617)
-
-<!-- [[[end]]] (sum: h5X+wOmWfI) -->
+<!-- [[[end]]] (sum: ZD0EjcyC0B) -->
 
 ---
 

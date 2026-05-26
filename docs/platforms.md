@@ -62,11 +62,10 @@ macOS builds will honor the `MACOSX_DEPLOYMENT_TARGET` environment variable to c
 
 | Arch  | Python version range | Minimum target |
 |-------|----------------------|----------------|
-| Intel | CPython 3.8-3.11     | 10.9           |
+| Intel | CPython 3.9-3.11     | 10.9           |
 | Intel | CPython 3.12-3.13    | 10.13          |
 | Intel | CPython 3.14+        | 10.15          |
 | AS    | CPython or PyPy      | 11             |
-| Intel | PyPy 3.8             | 10.13          |
 | Intel | PyPy 3.9+            | 10.15          |
 
 If you set the value lower, cibuildwheel will cap it to the lowest supported value for each target as needed.
@@ -74,7 +73,7 @@ If you set the value lower, cibuildwheel will cap it to the lowest supported val
 !!! note
     For Rust-based extensions, `Rustc` requires `MACOSX_DEPLOYMENT_TARGET` to be at
     least 10.12. However, `cibuildwheel` defaults to 10.9 for
-    **Intel / CPython 3.8-3.11** builds. Users must manually set
+    **Intel / CPython 3.9-3.11** builds. Users must manually set
     `MACOSX_DEPLOYMENT_TARGET` to 10.12 or higher when building Rust extensions.
 
 ### macOS architectures
@@ -159,8 +158,6 @@ By default, `ARM64` is not enabled when running on non-`ARM64` runners. Use [`CI
 
 ## Pyodide/WebAssembly {: #pyodide}
 
-Pyodide is offered as an experimental feature in cibuildwheel.
-
 ### System requirements
 
 Pyodide builds require a Linux or macOS machine.
@@ -173,7 +170,7 @@ You must target pyodide with `--platform pyodide` (or use `--only` on the identi
 
 It is also possible to target a specific Pyodide version by setting the [`pyodide-version`](options.md#pyodide-version) option to the desired version. Users are responsible for setting an appropriate Pyodide version according to the `pyodide-build` version. A list is available in Pyodide's [cross-build environments metadata file](https://github.com/pyodide/pyodide/blob/main/pyodide-cross-build-environments.json), which can be viewed more easily by installing `pyodide-build` from PyPI and using `pyodide xbuildenv search --all` to see a compatibility table.
 
-If there are pre-releases available for a newer Pyodide version, the `pyodide-prerelease` [`enable`](options.md#enable) can be used to include pre-release versions.
+If there are pre-releases available for a newer Pyodide version, the `pyodide-prerelease` [`enable`](options.md#enable) can be used to include pre-release versions. To build for older Pyodide versions that are no longer the current stable, use the `pyodide-eol` [`enable`](options.md#enable).
 
 ### Running tests
 

@@ -1,10 +1,10 @@
 pip
 build
+delocate
+delvewheel
 virtualenv
+abi3audit
 
 # Android
 patchelf
 pkgconf
-
-# macOS
-delocate
