@@ -6,5 +6,6 @@ virtualenv
 abi3audit
 
 # Android
+auditwheel
 patchelf
 pkgconf

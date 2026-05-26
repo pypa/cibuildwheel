@@ -10,6 +10,8 @@ attrs==26.1.0
     # via
     #   cattrs
     #   requests-cache
+auditwheel==6.4.2
+    # via -r cibuildwheel/resources/constraints.in
 build==1.4.4
     # via -r cibuildwheel/resources/constraints.in
 cattrs==25.3.0
@@ -49,6 +51,7 @@ mdurl==0.1.2
 packaging==25.0
     # via
     #   abi3audit
+    #   auditwheel
     #   build
     #   delocate
 patchelf==0.17.2.4
@@ -67,7 +70,9 @@ platformdirs==4.4.0
     #   requests-cache
     #   virtualenv
 pyelftools==0.32
-    # via abi3audit
+    # via
+    #   abi3audit
+    #   auditwheel
 pygments==2.20.0
     # via rich
 pyproject-hooks==1.2.0

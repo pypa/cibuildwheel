@@ -240,14 +240,7 @@ def setup_env(
             call(command, "--version", env=build_env)
 
     # Install build tools
-    # TODO: use an official auditwheel version once
-    # https://github.com/pypa/auditwheel/pull/643 has been released, and add it to the
-    # constraints files.
-    tools = [
-        "auditwheel @ git+https://github.com/pypa/auditwheel@main",
-        "patchelf",
-        "pkgconf",
-    ]
+    tools = ["auditwheel", "patchelf", "pkgconf"]
     if build_options.build_frontend.name in {"build", "build[uv]"}:
         tools.append("build")
     call(*pip, "install", *tools, *constraint_flags(dependency_constraint), env=build_env)
