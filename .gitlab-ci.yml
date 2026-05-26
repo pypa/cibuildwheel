@@ -35,9 +35,9 @@ windows:
       variables:
         CIBW_ENABLE: "all"
   script:
-    - py -m pip install -U pip
-    - py -m pip install -e. pytest-custom-exit-code --group test
-    - py bin\run_tests.py
+    - python -m pip install -U pip
+    - python -m pip install -e. pytest-custom-exit-code --group test
+    - python bin\run_tests.py
   tags:
     - saas-windows-medium-amd64
 
