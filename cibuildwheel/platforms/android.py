@@ -413,7 +413,9 @@ def setup_android_env(
     # `android.py env` returns PKG_CONFIG="pkg-config --define-prefix", but some build
     # systems can't handle arguments in that variable. Since we have a known version
     # of pkgconf, it's safe to use PKG_CONFIG_RELOCATE_PATHS instead.
-    android_env["PKG_CONFIG"] = call("which", "pkgconf", env=build_env, capture_stdout=True).strip()
+    android_env["PKG_CONFIG"] = call(
+        "which", "pkgconf-pypi", env=build_env, capture_stdout=True
+    ).strip()
     android_env["PKG_CONFIG_RELOCATE_PATHS"] = "1"
 
     # Format the environment so it can be pasted into a shell when debugging.
