@@ -45,8 +45,6 @@ dependencies = [
     "humanize",
     "packaging>=20.9",
     "platformdirs",
-    "pyelftools>=0.29",
-    "wheel>=0.33.6",
 ]
 
 [project.optional-dependencies]
