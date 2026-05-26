@@ -14,7 +14,7 @@ linux:
     # (comment the below line in a PR to debug a Gitlab-specific issue)
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH =~ /^gitlab/'
       variables:
         CIBW_ENABLE: "all"
   script:
@@ -31,7 +31,7 @@ windows:
   before_script:
     - choco install python -y --allow-downgrade --version 3.12.4
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH =~ /^gitlab/'
       variables:
         CIBW_ENABLE: "all"
   script:
@@ -46,7 +46,7 @@ macos:
   variables:
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH =~ /^gitlab/'
       variables:
         CIBW_ENABLE: "all"
   script:
