@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 import jinja2
-import pytest
 
 from . import utils
 from .test_projects import TestProject
 from .test_projects.c import SPAM_C_TEMPLATE
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    import pytest
 
 subdir_package_project = TestProject()
 

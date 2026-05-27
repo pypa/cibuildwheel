@@ -224,6 +224,7 @@ flake8-unused-arguments.ignore-variadic-names = true
 flake8-tidy-imports.ban-relative-imports = "all"
 flake8-annotations.allow-star-arg-any = true
 flake8-annotations.mypy-init-return = true
+future-annotations = true
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "typing.Mapping".msg = "Use collections.abc.Mapping instead."

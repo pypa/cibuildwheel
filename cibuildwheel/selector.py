@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 import dataclasses
 import itertools
 from enum import StrEnum
 from fnmatch import fnmatch
-from typing import Self
 
 import bracex
-from packaging.specifiers import SpecifierSet
 from packaging.version import Version
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Self
+
+    from packaging.specifiers import SpecifierSet
 
 
 def selector_matches(patterns: str, string: str) -> bool:

@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 import textwrap
 from pathlib import Path
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 basic_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(

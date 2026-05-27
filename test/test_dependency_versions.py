@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 import json
 import re
 import subprocess
 import textwrap
-from pathlib import Path
 
 import pytest
 
 from cibuildwheel.util import resources
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 VERSION_REGEX = r"([\w-]+)==([^;\s]+)"
 

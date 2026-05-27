@@ -1,16 +1,21 @@
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
 import textwrap
-from collections.abc import Mapping
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
-import pytest
-
-from test.test_projects.base import TestProject
-
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Mapping
+
+    import pytest
+
+    from test.test_projects.base import TestProject
 
 # utilities
 

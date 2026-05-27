@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 import dataclasses
 import itertools
-import os
 import re
 import shlex
 import textwrap
 from collections import defaultdict
-from collections.abc import Sequence
 
-from cibuildwheel.typing import PathOrStr
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    import os
+    from collections.abc import Sequence
+
+    from cibuildwheel.typing import PathOrStr
 
 
 def format_safe(template: str, **kwargs: str | os.PathLike[str]) -> str:

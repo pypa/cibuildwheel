@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import contextlib
 import dataclasses
@@ -8,10 +10,8 @@ import sys
 import textwrap
 import traceback
 import typing
-from collections.abc import Generator, Iterable, Sequence
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Any, Literal, TextIO
 
 import cibuildwheel
 from cibuildwheel import errors
@@ -26,6 +26,11 @@ from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util.file import CIBW_CACHE_PATH, ensure_cache_sentinel
 from cibuildwheel.util.helpers import strtobool
 from cibuildwheel.util.resources import read_all_configs
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Generator, Iterable, Sequence
+    from typing import Any, Literal, TextIO
 
 
 @dataclasses.dataclass

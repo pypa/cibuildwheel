@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import csv
 import hashlib
 import os
@@ -7,7 +9,6 @@ import shlex
 import shutil
 import subprocess
 import sysconfig
-from collections.abc import Iterable, Iterator, MutableMapping
 from dataclasses import dataclass
 from os.path import relpath
 from pathlib import Path
@@ -31,8 +32,6 @@ from cibuildwheel.frontend import (
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
-from cibuildwheel.options import BuildOptions, Options
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
@@ -41,8 +40,14 @@ from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
 from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
-RESOURCES_ANDROID = resources.PATH / "android"
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator, MutableMapping
 
+    from cibuildwheel.options import BuildOptions, Options
+    from cibuildwheel.selector import BuildSelector
+
+RESOURCES_ANDROID = resources.PATH / "android"
 ANDROID_TRIPLET = {
     "arm64_v8a": "aarch64-linux-android",
     "x86_64": "x86_64-linux-android",

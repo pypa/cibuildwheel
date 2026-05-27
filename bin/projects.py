@@ -17,13 +17,14 @@ Suggested usage:
     git diff
 """
 
+from __future__ import annotations
+
 import builtins
 import functools
 import textwrap
 import urllib.error
 import urllib.request
 import xml.dom.minidom
-from collections.abc import Iterable, Mapping, Sequence
 from datetime import UTC, datetime
 from io import StringIO
 from pathlib import Path
@@ -32,6 +33,10 @@ from typing import Any, Self, TextIO
 import click
 import yaml
 from github import Auth, Github, GithubException
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping, Sequence
 
 ICONS = (
     "github",
