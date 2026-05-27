@@ -95,7 +95,14 @@ def update_virtualenv(force: bool, level: str) -> None:
     if latest_release.version > Version(local_version):
         version = latest_release.name
         url = latest_release.download_url
-        # Compute sha256 by streaming the new download
+        sha256 = ""  # recomputed below
+    else:
+        version = local_version
+        url = default["url"]
+        sha256 = default.get("sha256", "")
+
+    # Compute sha256 if not already stored (new version or first-time population)
+    if not sha256:
         log.info("Computing sha256 for %s...", url)
         response = requests.get(url, stream=True)
         response.raise_for_status()
@@ -103,10 +110,6 @@ def update_virtualenv(force: bool, level: str) -> None:
         for chunk in response.iter_content(65536):
             hasher.update(chunk)
         sha256 = hasher.hexdigest()
-    else:
-        version = local_version
-        url = default["url"]
-        sha256 = default.get("sha256", "")
 
     configurations["default"] = {
         "version": version,

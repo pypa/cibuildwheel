@@ -535,9 +535,11 @@ class AllVersions:
 
         # Fill in sha256 for URL-based configs if not already provided by the
         # update_version_* method (e.g. PyPy, BeeWare iOS, Maven have no sidecar).
+        # Also fills in sha256 when the CPython API doesn't return a sha256_sum
+        # (e.g. for older releases).
         # Widen the type to allow arbitrary key access on the underlying dict.
         config_update_dict: dict[str, str] = config_update  # type: ignore[assignment]
-        if "url" in config_update_dict and "sha256" not in config_update_dict:
+        if "url" in config_update_dict and not config_update_dict.get("sha256"):
             url = config_update_dict["url"]
             existing_sha256 = config.get("sha256", "")
             if url == config.get("url") and existing_sha256:
