@@ -11,6 +11,8 @@
 # ///
 
 import json
+from pathlib import Path
+from typing import Final
 
 import requests
 
@@ -19,7 +21,13 @@ from cibuildwheel.util.python_build_standalone import (
     PythonBuildStandaloneAsset,
     PythonBuildStandaloneReleaseData,
 )
-from cibuildwheel.util.resources import PYTHON_BUILD_STANDALONE_RELEASES
+
+# Resolve path relative to this script so writes go to the source checkout,
+# not the uv-installed copy of the package.
+DIR: Final[Path] = Path(__file__).parent.parent.resolve()
+PYTHON_BUILD_STANDALONE_RELEASES: Final[Path] = (
+    DIR / "cibuildwheel/resources/python-build-standalone-releases.json"
+)
 
 
 def main() -> None:
