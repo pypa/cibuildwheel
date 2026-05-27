@@ -1,3 +1,7 @@
+---
+ref: configuration
+---
+
 # Configuration methods
 
 cibuildwheel can either be configured using environment variables, or from

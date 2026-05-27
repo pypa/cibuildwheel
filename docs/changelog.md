@@ -1,5 +1,6 @@
 ---
 title: Changelog
+ref: changelog
 ---
 
 # Changelog

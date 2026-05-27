@@ -1,5 +1,6 @@
 ---
 title: Tips and tricks
+ref: faq
 ---
 
 # Tips and tricks

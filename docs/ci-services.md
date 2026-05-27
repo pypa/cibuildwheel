@@ -1,5 +1,6 @@
 ---
 title: Configuring a CI service
+ref: ci-services
 ---
 
 ## Configuring a CI service

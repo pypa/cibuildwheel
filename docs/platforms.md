@@ -1,5 +1,6 @@
 ---
 title: Platforms
+ref: platforms
 ---
 # Platforms
 
