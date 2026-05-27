@@ -49,8 +49,7 @@ pefile==2024.8.26
     # via
     #   abi3audit
     #   delvewheel
-pip==26.1.1; implementation_name != "graalpy" or platform_system != "Windows"
-pip==26.0.1; implementation_name == "graalpy" and platform_system == "Windows"
+pip==26.1.1
     # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.9.6
     # via
