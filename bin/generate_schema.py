@@ -6,7 +6,10 @@
 
 import argparse
 import copy
+import re
 import json
+from fnmatch import fnmatch
+from pathlib import Path
 from typing import Any
 
 import yaml
@@ -14,6 +17,12 @@ import yaml
 parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--schemastore", action="store_true", help="Generate schema_store version")
 args = parser.parse_args()
+
+DIR = Path(__file__).resolve().parents[1]
+OPTIONS_MD = DIR / "docs" / "options.md"
+OPTION_HEADER_REGEX = re.compile(
+    r"^### (?P<name>.*?){.*#(?P<id>\S+).*}\n+> ?(?P<comment>.*)$", re.MULTILINE
+)
 
 starter = """
 $schema: http://json-schema.org/draft-07/schema#
@@ -287,6 +296,31 @@ string_table = yaml.safe_load(
 """
 )
 
+
+def get_options_md_comments(schema_keys: list[str]) -> dict[str, dict[str, str]]:
+    options_md = OPTIONS_MD.read_text(encoding="utf-8")
+    comments: dict[str, dict[str, str]] = {}
+
+    for match in OPTION_HEADER_REGEX.finditer(options_md):
+        option_names = [name.strip().strip("`") for name in match.group("name").split(",")]
+        option_id = match.group("id").strip()
+        comment = match.group("comment").strip()
+
+        for option_name in option_names:
+            matched_keys = (
+                [key for key in schema_keys if fnmatch(key, option_name)]
+                if "*" in option_name
+                else [option_name]
+            )
+
+            for key in matched_keys:
+                comments[key] = {
+                    "id": option_id,
+                    "comment": comment,
+                }
+
+    return comments
+
 for value in schema["properties"].values():
     match value:
         case {"type": "string_array"}:
@@ -334,8 +368,16 @@ items:
 """
 )
 
+options_md_comments = get_options_md_comments(list(schema["properties"]))
+
 for key, value in schema["properties"].items():
     value["title"] = f"CIBW_{key.replace('-', '_').upper()}"
+    option_data = options_md_comments.get(key)
+    if option_data:
+        value["$comment"] = (
+            f"{option_data['comment']} "
+            f"(https://cibuildwheel.pypa.io/en/stable/options/#{option_data['id']})"
+        )
 
 non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
 del non_global_options["build"]
