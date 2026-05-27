@@ -6,8 +6,8 @@
 
 import argparse
 import copy
-import re
 import json
+import re
 from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any
@@ -320,6 +320,7 @@ def get_options_md_comments(schema_keys: list[str]) -> dict[str, dict[str, str]]
                 }
 
     return comments
+
 
 for value in schema["properties"].values():
     match value:
