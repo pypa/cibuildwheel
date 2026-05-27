@@ -39,8 +39,7 @@
           }
         }
       ],
-      "title": "CIBW_AUDIT_COMMAND",
-      "$comment": "Use a tool to check wheels before the end of the run (https://cibuildwheel.pypa.io/en/stable/options/#audit-command)"
+      "title": "CIBW_AUDIT_COMMAND"
     },
     "audit-requires": {
       "description": "Install Python dependencies for the audit step.",
@@ -55,8 +54,7 @@
           }
         }
       ],
-      "title": "CIBW_AUDIT_REQUIRES",
-      "$comment": "Install Python dependencies for the audit step (https://cibuildwheel.pypa.io/en/stable/options/#audit-requires)"
+      "title": "CIBW_AUDIT_REQUIRES"
     },
     "archs": {
       "description": "Change the architectures built on your machine by default.",
@@ -71,8 +69,7 @@
           }
         }
       ],
-      "title": "CIBW_ARCHS",
-      "$comment": "Change the architectures built on your machine by default. (https://cibuildwheel.pypa.io/en/stable/options/#archs)"
+      "title": "CIBW_ARCHS"
     },
     "before-all": {
       "description": "Execute a shell command on the build system before any wheels are built.",
@@ -87,8 +84,7 @@
           }
         }
       ],
-      "title": "CIBW_BEFORE_ALL",
-      "$comment": "Execute a shell command on the build system before any wheels are built. (https://cibuildwheel.pypa.io/en/stable/options/#before-all)"
+      "title": "CIBW_BEFORE_ALL"
     },
     "before-build": {
       "description": "Execute a shell command preparing each wheel's build.",
@@ -103,8 +99,7 @@
           }
         }
       ],
-      "title": "CIBW_BEFORE_BUILD",
-      "$comment": "Execute a shell command preparing each wheel's build (https://cibuildwheel.pypa.io/en/stable/options/#before-build)"
+      "title": "CIBW_BEFORE_BUILD"
     },
     "before-test": {
       "description": "Execute a shell command before testing each wheel.",
@@ -119,8 +114,7 @@
           }
         }
       ],
-      "title": "CIBW_BEFORE_TEST",
-      "$comment": "Execute a shell command before testing each wheel (https://cibuildwheel.pypa.io/en/stable/options/#before-test)"
+      "title": "CIBW_BEFORE_TEST"
     },
     "build": {
       "default": [
@@ -138,8 +132,7 @@
           }
         }
       ],
-      "title": "CIBW_BUILD",
-      "$comment": "Choose the Python versions to build (https://cibuildwheel.pypa.io/en/stable/options/#build-skip)"
+      "title": "CIBW_BUILD"
     },
     "build-frontend": {
       "default": "default",
@@ -194,8 +187,7 @@
           }
         }
       ],
-      "title": "CIBW_BUILD_FRONTEND",
-      "$comment": "Set the tool to use to build, either \"build\" (default), \"build\\[uv\\]\", or \"pip\" (https://cibuildwheel.pypa.io/en/stable/options/#build-frontend)"
+      "title": "CIBW_BUILD_FRONTEND"
     },
     "build-verbosity": {
       "type": "integer",
@@ -203,8 +195,7 @@
       "maximum": 3,
       "default": 0,
       "description": "Increase/decrease the output of pip wheel.",
-      "title": "CIBW_BUILD_VERBOSITY",
-      "$comment": "Increase/decrease the output of the build (https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity)"
+      "title": "CIBW_BUILD_VERBOSITY"
     },
     "config-settings": {
       "description": "Specify config-settings for the build backend.",
@@ -232,8 +223,7 @@
           }
         }
       ],
-      "title": "CIBW_CONFIG_SETTINGS",
-      "$comment": "Specify config-settings for the build backend. (https://cibuildwheel.pypa.io/en/stable/options/#config-settings)"
+      "title": "CIBW_CONFIG_SETTINGS"
     },
     "container-engine": {
       "oneOf": [
@@ -276,8 +266,7 @@
           }
         }
       ],
-      "title": "CIBW_CONTAINER_ENGINE",
-      "$comment": "Specify the container engine to use when building Linux wheels (https://cibuildwheel.pypa.io/en/stable/options/#container-engine)"
+      "title": "CIBW_CONTAINER_ENGINE"
     },
     "dependency-versions": {
       "default": "pinned",
@@ -321,8 +310,7 @@
           }
         }
       ],
-      "title": "CIBW_DEPENDENCY_VERSIONS",
-      "$comment": "Control the versions of the tools cibuildwheel uses (https://cibuildwheel.pypa.io/en/stable/options/#dependency-versions)"
+      "title": "CIBW_DEPENDENCY_VERSIONS"
     },
     "enable": {
       "description": "Enable or disable certain builds.",
@@ -337,8 +325,7 @@
           }
         }
       ],
-      "title": "CIBW_ENABLE",
-      "$comment": "Enable building with extra categories of selectors present. (https://cibuildwheel.pypa.io/en/stable/options/#enable)"
+      "title": "CIBW_ENABLE"
     },
     "environment": {
       "description": "Set environment variables needed during the build.",
@@ -356,8 +343,7 @@
           }
         }
       ],
-      "title": "CIBW_ENVIRONMENT",
-      "$comment": "Set environment variables (https://cibuildwheel.pypa.io/en/stable/options/#environment)"
+      "title": "CIBW_ENVIRONMENT"
     },
     "environment-pass": {
       "description": "Set environment variables on the host to pass-through to the container during the build.",
@@ -372,110 +358,92 @@
           }
         }
       ],
-      "title": "CIBW_ENVIRONMENT_PASS",
-      "$comment": "Set environment variables on the host to pass-through to the container. (https://cibuildwheel.pypa.io/en/stable/options/#environment-pass)"
+      "title": "CIBW_ENVIRONMENT_PASS"
     },
     "manylinux-aarch64-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MANYLINUX_AARCH64_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MANYLINUX_AARCH64_IMAGE"
     },
     "manylinux-armv7l-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MANYLINUX_ARMV7L_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MANYLINUX_ARMV7L_IMAGE"
     },
     "manylinux-i686-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MANYLINUX_I686_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MANYLINUX_I686_IMAGE"
     },
     "manylinux-ppc64le-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MANYLINUX_PPC64LE_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MANYLINUX_PPC64LE_IMAGE"
     },
     "manylinux-pypy_aarch64-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MANYLINUX_PYPY_AARCH64_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MANYLINUX_PYPY_AARCH64_IMAGE"
     },
     "manylinux-pypy_i686-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MANYLINUX_PYPY_I686_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MANYLINUX_PYPY_I686_IMAGE"
     },
     "manylinux-pypy_x86_64-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MANYLINUX_PYPY_X86_64_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MANYLINUX_PYPY_X86_64_IMAGE"
     },
     "manylinux-riscv64-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MANYLINUX_RISCV64_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MANYLINUX_RISCV64_IMAGE"
     },
     "manylinux-s390x-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MANYLINUX_S390X_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MANYLINUX_S390X_IMAGE"
     },
     "manylinux-x86_64-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MANYLINUX_X86_64_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MANYLINUX_X86_64_IMAGE"
     },
     "musllinux-aarch64-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MUSLLINUX_AARCH64_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MUSLLINUX_AARCH64_IMAGE"
     },
     "musllinux-armv7l-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MUSLLINUX_ARMV7L_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MUSLLINUX_ARMV7L_IMAGE"
     },
     "musllinux-i686-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MUSLLINUX_I686_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MUSLLINUX_I686_IMAGE"
     },
     "musllinux-ppc64le-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MUSLLINUX_PPC64LE_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MUSLLINUX_PPC64LE_IMAGE"
     },
     "musllinux-riscv64-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MUSLLINUX_RISCV64_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MUSLLINUX_RISCV64_IMAGE"
     },
     "musllinux-s390x-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MUSLLINUX_S390X_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MUSLLINUX_S390X_IMAGE"
     },
     "musllinux-x86_64-image": {
       "type": "string",
       "description": "Specify alternative manylinux / musllinux container images",
-      "title": "CIBW_MUSLLINUX_X86_64_IMAGE",
-      "$comment": "Specify manylinux / musllinux container images (https://cibuildwheel.pypa.io/en/stable/options/#linux-image)"
+      "title": "CIBW_MUSLLINUX_X86_64_IMAGE"
     },
     "xbuild-tools": {
       "description": "Binaries on the path that should be included in an isolated cross-build environment",
@@ -490,14 +458,12 @@
           }
         }
       ],
-      "title": "CIBW_XBUILD_TOOLS",
-      "$comment": "Binaries on the path that should be included in an isolated cross-build environment. (https://cibuildwheel.pypa.io/en/stable/options/#xbuild-tools)"
+      "title": "CIBW_XBUILD_TOOLS"
     },
     "pyodide-version": {
       "type": "string",
       "description": "Specify the version of Pyodide to use",
-      "title": "CIBW_PYODIDE_VERSION",
-      "$comment": "Specify the Pyodide version to use for `pyodide` platform builds (https://cibuildwheel.pypa.io/en/stable/options/#pyodide-version)"
+      "title": "CIBW_PYODIDE_VERSION"
     },
     "repair-wheel-command": {
       "description": "Execute a shell command to repair each built wheel.",
@@ -512,8 +478,7 @@
           }
         }
       ],
-      "title": "CIBW_REPAIR_WHEEL_COMMAND",
-      "$comment": "Execute a shell command to repair each built wheel (https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command)"
+      "title": "CIBW_REPAIR_WHEEL_COMMAND"
     },
     "skip": {
       "description": "Choose the Python versions to skip.",
@@ -528,8 +493,7 @@
           }
         }
       ],
-      "title": "CIBW_SKIP",
-      "$comment": "Choose the Python versions to build (https://cibuildwheel.pypa.io/en/stable/options/#build-skip)"
+      "title": "CIBW_SKIP"
     },
     "test-command": {
       "description": "Execute a shell command to test each built wheel.",
@@ -544,8 +508,7 @@
           }
         }
       ],
-      "title": "CIBW_TEST_COMMAND",
-      "$comment": "The command to test each built wheel (https://cibuildwheel.pypa.io/en/stable/options/#test-command)"
+      "title": "CIBW_TEST_COMMAND"
     },
     "test-extras": {
       "description": "Install your wheel for testing using `extras_require`",
@@ -560,8 +523,7 @@
           }
         }
       ],
-      "title": "CIBW_TEST_EXTRAS",
-      "$comment": "Install your wheel for testing using `extras_require` (https://cibuildwheel.pypa.io/en/stable/options/#test-extras)"
+      "title": "CIBW_TEST_EXTRAS"
     },
     "test-sources": {
       "description": "Test files that are required by the test environment",
@@ -576,8 +538,7 @@
           }
         }
       ],
-      "title": "CIBW_TEST_SOURCES",
-      "$comment": "Paths that are copied into the working directory of the tests (https://cibuildwheel.pypa.io/en/stable/options/#test-sources)"
+      "title": "CIBW_TEST_SOURCES"
     },
     "test-groups": {
       "description": "Install extra groups when testing",
@@ -592,8 +553,7 @@
           }
         }
       ],
-      "title": "CIBW_TEST_GROUPS",
-      "$comment": "Specify test dependencies from your project's `dependency-groups` (https://cibuildwheel.pypa.io/en/stable/options/#test-groups)"
+      "title": "CIBW_TEST_GROUPS"
     },
     "test-requires": {
       "description": "Install Python dependencies before running the tests",
@@ -608,8 +568,7 @@
           }
         }
       ],
-      "title": "CIBW_TEST_REQUIRES",
-      "$comment": "Install Python dependencies before running the tests (https://cibuildwheel.pypa.io/en/stable/options/#test-requires)"
+      "title": "CIBW_TEST_REQUIRES"
     },
     "test-skip": {
       "description": "Skip running tests on some builds.",
@@ -624,8 +583,7 @@
           }
         }
       ],
-      "title": "CIBW_TEST_SKIP",
-      "$comment": "Skip running tests on some builds (https://cibuildwheel.pypa.io/en/stable/options/#test-skip)"
+      "title": "CIBW_TEST_SKIP"
     },
     "test-environment": {
       "description": "Set environment variables for the test environment",
@@ -643,8 +601,7 @@
           }
         }
       ],
-      "title": "CIBW_TEST_ENVIRONMENT",
-      "$comment": "Set environment variables for the test environment (https://cibuildwheel.pypa.io/en/stable/options/#test-environment)"
+      "title": "CIBW_TEST_ENVIRONMENT"
     },
     "test-runtime": {
       "description": "Additional configuration for the test runner",
@@ -677,8 +634,7 @@
           }
         }
       ],
-      "title": "CIBW_TEST_RUNTIME",
-      "$comment": "Controls how the tests will be executed. (https://cibuildwheel.pypa.io/en/stable/options/#test-runtime)"
+      "title": "CIBW_TEST_RUNTIME"
     },
     "overrides": {
       "type": "array",
@@ -992,7 +948,6 @@
             }
           ],
           "title": "CIBW_REPAIR_WHEEL_COMMAND",
-          "$comment": "Execute a shell command to repair each built wheel (https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command)",
           "default": "auditwheel repair -w {dest_dir} {wheel}"
         },
         "test-command": {
@@ -1144,7 +1099,6 @@
             }
           ],
           "title": "CIBW_REPAIR_WHEEL_COMMAND",
-          "$comment": "Execute a shell command to repair each built wheel (https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command)",
           "default": "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"
         },
         "test-command": {
