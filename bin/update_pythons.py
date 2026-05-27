@@ -15,12 +15,13 @@
 from __future__ import annotations
 
 import difflib
+import hashlib
 import logging
 import operator
 import re
 import tomllib
 from pathlib import Path
-from typing import Any, Final, Literal, TypedDict
+from typing import Any, Final, Literal, NotRequired, TypedDict
 from xml.etree import ElementTree as ET
 
 import click
@@ -56,6 +57,7 @@ class Config(TypedDict):
 
 class ConfigUrl(Config):
     url: str
+    sha256: NotRequired[str]
 
 
 class ConfigPyodide(Config):
@@ -179,10 +181,23 @@ class GraalPyVersions:
         ]
         if urls:
             (url,) = urls
+            # Fetch sha256 from the ".sha256" sidecar asset in the same release
+            sha256 = ""
+            sha256_asset_name = url.rsplit("/", 1)[-1] + ".sha256"
+            sha256_urls = [
+                rf["browser_download_url"]
+                for rf in release["assets"]
+                if rf["name"] == sha256_asset_name
+            ]
+            if sha256_urls:
+                sha256_response = requests.get(sha256_urls[0])
+                sha256_response.raise_for_status()
+                sha256 = sha256_response.text.strip().split()[0]
             return ConfigUrl(
                 identifier=identifier,
                 version=f"{version.major}.{version.minor}",
                 url=url,
+                sha256=sha256,
             )
         return None
 
@@ -298,12 +313,14 @@ class CPythonVersions:
             uri = self.versions_dict[new_version]
             files = [rf for rf in self.files_info if rf["release"] == uri]
 
-            urls = [rf["url"] for rf in files if file_ident in rf["url"]]
-            if urls:
+            matching = [rf for rf in files if file_ident in rf["url"]]
+            if matching:
+                rf = matching[0]
                 return ConfigUrl(
                     identifier=identifier,
                     version=f"{new_version.major}.{new_version.minor}",
-                    url=urls[0],
+                    url=rf["url"],
+                    sha256=rf.get("sha256_sum", ""),
                 )
 
         return None
@@ -448,6 +465,16 @@ class AllVersions:
 
         self.pyodide = PyodideVersions()
 
+    def _stream_sha256(self, url: str) -> str:
+        """Download a file (streaming) and return its SHA256 hex digest."""
+        log.debug("Computing sha256 for %s by streaming download...", url)
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        hasher = hashlib.sha256()
+        for chunk in response.iter_content(65536):
+            hasher.update(chunk)
+        return hasher.hexdigest()
+
     def update_config(self, config: MutableMapping[str, str]) -> None:
         identifier = config["identifier"]
         version = Version(config["version"])
@@ -505,6 +532,20 @@ class AllVersions:
             )
 
         assert config_update is not None, f"{identifier} not found!"
+
+        # Fill in sha256 for URL-based configs if not already provided by the
+        # update_version_* method (e.g. PyPy, BeeWare iOS, Maven have no sidecar).
+        # Widen the type to allow arbitrary key access on the underlying dict.
+        config_update_dict: dict[str, str] = config_update  # type: ignore[assignment]
+        if "url" in config_update_dict and "sha256" not in config_update_dict:
+            url = config_update_dict["url"]
+            existing_sha256 = config.get("sha256", "")
+            if url == config.get("url") and existing_sha256:
+                # URL unchanged — preserve the existing sha256
+                config_update_dict["sha256"] = existing_sha256
+            else:
+                config_update_dict["sha256"] = self._stream_sha256(url)
+
         if config_update != config:
             log.info("  Updated %s to %s", config, config_update)
             config.clear()

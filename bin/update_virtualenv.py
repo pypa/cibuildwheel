@@ -4,6 +4,7 @@
 # dependencies = [
 #   "click",
 #   "packaging",
+#   "requests",
 #   "rich",
 #   "cibuildwheel",
 # ]
@@ -15,12 +16,14 @@
 
 import dataclasses
 import difflib
+import hashlib
 import logging
 import tomllib
 from pathlib import Path
 from typing import Final
 
 import click
+import requests
 import rich
 from packaging.version import Version
 from rich.logging import RichHandler
@@ -92,16 +95,26 @@ def update_virtualenv(force: bool, level: str) -> None:
     if latest_release.version > Version(local_version):
         version = latest_release.name
         url = latest_release.download_url
+        # Compute sha256 by streaming the new download
+        log.info("Computing sha256 for %s...", url)
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        hasher = hashlib.sha256()
+        for chunk in response.iter_content(65536):
+            hasher.update(chunk)
+        sha256 = hasher.hexdigest()
     else:
         version = local_version
         url = default["url"]
+        sha256 = default.get("sha256", "")
 
     configurations["default"] = {
         "version": version,
         "url": url,
+        "sha256": sha256,
     }
     result_toml = "".join(
-        f'{key} = {{ version = "{value["version"]}", url = "{value["url"]}" }}\n'
+        f'{key} = {{ version = "{value["version"]}", url = "{value["url"]}", sha256 = "{value.get("sha256", "")}" }}\n'
         for key, value in configurations.items()
     )
 

@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 class PythonBuildStandaloneAsset(typing.TypedDict):
     name: str
     url: str
+    sha256: str
 
 
 class PythonBuildStandaloneRelease(typing.TypedDict):
@@ -86,8 +87,8 @@ def _get_pbs_asset(
     arch_identifier: str,
     platform_identifier: str,
     libc_identifier: str | None,
-) -> tuple[str, str, str]:
-    """Finds the asset, returning (tag, filename, url)."""
+) -> tuple[str, str, str, str]:
+    """Finds the asset, returning (tag, url, filename, sha256)."""
     release_data = get_python_build_standalone_release_data()
 
     expected_suffix = f"{arch_identifier}-{platform_identifier}"
@@ -105,14 +106,17 @@ def _get_pbs_asset(
                 continue
 
             asset_url = asset["url"]
-            return release["tag"], asset_url, asset_name
+            asset_sha256 = asset.get("sha256", "")
+            return release["tag"], asset_url, asset_name, asset_sha256
 
     # If loop completes without finding a match
     msg = f"Could not find python-build-standalone release asset matching {asset_pattern!r}."
     raise PythonBuildStandaloneError(msg)
 
 
-def _download_or_get_from_cache(asset_url: str, asset_filename: str, cache_dir: Path) -> Path:
+def _download_or_get_from_cache(
+    asset_url: str, asset_filename: str, cache_dir: Path, sha256: str = ""
+) -> Path:
     with FileLock(cache_dir / (asset_filename + ".lock")):
         asset_cache_path = cache_dir / asset_filename
         if asset_cache_path.is_file():
@@ -120,7 +124,7 @@ def _download_or_get_from_cache(asset_url: str, asset_filename: str, cache_dir: 
             return asset_cache_path
 
         print(f"Downloading python_build_standalone: {asset_url} to {asset_cache_path}")
-        download(asset_url, asset_cache_path)
+        download(asset_url, asset_cache_path, sha256=sha256 or None)
         return asset_cache_path
 
 
@@ -166,7 +170,7 @@ def create_python_build_standalone_environment(
 
     arch_id, platform_id, libc_id = _get_platform_identifiers()
 
-    pbs_tag, asset_url, asset_filename = _get_pbs_asset(
+    pbs_tag, asset_url, asset_filename, asset_sha256 = _get_pbs_asset(
         python_version=python_version,
         arch_identifier=arch_id,
         platform_identifier=platform_id,
@@ -176,7 +180,7 @@ def create_python_build_standalone_environment(
     print(f"Using python-build-standalone release: {pbs_tag}")
 
     archive_path = _download_or_get_from_cache(
-        asset_url=asset_url, asset_filename=asset_filename, cache_dir=cache_dir
+        asset_url=asset_url, asset_filename=asset_filename, cache_dir=cache_dir, sha256=asset_sha256
     )
 
     python_base_dir = temp_dir / "pbs"
