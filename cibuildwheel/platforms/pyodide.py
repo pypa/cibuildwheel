@@ -385,6 +385,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 environment=build_options.environment,
                 user_pyodide_version=build_options.pyodide_version,
             )
+            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
             pip_version = get_pip_version(env)
             # The Pyodide command line runner mounts all directories in the host
             # filesystem into the Pyodide file system, except for the custom

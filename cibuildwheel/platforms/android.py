@@ -140,6 +140,7 @@ def build(options: Options, tmp_path: Path) -> None:
             build_path.mkdir()
             python_dir = setup_target_python(config, build_path)
             build_env, android_env = setup_env(config, build_options, build_path, python_dir)
+            build_env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
             state = BuildState(
                 config, build_options, build_path, python_dir, build_env, android_env
             )

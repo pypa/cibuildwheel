@@ -670,6 +670,9 @@ Platform-specific environment variables are also available:<br/>
     cibuildwheel always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#optional-extensions).
 
 !!! note
+    For each per-build step (`before_build`, the build itself, `repair_command`, `before_test`, `test_command`), cibuildwheel also sets `CIBUILDWHEEL_BUILD_IDENTIFIER` to the current build identifier (e.g. `cp311-manylinux_x86_64`). This can be used in scripts to distinguish different builds.
+
+!!! note
     To do its work, cibuildwheel sets the variables `VIRTUALENV_PIP`, `DIST_EXTRA_CONFIG`, `SETUPTOOLS_EXT_SUFFIX`, `PIP_DISABLE_PIP_VERSION_CHECK`, `PIP_ROOT_USER_ACTION`, and it extends the variables `PATH` and `PIP_CONSTRAINT`. Your assignments to these options might be replaced or extended.
 
 ### `environment-pass` {: #environment-pass env-var="CIBW_ENVIRONMENT_PASS_LINUX" toml}

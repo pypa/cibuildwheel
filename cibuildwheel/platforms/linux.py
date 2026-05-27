@@ -234,6 +234,7 @@ def build_in_container(
         env["PATH"] = f"{python_bin}:{env['PATH']}"
 
         env = build_options.environment.as_dictionary(env, executor=container.environment_executor)
+        env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
 
         # check config python is still on PATH
         which_python = container.call(["which", "python"], env=env, capture_output=True).strip()
