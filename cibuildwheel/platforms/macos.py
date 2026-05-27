@@ -88,6 +88,7 @@ class PythonConfiguration:
     version: str
     identifier: str
     url: str
+    sha256: str = ""
 
 
 def all_python_configurations() -> list[PythonConfiguration]:
@@ -135,7 +136,9 @@ def get_python_configurations(
     return python_configurations
 
 
-def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) -> Path:
+def install_cpython(
+    _tmp: Path, version: str, url: str, free_threading: bool, sha256: str = ""
+) -> Path:
     ft = "T" if free_threading else ""
     installation_path = Path(f"/Library/Frameworks/Python{ft}.framework/Versions/{version}")
     with FileLock(CIBW_CACHE_PATH / f"cpython{version}.lock"):
@@ -161,7 +164,7 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
             python_filename = url.rsplit("/", maxsplit=1)[-1]
             pkg_path = CIBW_CACHE_PATH / "cpython-installer" / python_filename
             if not pkg_path.exists():
-                download(url, pkg_path)
+                download(url, pkg_path, sha256=sha256 or None)
             args = []
             if version.startswith("3.14"):
                 args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_314.resolve())]
@@ -185,7 +188,7 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
     return installation_path / "bin" / (f"python{version}t" if free_threading else "python3")
 
 
-def install_pypy(tmp: Path, url: str) -> Path:
+def install_pypy(tmp: Path, url: str, sha256: str = "") -> Path:
     pypy_tar_bz2 = url.rsplit("/", 1)[-1]
     extension = ".tar.bz2"
     assert pypy_tar_bz2.endswith(extension)
@@ -193,14 +196,14 @@ def install_pypy(tmp: Path, url: str) -> Path:
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             downloaded_tar_bz2 = tmp / pypy_tar_bz2
-            download(url, downloaded_tar_bz2)
+            download(url, downloaded_tar_bz2, sha256=sha256 or None)
             installation_path.parent.mkdir(parents=True, exist_ok=True)
             call("tar", "-C", installation_path.parent, "-xf", downloaded_tar_bz2)
             downloaded_tar_bz2.unlink()
     return installation_path / "bin" / "pypy3"
 
 
-def install_graalpy(tmp: Path, url: str) -> Path:
+def install_graalpy(tmp: Path, url: str, sha256: str = "") -> Path:
     graalpy_archive = url.rsplit("/", 1)[-1]
     extension = ".tar.gz"
     assert graalpy_archive.endswith(extension)
@@ -208,7 +211,7 @@ def install_graalpy(tmp: Path, url: str) -> Path:
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             downloaded_archive = tmp / graalpy_archive
-            download(url, downloaded_archive)
+            download(url, downloaded_archive, sha256=sha256 or None)
             installation_path.mkdir(parents=True)
             # GraalPy top-folder name is inconsistent with archive name
             call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
@@ -232,13 +235,17 @@ def setup_python(
     if implementation_id.startswith("cp"):
         free_threading = "t-macos" in python_configuration.identifier
         base_python = install_cpython(
-            tmp, python_configuration.version, python_configuration.url, free_threading
+            tmp,
+            python_configuration.version,
+            python_configuration.url,
+            free_threading,
+            python_configuration.sha256,
         )
 
     elif implementation_id.startswith("pp"):
-        base_python = install_pypy(tmp, python_configuration.url)
+        base_python = install_pypy(tmp, python_configuration.url, python_configuration.sha256)
     elif implementation_id.startswith("gp"):
-        base_python = install_graalpy(tmp, python_configuration.url)
+        base_python = install_graalpy(tmp, python_configuration.url, python_configuration.sha256)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)

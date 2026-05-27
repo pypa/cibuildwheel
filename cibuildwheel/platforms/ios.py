@@ -46,6 +46,7 @@ class PythonConfiguration:
     identifier: str
     url: str
     build_url: str
+    sha256: str = ""
 
     @property
     def sdk(self) -> str:
@@ -133,7 +134,7 @@ def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threadin
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             downloaded_tar_gz = tmp / ios_python_tar_gz
-            download(config.url, downloaded_tar_gz)
+            download(config.url, downloaded_tar_gz, sha256=config.sha256 or None)
             installation_path.mkdir(parents=True, exist_ok=True)
             call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
             downloaded_tar_gz.unlink()

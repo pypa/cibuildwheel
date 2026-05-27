@@ -3,6 +3,7 @@
 # /// script
 # dependencies = [
 #   "cibuildwheel",
+#   "requests",
 # ]
 #
 # [tool.uv.sources]
@@ -10,6 +11,8 @@
 # ///
 
 import json
+
+import requests
 
 from cibuildwheel.extra import github_api_request
 from cibuildwheel.util.python_build_standalone import (
@@ -34,8 +37,27 @@ def main() -> None:
         f"repos/astral-sh/python-build-standalone/releases/tags/{latest_tag}"
     )["assets"]
 
+    # Build a sha256 map from the SHA256SUMS file in the release
+    sha256_sums_urls = [
+        ga["browser_download_url"] for ga in github_assets if ga["name"] == "SHA256SUMS"
+    ]
+    name_to_sha256: dict[str, str] = {}
+    if sha256_sums_urls:
+        response = requests.get(sha256_sums_urls[0])
+        response.raise_for_status()
+        for line in response.text.splitlines():
+            parts = line.split()
+            if len(parts) == 2:
+                sha256_hex, filename = parts
+                # The filename may have a leading "./" or spaces - strip it
+                name_to_sha256[filename.lstrip("./")] = sha256_hex
+
     assets = [
-        PythonBuildStandaloneAsset(name=ga["name"], url=ga["browser_download_url"])
+        PythonBuildStandaloneAsset(
+            name=ga["name"],
+            url=ga["browser_download_url"],
+            sha256=name_to_sha256.get(ga["name"], ""),
+        )
         for ga in github_assets
         if ga["name"].endswith("install_only.tar.gz")
     ]
