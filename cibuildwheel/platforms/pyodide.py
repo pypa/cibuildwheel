@@ -55,6 +55,7 @@ class PythonConfiguration:
     identifier: str
     default_pyodide_version: str
     node_version: str
+    sha256: str = ""
 
 
 class PyodideXBuildEnvInfoVersionRange(TypedDict):

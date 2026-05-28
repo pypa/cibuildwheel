@@ -28,10 +28,10 @@ For example, consider a scenario when Pyodide ships a new `315.0.0a1` with cp315
 In `cibuildwheel/resources/build-platforms.toml`, add an entry under `[pyodide]`:
 
 ```toml
-{ identifier = "cp315-pyodide_wasm32", version = "3.15", default_pyodide_version = "315.0.0a1", node_version = "v24" },
+{ identifier = "cp315-pyodide_wasm32", version = "3.15", default_pyodide_version = "315.0.0a1", node_version = "v24", sha256 = "SHA256" },
 ```
 
-`version` is the CPython version string, `default_pyodide_version` is the Pyodide release to use when the user does not pin one explicitly (use the latest available alpha/beta for a prerelease entry), and `node_version` is the minimum Node.js major required by that Pyodide release — check the [pyodide-build FAQ](https://pyodide-build.readthedocs.io/en/latest/faq.html#what-node-js-version-do-i-need) for a rudimentary idea of what the correct value is.
+`version` is the CPython version string, `default_pyodide_version` is the Pyodide release to use when the user does not pin one explicitly (use the latest available alpha/beta for a prerelease entry), `node_version` is the minimum Node.js major required by that Pyodide release, and `sha256` is the checksum of the Pyodide xbuildenv tarball — check the [pyodide-build FAQ](https://pyodide-build.readthedocs.io/en/latest/faq.html#what-node-js-version-do-i-need) for a rudimentary idea of what the correct value is.
 
 ### 2. Update the prerelease guards in the selector
 

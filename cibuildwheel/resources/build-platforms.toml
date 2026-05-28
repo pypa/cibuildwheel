@@ -220,9 +220,9 @@ python_configurations = [
 
 [pyodide]
 python_configurations = [
-  { identifier = "cp312-pyodide_wasm32", version = "3.12", default_pyodide_version = "0.27.7", node_version = "v22" },
-  { identifier = "cp313-pyodide_wasm32", version = "3.13", default_pyodide_version = "0.29.4", node_version = "v22" },
-  { identifier = "cp314-pyodide_wasm32", version = "3.14", default_pyodide_version = "314.0.0a2", node_version = "v24" },
+  { identifier = "cp312-pyodide_wasm32", version = "3.12", default_pyodide_version = "0.27.7", node_version = "v22", sha256 = "0c2e7db42efa5d1dac38b50f8b3d659a1e3885d0a233494831b8206281307d52" },
+  { identifier = "cp313-pyodide_wasm32", version = "3.13", default_pyodide_version = "0.29.4", node_version = "v22", sha256 = "a29fc4a076408a18fc29eb4b280f80c6dddc95c19514c874c29e590d0931c02a" },
+  { identifier = "cp314-pyodide_wasm32", version = "3.14", default_pyodide_version = "314.0.0a2", node_version = "v24", sha256 = "ac7bbcdf289ab3ae25621c436b1d013099ef6bec644ad0538dae5d65552c5c95" },
 ]
 
 [android]
