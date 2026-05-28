@@ -622,6 +622,8 @@ def test_meson(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     new_meson_project(
         spam_c_top_level_add="int fortran_func_();",
         spam_c_function_add="sts = fortran_func_();",
+        project_args_add="'fortran',",
+        extension_args_add="'fortran.f90', link_language: 'fortran',",
     ).generate(tmp_path)
 
     # TODO: remove once meson-python has a release with Android support.
@@ -633,12 +635,6 @@ def test_meson(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     )
 
     # Add Fortran code.
-    meson_build_path = tmp_path / "meson.build"
-    meson_build_path.write_text(
-        meson_build_path.read_text()
-        .replace("'c'", "'c', 'fortran'")
-        .replace("'spam.c'", "'spam.c', 'fortran.f90', link_language: 'fortran'")
-    )
     (tmp_path / "fortran.f90").write_text(
         dedent(
             """\

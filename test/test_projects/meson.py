@@ -22,6 +22,7 @@ archs = ["auto64"]
 
 MESON_BUILD_TEMPLATE = r"""
 project('spam', 'c',
+  {{ project_args_add | indent(2) }}
   version: '0.1.0',
   default_options: ['warning_level=2'],
 )
@@ -30,6 +31,7 @@ py = import('python').find_installation(pure: false)
 
 py.extension_module('spam',
   'spam.c',
+  {{ extension_args_add | indent(2) }}
   install: true,
 )
 """
@@ -39,6 +41,8 @@ def new_meson_project(
     *,
     spam_c_top_level_add: str = "",
     spam_c_function_add: str = "",
+    project_args_add: str = "",
+    extension_args_add: str = "",
 ) -> TestProject:
     project = TestProject()
 
@@ -54,6 +58,8 @@ def new_meson_project(
         {
             "spam_c_top_level_add": spam_c_top_level_add,
             "spam_c_function_add": spam_c_function_add,
+            "project_args_add": project_args_add,
+            "extension_args_add": extension_args_add,
         }
     )
 
