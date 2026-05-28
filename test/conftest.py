@@ -1,7 +1,8 @@
+from __future__ import annotations
+
 import json
 import os
 import subprocess
-from collections.abc import Generator
 
 import pytest
 from filelock import FileLock
@@ -15,6 +16,10 @@ from cibuildwheel.venv import find_uv
 
 from . import utils
 from .utils import DEFAULT_CIBW_ENABLE, EMULATED_ARCHS, get_platform
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:

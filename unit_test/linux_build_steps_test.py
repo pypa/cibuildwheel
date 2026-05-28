@@ -1,12 +1,17 @@
-import textwrap
-from pathlib import Path
-from pprint import pprint
+from __future__ import annotations
 
-import pytest
+import textwrap
+from pprint import pprint
 
 import cibuildwheel.platforms.linux
 from cibuildwheel.oci_container import OCIContainerEngineConfig
 from cibuildwheel.options import CommandLineArguments, Options
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    import pytest
 
 
 def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:

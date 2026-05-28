@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import platform
 import subprocess
-from pathlib import Path
 
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_python_exist(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:

@@ -1,8 +1,12 @@
-from pathlib import Path
+from __future__ import annotations
 
 import packaging.utils
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 meson_project = test_projects.new_meson_project()
 

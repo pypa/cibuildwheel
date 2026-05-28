@@ -1,10 +1,15 @@
+from __future__ import annotations
+
 import subprocess
 import textwrap
-from pathlib import Path
 
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # pyodide does not support building without isolation, need to check the base_prefix
 SYS_PREFIX = f"sys.{'base_' if utils.get_platform() == 'pyodide' else ''}prefix"

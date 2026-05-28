@@ -1,15 +1,21 @@
+from __future__ import annotations
+
 import platform as platform_module
 import re
 import shutil
 import subprocess
 import sys
 import typing
-from collections.abc import Set
 from enum import StrEnum, auto
-from typing import Final, Literal, Self
 
 from cibuildwheel import errors
-from cibuildwheel.typing import PlatformName
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Set
+    from typing import Final, Literal, Self
+
+    from cibuildwheel.typing import PlatformName
 
 PRETTY_NAMES: Final[dict[PlatformName, str]] = {
     "linux": "Linux",

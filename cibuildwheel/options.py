@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 import configparser
 import contextlib
@@ -8,9 +10,9 @@ import functools
 import shlex
 import textwrap
 import tomllib
-from collections.abc import Callable, Generator, Iterable, Mapping, Sequence, Set
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Final, Literal, Self, assert_never
+from typing import assert_never
 
 from packaging.specifiers import SpecifierSet
 
@@ -26,6 +28,11 @@ from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util import resources
 from cibuildwheel.util.helpers import format_safe, parse_key_value_string, strtobool, unwrap
 from cibuildwheel.util.packaging import DependencyConstraints
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator, Iterable, Set
+    from typing import Any, Final, Literal, Self
 
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",

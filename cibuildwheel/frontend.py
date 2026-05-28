@@ -1,11 +1,18 @@
+from __future__ import annotations
+
 import dataclasses
 import shlex
 import typing
-from collections.abc import Sequence
-from typing import Literal, Self, get_args
+from typing import Literal, get_args
 
-from cibuildwheel.typing import PathOrStr
 from cibuildwheel.util.helpers import parse_key_value_string, prepare_command
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from typing import Self
+
+    from cibuildwheel.typing import PathOrStr
 
 BuildFrontendName = Literal["pip", "build", "build[uv]", "uv"]
 

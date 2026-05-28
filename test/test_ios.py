@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 import os
 import platform
 import shutil
 import subprocess
 import textwrap
-from pathlib import Path
 
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 pytestmark = pytest.mark.ios
 

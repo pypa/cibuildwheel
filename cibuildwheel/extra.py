@@ -2,16 +2,23 @@
 These are utilities for the `/bin` scripts, not for the `cibuildwheel` program.
 """
 
+from __future__ import annotations
+
 import json
 import time
 import typing
 import urllib.error
 import urllib.request
-from collections.abc import Mapping, Sequence
 from io import StringIO
-from typing import Any, NotRequired, Protocol
+from typing import NotRequired, Protocol
 
 from cibuildwheel import __version__ as cibw_version
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+    from typing import Any
+
 
 __all__ = ("Printable", "dump_python_configurations")
 

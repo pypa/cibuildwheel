@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import io
 import json
@@ -10,18 +12,24 @@ import sys
 import textwrap
 import typing
 import uuid
-from collections.abc import Mapping, Sequence
 from enum import Enum
-from pathlib import Path, PurePath, PurePosixPath
-from types import TracebackType
-from typing import IO, Literal, Self, assert_never
+from pathlib import PurePosixPath
+from typing import Literal, assert_never
 
 from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.errors import OCIEngineTooOldError
 from cibuildwheel.logger import log
-from cibuildwheel.typing import PathOrStr
 from cibuildwheel.util.cmd import call
 from cibuildwheel.util.helpers import FlexibleVersion, parse_key_value_string, strtobool
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+    from pathlib import Path, PurePath
+    from types import TracebackType
+    from typing import IO, Self
+
+    from cibuildwheel.typing import PathOrStr
 
 ContainerEngineName = Literal["docker", "podman"]
 
