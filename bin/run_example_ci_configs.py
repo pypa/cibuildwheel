@@ -3,6 +3,7 @@
 # /// script
 # dependencies = [
 #   "click",
+#   "jinja2",
 # ]
 # ///
 
