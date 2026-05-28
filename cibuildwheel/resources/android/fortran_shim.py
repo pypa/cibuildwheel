@@ -6,6 +6,7 @@ import re
 import shutil
 import sys
 from pathlib import Path
+from tempfile import gettempdir
 
 from filelock import FileLock
 
@@ -18,7 +19,7 @@ RELEASE_VERSION = "r27c"
 ARCHS = ["aarch64", "x86_64"]
 
 # The compiler is built for Linux x86_64, so we use Docker on macOS.
-DOCKER_IMAGE = "debian:trixie"
+DOCKER_IMAGE = "debian:trixie-slim"
 
 
 def main() -> None:
@@ -46,7 +47,7 @@ def download_flang(cache_dir: Path) -> None:
         archive_path.unlink()
 
     # Merge the extracted trees together, along with the necessary parts of the NDK. Based on
-    # https://github.com/kivy/python-for-android/blob/develop/pythonforandroid/recipes/fortran/__init__.py)
+    # https://github.com/kivy/python-for-android/blob/develop/pythonforandroid/recipes/fortran/__init__.py.
     flang_toolchain = tmp_dir / "toolchain"
     (tmp_dir / "out/install/linux-x86/clang-dev").rename(flang_toolchain)
 
@@ -93,9 +94,19 @@ def run_flang(cache_dir: Path) -> None:
         args = flang_args
     elif sys.platform == "darwin":
         args = ["docker", "run", "--rm", "--platform", "linux/amd64"]
-        for path in ["/private", "/Users", "/tmp"]:
-            # Docker on macOS only allows certain directories to be mounted as volumes
-            # by default, but they include all the locations we're likely to need.
+        # Docker on macOS only allows certain directories to be mounted as volumes
+        # by default, but they include all the locations we're likely to need.
+        for path in [
+            # Location of CIBW_CACHE_PATH (containing the Fortran compiler), and
+            # probably the project directory.
+            Path.home(),
+            # Temporary directories created by build backends and cibuildwheel itself.
+            # This is controlled by the TMPDIR environment variable, which is set to
+            # an unpredictable subdirectory of /var/folders. /var is itself a symlink
+            # to /private/var.
+            Path(gettempdir()),
+            Path(gettempdir()).resolve(),
+        ]:
             args += ["-v", f"{path}:{path}"]
         args += ["--workdir", str(Path.cwd())]
         args += ["--entrypoint", flang_args[0], DOCKER_IMAGE, *flang_args[1:]]

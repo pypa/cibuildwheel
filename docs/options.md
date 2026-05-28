@@ -967,7 +967,7 @@ The following placeholders must be used inside the command and will be replaced 
 - `{wheel}` for the absolute path to the built wheel
 - `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
 - `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
-- `{ldpaths}` (Android only) colon-separated list of directories to search for external libraries, set by cibuildwheel to include any necessary locations in the NDK. You can add more directories by appending your own directories with a colon separator after the placeholder, or by setting the `LD_LIBRARY_PATH` environment variable.
+- `{ldpaths}` (Android only) colon-separated list of directories to search for external libraries, set by cibuildwheel to include any necessary locations in the NDK. You can add more directories by appending them with a colon separator after the placeholder, or by setting the `AUDITWHEEL_LD_LIBRARY_PATH` environment variable.
 
 You can use the `{package}` or `{project}` placeholders in your `repair-wheel-command` to refer to the package being built or the project root, respectively.
 
