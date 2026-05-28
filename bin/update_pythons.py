@@ -63,6 +63,7 @@ class ConfigUrl(Config):
 class ConfigPyodide(Config):
     default_pyodide_version: str
     node_version: str
+    sha256: str
 
 
 # The following set of "Versions" classes allow the initial call to the APIs to
@@ -437,6 +438,7 @@ class PyodideVersions:
             version=str(version),
             default_pyodide_version=release["version"],
             node_version=node_version,
+            sha256=release["sha256"],
         )
 
 

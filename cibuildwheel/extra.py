@@ -90,6 +90,7 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
 
 class PyodideXBuildEnvRelease(typing.TypedDict):
     version: str
+    sha256: str
     python_version: str
     emscripten_version: str
     min_pyodide_build_version: NotRequired[str]
