@@ -919,7 +919,7 @@ Platform-specific environment variables are also available on platforms that use
 ### `xbuild-files` {: #xbuild-files env-var toml}
 > Platform-specific files in the build environment
 
-When cross-compiling a package, any dependencies in its [`build-system.requires`](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) are installed for the build platform. However, some dependencies contain platform-specific files such as headers and static libraries, which must correspond to the target platform.
+When cross-compiling a package for Android, any dependencies in its [`build-system.requires`](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) are installed for the build platform. However, some dependencies contain platform-specific files such as headers and static libraries, which must correspond to the target platform.
 
 This option maps a [normalized](https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization) package name to a list of paths within that package. If the package is present in the build environment, then a matching version will be downloaded for the target platform, and used to overwrite the given paths within the build environment.
 
@@ -967,7 +967,7 @@ The following placeholders must be used inside the command and will be replaced 
 - `{wheel}` for the absolute path to the built wheel
 - `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
 - `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
-- `{ldpaths}` (Android only) colon-separated list of directories to search for external libraries. cibuildwheel will set this to include any necessary locations in the NDK. To add your own locations, use the `LD_LIBRARY_PATH` environment variable.
+- `{ldpaths}` (Android only) colon-separated list of directories to search for external libraries, set by cibuildwheel to include any necessary locations in the NDK. You can add more directories by appending your own directories with a colon separator after the placeholder, or by setting the `LD_LIBRARY_PATH` environment variable.
 
 You can use the `{package}` or `{project}` placeholders in your `repair-wheel-command` to refer to the package being built or the project root, respectively.
 
