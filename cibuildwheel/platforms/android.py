@@ -1,5 +1,33 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "build",
+    "build.env",
+    "cibuildwheel.architecture",
+    "cibuildwheel.audit",
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "cibuildwheel.util.python_build_standalone",
+    "cibuildwheel.venv",
+    "filelock",
+    "packaging",
+    "packaging.utils",
+    "pathlib",
+    "platform",
+    "pprint",
+    "re",
+    "runpy",
+    "shlex",
+    "shutil",
+    "subprocess",
+    "textwrap",
+    "typing",
+}
+
 import os
 import platform
 import re

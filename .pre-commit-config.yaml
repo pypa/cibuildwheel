@@ -84,6 +84,7 @@ repos:
     args: ["--select=LZY"]
     additional_dependencies: [flake8-lazy==0.7.1]
     files: '^cibuildwheel'
+    exclude: "^cibuildwheel/resources/android"
 
 - repo: https://github.com/codespell-project/codespell
   rev: 2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a  # frozen: v2.4.2
