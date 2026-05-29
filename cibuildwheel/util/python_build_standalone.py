@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import fnmatch
 import functools
+import hashlib
 import json
 import platform
 import typing
@@ -120,8 +121,19 @@ def _download_or_get_from_cache(
     with FileLock(cache_dir / (asset_filename + ".lock")):
         asset_cache_path = cache_dir / asset_filename
         if asset_cache_path.is_file():
-            print(f"Using cached python_build_standalone: {asset_cache_path}")
-            return asset_cache_path
+            if sha256:
+                computed = hashlib.sha256(asset_cache_path.read_bytes()).hexdigest()
+                if computed != sha256:
+                    print(
+                        f"Cached python_build_standalone SHA256 mismatch for {asset_cache_path}; redownloading."
+                    )
+                    asset_cache_path.unlink(missing_ok=True)
+                else:
+                    print(f"Using cached python_build_standalone: {asset_cache_path}")
+                    return asset_cache_path
+            else:
+                print(f"Using cached python_build_standalone: {asset_cache_path}")
+                return asset_cache_path
 
         print(f"Downloading python_build_standalone: {asset_url} to {asset_cache_path}")
         download(asset_url, asset_cache_path, sha256=sha256 or None)
