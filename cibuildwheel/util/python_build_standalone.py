@@ -5,6 +5,7 @@ __lazy_modules__ = {
     "cibuildwheel.util.resources",
     "filelock",
     "fnmatch",
+    "hashlib",
     "json",
     "platform",
 }
