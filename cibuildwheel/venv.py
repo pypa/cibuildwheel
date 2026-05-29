@@ -53,10 +53,11 @@ def _ensure_virtualenv(version: str) -> tuple[Path, Version]:
     configuration = loaded_file.get(key, loaded_file["default"])
     version = str(configuration["version"])
     url = str(configuration["url"])
+    sha256 = str(configuration["sha256"])
     path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"
     with FileLock(str(path) + ".lock"):
         if not path.exists():
-            download(url, path)
+            download(url, path, sha256=sha256)
     return (path, Version(version))
 
 

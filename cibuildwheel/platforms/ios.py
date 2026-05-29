@@ -46,6 +46,8 @@ class PythonConfiguration:
     identifier: str
     url: str
     build_url: str
+    build_sha256: str
+    sha256: str
 
     @property
     def sdk(self) -> str:
@@ -78,7 +80,7 @@ def all_python_configurations() -> list[PythonConfiguration]:
     # configuration.
     macos_python_configs = resources.read_python_configs("macos")
 
-    def build_url(config_dict: dict[str, str]) -> str:
+    def build_python_config(config_dict: dict[str, str]) -> dict[str, str]:
         # The iOS identifier will be something like cp313-ios_arm64_iphoneos.
         # Drop the iphoneos suffix, then replace ios with macosx to yield
         # cp313-macosx_arm64, which will be a macOS build identifier.
@@ -87,18 +89,22 @@ def all_python_configurations() -> list[PythonConfiguration]:
         matching = [
             config for config in macos_python_configs if config["identifier"] == macos_identifier
         ]
-        return matching[0]["url"]
+        return matching[0]
 
     # Load the platform configuration
     full_python_configs = resources.read_python_configs("ios")
     # Build the configurations, annotating with macOS URL details.
-    return [
-        PythonConfiguration(
-            **item,
-            build_url=build_url(item),
+    python_configurations = []
+    for item in full_python_configs:
+        build_config = build_python_config(item)
+        python_configurations.append(
+            PythonConfiguration(
+                **item,
+                build_url=build_config["url"],
+                build_sha256=build_config["sha256"],
+            )
         )
-        for item in full_python_configs
-    ]
+    return python_configurations
 
 
 def get_python_configurations(
@@ -133,7 +139,7 @@ def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threadin
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             downloaded_tar_gz = tmp / ios_python_tar_gz
-            download(config.url, downloaded_tar_gz)
+            download(config.url, downloaded_tar_gz, sha256=config.sha256)
             installation_path.mkdir(parents=True, exist_ok=True)
             call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
             downloaded_tar_gz.unlink()
@@ -319,6 +325,7 @@ def setup_python(
             python_configuration.version,
             python_configuration.build_url,
             free_threading,
+            python_configuration.build_sha256,
         )
     else:
         msg = f"Unknown Python implementation: {implementation_id}"

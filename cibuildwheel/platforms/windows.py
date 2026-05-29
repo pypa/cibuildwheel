@@ -73,6 +73,7 @@ class PythonConfiguration:
     version: str
     identifier: str
     url: str | None = None
+    sha256: str = ""
 
     @property
     def arch(self) -> str:
@@ -131,7 +132,7 @@ def install_cpython(configuration: PythonConfiguration, arch: str | None = None)
     return installation_path / "python.exe"
 
 
-def install_pypy(tmp: Path, arch: str, url: str) -> Path:
+def install_pypy(tmp: Path, arch: str, url: str, sha256: str) -> Path:
     assert arch == "64"
     assert "win64" in url
     # Inside the PyPy zip file is a directory with the same name
@@ -142,13 +143,13 @@ def install_pypy(tmp: Path, arch: str, url: str) -> Path:
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             pypy_zip = tmp / zip_filename
-            download(url, pypy_zip)
+            download(url, pypy_zip, sha256=sha256)
             # Extract to the parent directory because the zip file still contains a directory
             extract_zip(pypy_zip, installation_path.parent)
     return installation_path / "python.exe"
 
 
-def install_graalpy(tmp: Path, url: str) -> Path:
+def install_graalpy(tmp: Path, url: str, sha256: str) -> Path:
     zip_filename = url.rsplit("/", 1)[-1]
     extension = ".zip"
     assert zip_filename.endswith(extension)
@@ -156,7 +157,7 @@ def install_graalpy(tmp: Path, url: str) -> Path:
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             graalpy_zip = tmp / zip_filename
-            download(url, graalpy_zip)
+            download(url, graalpy_zip, sha256=sha256)
             # Extract to the parent directory because the zip file still contains a directory
             extract_zip(graalpy_zip, installation_path.parent)
     return installation_path / "bin" / "graalpy.exe"
@@ -272,9 +273,14 @@ def setup_python(
             base_python = install_cpython(python_configuration, arch=native_arch)
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
-        base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
+        assert python_configuration.sha256
+        base_python = install_pypy(
+            tmp, python_configuration.arch, python_configuration.url, python_configuration.sha256
+        )
     elif implementation_id.startswith("gp"):
-        base_python = install_graalpy(tmp, python_configuration.url or "")
+        assert python_configuration.url is not None
+        assert python_configuration.sha256
+        base_python = install_graalpy(tmp, python_configuration.url, python_configuration.sha256)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)

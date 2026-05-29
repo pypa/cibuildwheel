@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import shutil
 import ssl
@@ -45,7 +46,7 @@ def ensure_cache_sentinel(cache_path: Path) -> None:
             )
 
 
-def download(url: str, dest: Path) -> None:
+def download(url: str, dest: Path, *, sha256: str | None = None) -> None:
     print(f"+ Download {url} to {dest}")
     dest_dir = dest.parent
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -59,12 +60,19 @@ def download(url: str, dest: Path) -> None:
         try:
             with urllib.request.urlopen(url, context=context) as response:
                 dest.write_bytes(response.read())
-                return
+                break
 
         except OSError:
             if i == repeat_num - 1:
                 raise
             time.sleep(3)
+
+    if sha256:
+        computed = hashlib.sha256(dest.read_bytes()).hexdigest()
+        if computed != sha256:
+            dest.unlink(missing_ok=True)
+            msg = f"SHA256 mismatch for {url}: expected {sha256!r}, got {computed!r}"
+            raise FatalError(msg)
 
 
 def extract_zip(zip_src: Path, dest: Path) -> None:
