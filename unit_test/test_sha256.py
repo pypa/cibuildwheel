@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 
+from cibuildwheel.platforms import pyodide
 from cibuildwheel.util import python_build_standalone
 
 TYPE_CHECKING = False
@@ -9,6 +10,13 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     import pytest
+
+
+def test_pyodide_all_python_configurations_accept_sha256() -> None:
+    python_configurations = pyodide.all_python_configurations()
+
+    assert python_configurations
+    assert all(config.sha256 for config in python_configurations)
 
 
 def test_download_or_get_from_cache_uses_valid_cached_file(
