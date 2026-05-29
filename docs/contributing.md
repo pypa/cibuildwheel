@@ -1,5 +1,6 @@
 ---
 title: Contributing
+ref: contributing
 ---
 
 # Contributing

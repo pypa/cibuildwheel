@@ -1,5 +1,6 @@
 ---
 title: Working examples
+ref: working-examples
 ---
 
 <!-- START bin/projects.py -->

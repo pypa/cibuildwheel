@@ -1,3 +1,8 @@
+---
+title: Options
+ref: options
+---
+
 # Options
 
 <div class="options-toc"></div>
