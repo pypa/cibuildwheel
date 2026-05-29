@@ -190,8 +190,19 @@
           },
         },
         {
+          label: 'Repair using delvewheel',
           href: 'options/#repair-wheel-command',
-          platforms: ['windows', 'ios', 'pyodide'],
+          platforms: ['windows'],
+          style: 'block',
+          tooltip: {
+            title: 'CIBW_REPAIR_WHEEL_COMMAND',
+            tag: 'Customisable step',
+            description: 'Bundle shared libraries by running delvewheel on each built wheel.'
+          },
+        },
+        {
+          href: 'options/#repair-wheel-command',
+          platforms: ['ios', 'pyodide'],
           style: 'dot',
           tooltip: {
             title: 'CIBW_REPAIR_WHEEL_COMMAND',
