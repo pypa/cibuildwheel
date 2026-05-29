@@ -382,6 +382,7 @@ oses = {
 
 for os_name, command in [
     ("linux", "auditwheel repair -w {dest_dir} {wheel}"),
+    ("windows", "delvewheel repair -w {dest_dir} -v {wheel}"),
     ("macos", "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"),
     ("android", "auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}"),
 ]:

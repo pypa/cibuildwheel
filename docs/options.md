@@ -959,6 +959,7 @@ Platform-specific environment variables are also available:<br/>
 Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
+- on Windows: `'delvewheel repair -w {dest_dir} -v {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
 - on Android: `'auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}'`
 - on Pyodide: You can use `pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}` command to repair the wheel.
@@ -984,24 +985,14 @@ The command is run in a shell, so you can run multiple commands like `cmd1 && cm
 Platform-specific environment variables are also available:<br/>
 `CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_ANDROID` | `CIBW_REPAIR_WHEEL_COMMAND_IOS` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
 
-!!! tip
-    cibuildwheel doesn't yet ship a default repair command for Windows.
-
-    **If that's an issue for you, check out [delvewheel]** - a new package that aims to do the same as auditwheel or delocate for Windows.
-
-    Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
-
-    [Delvewheel]: https://github.com/adang1345/delvewheel
-
 #### Examples
 
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Use delvewheel on windows
+    # Don't repair Windows wheels
     [tool.cibuildwheel.windows]
-    before-build = "pip install delvewheel"
-    repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
+    repair-wheel-command = ""
 
     # Don't repair macOS wheels
     [tool.cibuildwheel.macos]
@@ -1029,9 +1020,8 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Use delvewheel on windows
-    CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+    # Don't repair Windows wheels
+    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
 
     # Don't repair macOS wheels
     CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
