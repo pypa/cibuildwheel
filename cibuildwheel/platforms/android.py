@@ -67,7 +67,7 @@ class PythonConfiguration:
     version: str
     identifier: str
     url: str
-    sha256: str = ""
+    sha256: str
 
     @property
     def arch(self) -> str:
@@ -182,7 +182,7 @@ def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
     python_tgz = CIBW_CACHE_PATH / config.url.rpartition("/")[-1]
     with FileLock(f"{python_tgz}.lock"):
         if not python_tgz.exists():
-            download(config.url, python_tgz, sha256=config.sha256 or None)
+            download(config.url, python_tgz, sha256=config.sha256)
 
     python_dir = build_path / "python"
     python_dir.mkdir()

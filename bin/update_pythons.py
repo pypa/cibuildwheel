@@ -158,10 +158,6 @@ class GraalPyVersions:
             msg = f"GraalPy {arch} not found for {spec}!"
             raise RuntimeError(msg)
 
-        release = releases[-1]
-        version = release["python_version"]
-        gpversion = release["graalpy_version"]
-
         if "macosx" in identifier:
             arch = "x86_64" if "x86_64" in identifier else "arm64"
             platform = "macos"
@@ -174,15 +170,20 @@ class GraalPyVersions:
 
         arch = "amd64" if arch == "x86_64" else "aarch64"
         ext = "zip" if "win" in identifier else "tar.gz"
-        urls = [
-            rf["browser_download_url"]
-            for rf in release["assets"]
-            if rf["name"].endswith(f"{platform}-{arch}.{ext}")
-            and rf["name"].startswith(f"graalpy-{gpversion.major}")
-        ]
-        if urls:
+        for release in reversed(releases):
+            version = release["python_version"]
+            gpversion = release["graalpy_version"]
+            urls = [
+                rf["browser_download_url"]
+                for rf in release["assets"]
+                if rf["name"].endswith(f"{platform}-{arch}.{ext}")
+                and rf["name"].startswith(f"graalpy-{gpversion.major}")
+            ]
+            if not urls:
+                continue
+
             (url,) = urls
-            # Fetch sha256 from the ".sha256" sidecar asset in the same release
+            # Fetch sha256 from the ".sha256" sidecar asset in the same release.
             sha256 = ""
             sha256_asset_name = url.rsplit("/", 1)[-1] + ".sha256"
             sha256_urls = [
@@ -200,6 +201,7 @@ class GraalPyVersions:
                 url=url,
                 sha256=sha256,
             )
+
         return None
 
 
@@ -494,8 +496,6 @@ class AllVersions:
                 elif "macosx_arm64" in identifier:
                     config_update = self.macos_pypy_arm64.update_version_macos(spec)
             elif identifier.startswith("gp"):
-                if "macosx_x86_64" in identifier:
-                    return
                 config_update = self.graalpy.update_version(identifier, spec)
         elif "t-win32" in identifier and identifier.startswith("cp"):
             config_update = self.windows_t_32.update_version_windows(spec)

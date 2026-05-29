@@ -31,7 +31,14 @@ IOS_SUPPORT_FILES: Final[Path] = PATH / "ios-support"
 def read_all_configs() -> dict[str, list[dict[str, str]]]:
     with BUILD_PLATFORMS.open("rb") as f:
         loaded_file = tomllib.load(f)
-    return {k: list[dict[str, str]](v["python_configurations"]) for k, v in loaded_file.items()}
+    configs = {k: list[dict[str, str]](v["python_configurations"]) for k, v in loaded_file.items()}
+    for platform, python_configs in configs.items():
+        for config in python_configs:
+            if "url" in config and not config.get("sha256"):
+                identifier = config["identifier"]
+                msg = f"{platform} Python configuration {identifier!r} is missing a sha256"
+                raise ValueError(msg)
+    return configs
 
 
 def read_python_configs(config: PlatformName) -> list[dict[str, str]]:

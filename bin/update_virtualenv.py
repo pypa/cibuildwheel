@@ -99,7 +99,7 @@ def update_virtualenv(force: bool, level: str) -> None:
     else:
         version = local_version
         url = default["url"]
-        sha256 = default.get("sha256", "")
+        sha256 = default["sha256"]
 
     # Compute sha256 if not already stored (new version or first-time population)
     if not sha256:
@@ -117,7 +117,7 @@ def update_virtualenv(force: bool, level: str) -> None:
         "sha256": sha256,
     }
     result_toml = "".join(
-        f'{key} = {{ version = "{value["version"]}", url = "{value["url"]}", sha256 = "{value.get("sha256", "")}" }}\n'
+        f'{key} = {{ version = "{value["version"]}", url = "{value["url"]}", sha256 = "{value["sha256"]}" }}\n'
         for key, value in configurations.items()
     )
 
