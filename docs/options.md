@@ -916,6 +916,35 @@ Platform-specific environment variables are also available on platforms that use
     ```
 
 
+### `xbuild-files` {: #xbuild-files env-var toml}
+> Platform-specific files in the build environment
+
+When cross-compiling a package for Android, any dependencies in its [`build-system.requires`](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) are installed for the build platform. However, some dependencies contain platform-specific files such as headers and static libraries, which must correspond to the target platform.
+
+This option maps a [normalized](https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization) package name to a list of paths within that package. If the package is present in the build environment, then a matching version will be downloaded for the target platform, and used to overwrite the given paths within the build environment.
+
+The default value of this option includes [paths from popular packages](configuration.md#configuration-file).
+
+Platform-specific environment variables are also available:<br/>
+ `CIBW_XBUILD_FILES_ANDROID`
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.xbuild-files]
+    package1 = ["some/header.h", "some/library.a"]
+    package2 = ["other/header.h"]
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_XBUILD_FILES: "package1: some/header.h some/library.a; package2: other/header.h"
+    ```
+
+
 ### `repair-wheel-command` {: #repair-wheel-command env-var toml}
 > Execute a shell command to repair each built wheel
 
@@ -923,8 +952,7 @@ Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
-- on Android: There is no default command, but cibuildwheel will add `libc++` to the
-  wheel if anything links against it. Setting a command will replace this behavior.
+- on Android: `'auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}'`
 - on Pyodide: You can use `pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}` command to repair the wheel.
   Unlike other platforms, this command is not set by default as you need to explicitly
   specify the library directory. You might not want to use the libraries in the system
@@ -939,6 +967,7 @@ The following placeholders must be used inside the command and will be replaced 
 - `{wheel}` for the absolute path to the built wheel
 - `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
 - `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
+- `{ldpaths}` (Android only) colon-separated list of directories to search for external libraries, set by cibuildwheel to include any necessary locations in the NDK. You can add more directories by appending them with a colon separator after the placeholder, or by setting the `AUDITWHEEL_LD_LIBRARY_PATH` environment variable.
 
 You can use the `{package}` or `{project}` placeholders in your `repair-wheel-command` to refer to the package being built or the project root, respectively.
 

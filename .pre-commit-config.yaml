@@ -39,7 +39,6 @@ repos:
       - nox>=2025.2.9
       - orjson
       - packaging
-      - pyelftools
       - pygithub
       - pytest
       - rich

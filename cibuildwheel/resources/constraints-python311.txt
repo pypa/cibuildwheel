@@ -10,6 +10,8 @@ attrs==26.1.0
     # via
     #   cattrs
     #   requests-cache
+auditwheel==6.7.0
+    # via -r cibuildwheel/resources/constraints.in
 build==1.5.0
     # via -r cibuildwheel/resources/constraints.in
 cattrs==26.1.0
@@ -43,8 +45,11 @@ mdurl==0.1.2
 packaging==26.2
     # via
     #   abi3audit
+    #   auditwheel
     #   build
     #   delocate
+patchelf==0.17.2.4
+    # via -r cibuildwheel/resources/constraints.in
 pefile==2024.8.26
     # via
     #   abi3audit
@@ -52,13 +57,17 @@ pefile==2024.8.26
 pip==26.1.1; implementation_name != "graalpy" or platform_system != "Windows"
 pip==26.0.1; implementation_name == "graalpy" and platform_system == "Windows"
     # via -r cibuildwheel/resources/constraints.in
+pkgconf==2.5.1.post2
+    # via -r cibuildwheel/resources/constraints.in
 platformdirs==4.9.6
     # via
     #   python-discovery
     #   requests-cache
     #   virtualenv
 pyelftools==0.32
-    # via abi3audit
+    # via
+    #   abi3audit
+    #   auditwheel
 pygments==2.20.0
     # via rich
 pyproject-hooks==1.2.0

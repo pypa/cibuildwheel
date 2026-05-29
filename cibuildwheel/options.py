@@ -120,6 +120,7 @@ class BuildOptions:
     before_all: str
     before_build: str | None
     xbuild_tools: list[str] | None
+    xbuild_files: dict[str, list[str]]
     repair_command: str
     manylinux_images: dict[str, str] | None
     musllinux_images: dict[str, str] | None
@@ -772,6 +773,14 @@ class Options:
             if xbuild_tools == ["\u0000"]:
                 xbuild_tools = None
 
+            xbuild_files = parse_key_value_string(
+                self.reader.get(
+                    "xbuild-files",
+                    option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+                ),
+                kw_arg_names=["*"],
+            )
+
             test_sources = shlex.split(
                 self.reader.get(
                     "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
@@ -925,6 +934,7 @@ class Options:
                 before_all=before_all,
                 build_verbosity=build_verbosity,
                 xbuild_tools=xbuild_tools,
+                xbuild_files=xbuild_files,
                 repair_command=repair_command,
                 environment=environment,
                 dependency_constraints=dependency_constraints,

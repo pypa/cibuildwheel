@@ -15,6 +15,8 @@ parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--schemastore", action="store_true", help="Generate schema_store version")
 args = parser.parse_args()
 
+# The defaults in the schema are used by external tools for validation and IDE support. They
+# should match the values in defaults.toml, which are used by cibuildwheel itself.
 starter = """
 $schema: http://json-schema.org/draft-07/schema#
 $id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
@@ -200,6 +202,9 @@ properties:
   xbuild-tools:
     description: Binaries on the path that should be included in an isolated cross-build environment
     type: string_array
+  xbuild-files:
+    description: Platform-specific files in the build environment
+    type: string_table_array
   pyodide-version:
     type: string
     description: Specify the version of Pyodide to use
@@ -319,6 +324,7 @@ items:
         before-all: {"$ref": "#/$defs/inherit"}
         before-build: {"$ref": "#/$defs/inherit"}
         xbuild-tools: {"$ref": "#/$defs/inherit"}
+        xbuild-files: {"$ref": "#/$defs/inherit"}
         before-test: {"$ref": "#/$defs/inherit"}
         config-settings: {"$ref": "#/$defs/inherit"}
         container-engine: {"$ref": "#/$defs/inherit"}
@@ -374,14 +380,15 @@ oses = {
     "ios": as_object(not_linux),
 }
 
-oses["linux"]["properties"]["repair-wheel-command"] = {
-    **schema["properties"]["repair-wheel-command"],
-    "default": "auditwheel repair -w {dest_dir} {wheel}",
-}
-oses["macos"]["properties"]["repair-wheel-command"] = {
-    **schema["properties"]["repair-wheel-command"],
-    "default": "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
-}
+for os_name, command in [
+    ("linux", "auditwheel repair -w {dest_dir} {wheel}"),
+    ("macos", "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"),
+    ("android", "auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}"),
+]:
+    oses[os_name]["properties"]["repair-wheel-command"] = {
+        **schema["properties"]["repair-wheel-command"],
+        "default": command,
+    }
 
 del oses["linux"]["properties"]["dependency-versions"]
 
