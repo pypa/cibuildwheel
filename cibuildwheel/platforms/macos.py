@@ -466,6 +466,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.environment,
                 build_frontend.name,
             )
+            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
             pip_version = None if use_uv else get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)

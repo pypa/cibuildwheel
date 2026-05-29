@@ -140,6 +140,7 @@ def build(options: Options, tmp_path: Path) -> None:
             build_path.mkdir()
             python_dir = setup_target_python(config, build_path)
             build_env, android_env = setup_env(config, build_options, build_path, python_dir)
+
             state = BuildState(
                 config, build_options, build_path, python_dir, build_env, android_env
             )
@@ -228,6 +229,7 @@ def setup_env(
 
     # Apply custom environment variables, and check environment is still valid
     build_env = build_options.environment.as_dictionary(build_env)
+    build_env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
     build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
     for command in ["python"] if use_uv else ["python", "pip"]:
         command_path = call("which", command, env=build_env, capture_stdout=True).strip()

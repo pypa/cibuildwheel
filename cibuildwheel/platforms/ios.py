@@ -482,6 +482,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_frontend=build_frontend.name,
                 xbuild_tools=build_options.xbuild_tools,
             )
+            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
