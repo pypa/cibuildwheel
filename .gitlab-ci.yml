@@ -30,7 +30,11 @@ windows:
   rules:
     - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH =~ /^gitlab/'
       variables:
-        CIBW_ENABLE: "all"
+        # Everything except graalpy. GraalPy is JVM-based and very slow to
+        # start; on the small (2-core) GitLab SaaS Windows runners,
+        # virtualenv's interpreter query for graalpy.exe times out, failing
+        # the build. (Other platforms run the full "all" group.)
+        CIBW_ENABLE: "cpython-prerelease pypy pypy-eol pyodide-eol pyodide-prerelease"
   script:
     - python -m pip install -U pip
     - python -m pip install -e. pytest-custom-exit-code --group test
