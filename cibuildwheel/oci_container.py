@@ -298,7 +298,10 @@ class OCIContainer:
                     ).strip()
                 else:
                     raise
-            simulate_32_bit = container_machine not in {"i686", "armv7l", "armv8l"}
+            if container_machine not in {"i686", "armv7l", "armv8l"}:
+                simulate_32_bit = True
+                # sanity check to ensure no deadlock waiting for container to start
+                call(*run_cmd, self.image, "linux32", "/bin/true", capture_stdout=True)
 
         shell_args = ["linux32", "/bin/bash"] if simulate_32_bit else ["/bin/bash"]
 
