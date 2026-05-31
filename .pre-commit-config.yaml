@@ -77,12 +77,11 @@ repos:
     files: '^(README\.md|docs/changelog\.md|docs/options\.md|bin/readme.*)$'
     additional_dependencies: [cogapp>=3.5]
 
-- repo: https://github.com/PyCQA/flake8
-  rev: c48217e1fc006c2dddd14df54e83b67da15de5cd  # frozen: 7.3.0
+- repo: https://github.com/henryiii/flake8-lazy
+  rev: 6898c4b9b8817d021002b2beed6986621ad589ad  # frozen: v0.8.0
   hooks:
-  - id: flake8
-    args: ["--select=LZY"]
-    additional_dependencies: [flake8-lazy==0.7.1]
+  - id: flake8-lazy
+    args: ["--apply=set"]
     files: '^cibuildwheel'
     exclude: "^cibuildwheel/resources/android"
 
