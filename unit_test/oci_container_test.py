@@ -570,7 +570,7 @@ def test_local_image(
     )
     container = OCIContainer(engine=container_engine, image=local_image, oci_platform=platform)
     # before image is built & available, we want to pull it
-    subprocess.run([container_engine.name, "rmi", local_image], check=True)
+    subprocess.run([container_engine.name, "rmi", local_image], check=False)
     assert container._get_platform_args() == (f"--platform={platform.value}", "--pull=always")
     subprocess.run(
         [container_engine.name, "build", f"--platform={platform.value}", "-t", local_image, "."],
