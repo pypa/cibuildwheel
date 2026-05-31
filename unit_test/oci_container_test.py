@@ -568,13 +568,20 @@ def test_local_image(
         [container_engine.name, "pull", f"--platform={platform.value}", remote_image],
         check=True,
     )
+    container = OCIContainer(engine=container_engine, image=local_image, oci_platform=platform)
+    # before image is built & available, we want to pull it
+    subprocess.run([container_engine.name, "rmi", local_image], check=False)
+    assert container._get_platform_args() == (f"--platform={platform.value}", "--pull=always")
     subprocess.run(
         [container_engine.name, "build", f"--platform={platform.value}", "-t", local_image, "."],
         check=True,
         cwd=tmp_path,
     )
-    with OCIContainer(engine=container_engine, image=local_image, oci_platform=platform):
-        pass
+    # after image is built & available, we never want to pull it
+    expected_platform_args = f"--platform={platform.value}", "--pull=never"
+    assert container._get_platform_args() == expected_platform_args
+    with container:
+        assert container._get_platform_args() == expected_platform_args
 
 
 @pytest.mark.parametrize("platform", list(OCIPlatform))
@@ -612,6 +619,14 @@ def test_multiarch_image(container_engine: OCIContainerEngineConfig, platform: O
             OCIPlatform.S390X: "s390x",
         }
         assert output_map_dpkg[platform] == output.strip()
+        # There's no way to check reliably the presence of a specific platform image in the local
+        # store when the image storage backend supports multi-platform images (such as containerd).
+        # When platform != DEFAULT_OCI_PLATFORM and the image storage backend supports
+        # multi-platform images, _get_platform_args will return "--pull=always", at least when the
+        # DEFAULT_OCI_PLATFORM image is present.
+        if platform == DEFAULT_OCI_PLATFORM:
+            expected_platform_args = f"--platform={platform.value}", "--pull=never"
+            assert container._get_platform_args() == expected_platform_args
 
 
 @pytest.mark.parametrize(

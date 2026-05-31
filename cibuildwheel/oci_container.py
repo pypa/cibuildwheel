@@ -257,6 +257,7 @@ class OCIContainer:
                 # this allows to run local only images
                 pull = "never"
         except subprocess.CalledProcessError:
+            # silently fallback to "--pull=always"
             pass
         return f"--platform={oci_platform.value}", f"--pull={pull}"
 
