@@ -584,6 +584,51 @@ def test_local_image(
         assert container._get_platform_args() == expected_platform_args
 
 
+def test_enter_error(container_engine: OCIContainerEngineConfig, tmp_path: Path) -> None:
+    remote_image = "debian:trixie-slim"
+    platform = DEFAULT_OCI_PLATFORM
+    local_image = f"cibw_{container_engine.name}_enter:latest"
+    dockerfile = tmp_path / "Dockerfile"
+    dockerfile.write_text(f"FROM {remote_image}\nRUN ln -sf false /bin/true")
+    subprocess.run(
+        [container_engine.name, "pull", f"--platform={platform.value}", remote_image],
+        check=True,
+    )
+    subprocess.run(
+        [container_engine.name, "build", f"--platform={platform.value}", "-t", local_image, "."],
+        check=True,
+        cwd=tmp_path,
+    )
+    container = OCIContainer(engine=container_engine, image=local_image, oci_platform=platform)
+    with pytest.raises(subprocess.CalledProcessError, match="/bin/true"), container:
+        pass
+    assert container.name is None
+    assert container.process is None
+
+
+@pytest.mark.parametrize("ci", [True, False])
+def test_enter_error_cleanup_failure(
+    ci: bool, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    provider = cibuildwheel.ci.CIProvider.other if ci else None
+    monkeypatch.setattr(cibuildwheel.oci_container, "detect_ci_provider", lambda: provider)
+    result: subprocess.CompletedProcess[bytes] = subprocess.CompletedProcess(
+        "", returncode=1, stdout=None, stderr=None
+    )
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: result)
+    engine = OCIContainerEngineConfig("docker")
+    container = OCIContainer(engine=engine, image="foo", oci_platform=OCIPlatform.AMD64)
+    container.name = "bar"
+    container._remove_container()
+    out, err = capsys.readouterr()
+    assert out == ""
+    if ci:
+        assert err == ""
+    else:
+        assert "warning" in err
+        assert "Failed to remove 'bar' container" in err
+
+
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine: OCIContainerEngineConfig, platform: OCIPlatform) -> None:
     if detect_ci_provider() == CIProvider.travis_ci and DEFAULT_OCI_PLATFORM not in {

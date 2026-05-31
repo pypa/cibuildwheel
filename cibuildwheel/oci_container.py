@@ -206,7 +206,6 @@ class OCIContainer:
 
     UTILITY_PYTHON = "/opt/python/cp39-cp39/bin/python"
 
-    process: subprocess.Popen[bytes]
     bash_stdin: IO[bytes]
     bash_stdout: IO[bytes]
 
@@ -226,6 +225,7 @@ class OCIContainer:
         self.oci_platform = oci_platform
         self.cwd = cwd
         self.name: str | None = None
+        self.process: subprocess.Popen[bytes] | None = None
         self.engine = engine
         self.host_tar_format = ""
         if sys.platform.startswith("darwin"):
@@ -262,6 +262,7 @@ class OCIContainer:
         return f"--platform={oci_platform.value}", f"--pull={pull}"
 
     def __enter__(self) -> Self:
+        assert self.process is None
         self.name = f"cibuildwheel-{uuid.uuid4()}"
 
         _check_engine_version(self.engine)
@@ -319,32 +320,41 @@ class OCIContainer:
             check=True,
         )
 
-        self.process = subprocess.Popen(
-            [
-                self.engine.name,
-                "start",
-                "--attach",
-                "--interactive",
-                self.name,
-            ],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-        )
+        try:
+            self.process = subprocess.Popen(
+                [
+                    self.engine.name,
+                    "start",
+                    "--attach",
+                    "--interactive",
+                    self.name,
+                ],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+            )
 
-        assert self.process.stdin
-        assert self.process.stdout
-        self.bash_stdin = self.process.stdin
-        self.bash_stdout = self.process.stdout
+            assert self.process.stdin
+            assert self.process.stdout
+            self.bash_stdin = self.process.stdin
+            self.bash_stdout = self.process.stdout
 
-        # run a noop command to block until the container is responding
-        self.call(["/bin/true"], cwd="/")
+            # run a noop command to block until the container is responding
+            self.call(["/bin/true"], cwd="/")
 
-        if self.cwd:
-            # Although `docker create -w` does create the working dir if it
-            # does not exist, podman does not. There does not seem to be a way
-            # to setup a workdir for a container running in podman.
-            self.call(["mkdir", "-p", os.fspath(self.cwd)], cwd="/")
-
+            if self.cwd:
+                # Although `docker create -w` does create the working dir if it
+                # does not exist, podman does not. There does not seem to be a way
+                # to setup a workdir for a container running in podman.
+                self.call(["mkdir", "-p", os.fspath(self.cwd)], cwd="/")
+        except BaseException:
+            # clean-up
+            if self.process is not None:
+                if self.process.poll() is None:
+                    self.process.kill()
+                self.process.communicate()
+            self.process = None
+            self._remove_container()
+            raise
         return self
 
     def __exit__(
@@ -353,6 +363,7 @@ class OCIContainer:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
+        assert self.process is not None
         self.bash_stdin.write(b"exit 0\n")
         self.bash_stdin.flush()
         self.process.wait(timeout=30)
@@ -366,16 +377,24 @@ class OCIContainer:
             # For now, this seems to work "well enough".
             self.process.wait()
 
-        assert isinstance(self.name, str)
+        self.process = None
 
         keep_container = strtobool(os.environ.get("CIBW_DEBUG_KEEP_CONTAINER", ""))
         if not keep_container:
-            subprocess.run(
-                [self.engine.name, "rm", "--force", "-v", self.name],
-                stdout=subprocess.DEVNULL,
-                check=False,
-            )
-            self.name = None
+            self._remove_container()
+
+    def _remove_container(self) -> None:
+        assert self.name is not None
+        result = subprocess.run(
+            [self.engine.name, "rm", "--force", "-v", self.name],
+            stdout=subprocess.DEVNULL,
+            check=False,
+        )
+        # only warn when not running in CI
+        if result.returncode != 0 and detect_ci_provider() is None:
+            msg = f"Failed to remove {self.name!r} container."
+            log.warning(msg)
+        self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         if from_path.is_dir():
