@@ -135,7 +135,7 @@ Set the `CIBW_CACHE_PATH` environment variable to point cibuildwheel at a differ
 #### Persisting the cache on GitHub Actions
 
 ```yaml
-- uses: actions/cache@v4
+- uses: actions/cache@v5
   with:
     path: .cibw-cache
     key: cibw-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
