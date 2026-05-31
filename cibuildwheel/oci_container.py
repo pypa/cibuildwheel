@@ -345,10 +345,11 @@ class OCIContainer:
                 # does not exist, podman does not. There does not seem to be a way
                 # to setup a workdir for a container running in podman.
                 self.call(["mkdir", "-p", os.fspath(self.cwd)], cwd="/")
-        except:
+        except BaseException:
             # clean-up
-            if self.process is not None and self.process.poll() is None:
-                self.process.kill()
+            if self.process is not None:
+                if self.process.poll() is None:
+                    self.process.kill()
                 self.process.communicate()
             self.process = None
             self._remove_container()
