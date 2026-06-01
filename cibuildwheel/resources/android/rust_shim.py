@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-__lazy_modules__ = {"pathlib", "shutil", "subprocess"}
-
 import os
 import shutil
 import subprocess

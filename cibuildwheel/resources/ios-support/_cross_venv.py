@@ -1,5 +1,3 @@
-__lazy_modules__ = {"shutil", "sysconfig"}
-
 import shutil
 import sys
 import sysconfig

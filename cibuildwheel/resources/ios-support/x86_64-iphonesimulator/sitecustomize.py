@@ -2,9 +2,6 @@
 # cross-platform. If the folder containing this file is on your PYTHONPATH when
 # you invoke python, the interpreter will behave as if it were running on
 # x86_64 iphonesimulator.
-
-__lazy_modules__ = {"_cross_venv", "_cross_x86_64_iphonesimulator", "sitecustomize"}
-
 import sys
 import os
 
