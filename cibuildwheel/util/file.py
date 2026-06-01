@@ -7,6 +7,7 @@ import ssl
 import tarfile
 import time
 import urllib.request
+from contextlib import contextmanager
 from pathlib import Path, PurePath
 from typing import Final
 from zipfile import ZipFile
@@ -18,12 +19,24 @@ from cibuildwheel.errors import FatalError
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Generator
 
 DEFAULT_CIBW_CACHE_PATH: Final[Path] = user_cache_path(appname="cibuildwheel", appauthor="pypa")
 CIBW_CACHE_PATH: Final[Path] = Path(
     os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)
 ).resolve()
+
+
+@contextmanager
+def remove_on_error(path: Path) -> Generator[None, None, None]:
+    try:
+        yield
+    except BaseException:
+        if path.is_dir():
+            shutil.rmtree(path, ignore_errors=True)
+        elif path.exists():
+            path.unlink(missing_ok=True)
+        raise
 
 
 def ensure_cache_sentinel(cache_path: Path) -> None:
@@ -56,23 +69,23 @@ def download(url: str, dest: Path, *, sha256: str | None = None) -> None:
     cafile = os.environ.get("SSL_CERT_FILE", certifi.where())
     context = ssl.create_default_context(cafile=cafile)
     repeat_num = 3
-    for i in range(repeat_num):
-        try:
-            with urllib.request.urlopen(url, context=context) as response:
-                dest.write_bytes(response.read())
-                break
+    with remove_on_error(dest):
+        for i in range(repeat_num):
+            try:
+                with urllib.request.urlopen(url, context=context) as response:
+                    dest.write_bytes(response.read())
+                    break
 
-        except OSError:
-            if i == repeat_num - 1:
-                raise
-            time.sleep(3)
+            except OSError:
+                if i == repeat_num - 1:
+                    raise
+                time.sleep(3)
 
-    if sha256:
-        computed = hashlib.sha256(dest.read_bytes()).hexdigest()
-        if computed != sha256:
-            dest.unlink(missing_ok=True)
-            msg = f"SHA256 mismatch for {url}: expected {sha256!r}, got {computed!r}"
-            raise FatalError(msg)
+        if sha256:
+            computed = hashlib.sha256(dest.read_bytes()).hexdigest()
+            if computed != sha256:
+                msg = f"SHA256 mismatch for {url}: expected {sha256!r}, got {computed!r}"
+                raise FatalError(msg)
 
 
 def extract_zip(zip_src: Path, dest: Path) -> None:

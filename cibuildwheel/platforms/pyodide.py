@@ -29,6 +29,7 @@ from cibuildwheel.util.file import (
     extract_tar,
     extract_zip,
     move_file,
+    remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
@@ -88,14 +89,15 @@ def ensure_node(major_version: str) -> Path:
     path = CIBW_CACHE_PATH / name
     with FileLock(str(path) + ".lock"):
         if not path.exists():
-            url = f"{base_url}{version}/{name}.{ext}"
-            with TemporaryDirectory() as tmp_path:
-                archive = Path(tmp_path) / f"{name}.{ext}"
-                download(url, archive)
-                if ext == "zip":
-                    extract_zip(archive, path.parent)
-                else:
-                    extract_tar(archive, path.parent)
+            with remove_on_error(path):
+                url = f"{base_url}{version}/{name}.{ext}"
+                with TemporaryDirectory() as tmp_path:
+                    archive = Path(tmp_path) / f"{name}.{ext}"
+                    download(url, archive)
+                    if ext == "zip":
+                        extract_zip(archive, path.parent)
+                    else:
+                        extract_tar(archive, path.parent)
     assert path.exists()
     if not IS_WIN:
         return path / "bin"
