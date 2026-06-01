@@ -23,7 +23,7 @@ filelock==3.29.0
     # via
     #   python-discovery
     #   virtualenv
-idna==3.16
+idna==3.17
     # via requests
 leb128==1.0.9
     # via auditwheel-emscripten
@@ -37,9 +37,9 @@ packaging==26.2
     #   build
     #   pyodide-build
     #   wheel
-pip==26.1.1
+pip==26.1.2
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.9.6
+platformdirs==4.10.0
     # via
     #   pyodide-build
     #   python-discovery
@@ -62,7 +62,7 @@ pyodide-lock==0.1.3
     # via pyodide-build
 pyproject-hooks==1.2.0
     # via build
-python-discovery==1.3.1
+python-discovery==1.4.0
     # via virtualenv
 requests==2.34.2
     # via pyodide-build
@@ -81,7 +81,7 @@ typing-inspection==0.4.2
     # via pydantic
 urllib3==2.7.0
     # via requests
-virtualenv==21.3.3
+virtualenv==21.4.2
     # via
     #   build
     #   pyodide-build
