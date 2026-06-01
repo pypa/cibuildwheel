@@ -555,9 +555,12 @@ def test_local_image(
         platform,
     }:
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
-    if container_engine.name == "podman" and platform == OCIPlatform.ARMV7:
-        # both GHA & local macOS arm64 podman desktop are failing
-        pytest.xfail("podman fails with armv7l images")
+    if container_engine.name == "podman":
+        if platform == OCIPlatform.ARMV7:
+            # both GHA & local macOS arm64 podman desktop are failing
+            pytest.xfail("podman fails with armv7l images")
+        elif platform == OCIPlatform.i386 and sys.platform.startswith("darwin"):
+            pytest.xfail("podman fails with i386 images on macOS")
 
     remote_image = "debian:trixie-slim"
     platform_name = platform.value.replace("/", "_")
@@ -636,9 +639,13 @@ def test_multiarch_image(container_engine: OCIContainerEngineConfig, platform: O
         platform,
     }:
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
-    if container_engine.name == "podman" and platform == OCIPlatform.ARMV7:
-        # both GHA & local macOS arm64 podman desktop are failing
-        pytest.xfail("podman fails with armv7l images")
+    if container_engine.name == "podman":
+        if platform == OCIPlatform.ARMV7:
+            # both GHA & local macOS arm64 podman desktop are failing
+            pytest.xfail("podman fails with armv7l images")
+        elif platform == OCIPlatform.i386 and sys.platform.startswith("darwin"):
+            pytest.xfail("podman fails with i386 images on macOS")
+
     with OCIContainer(
         engine=container_engine, image="debian:trixie-slim", oci_platform=platform
     ) as container:
