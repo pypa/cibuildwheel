@@ -41,6 +41,20 @@ def skip_if_ios_testing_not_supported() -> None:
         pytest.skip("this test only works with Xcode 13.0 or greater")
 
 
+@pytest.fixture
+def clean_ios_simulators() -> None:
+    """Shut down any running simulators before the build.
+
+    iOS builds occasionally hang for the full pytest timeout when a simulator
+    left booted (or wedged) by a previous build config is reused. Shutting them
+    down first means each parametrized config starts from a clean state. See the
+    180-minute hang on Azure (build 9043), which stalled on the second config.
+    """
+    if utils.get_platform() != "macos":
+        return
+    subprocess.run(["xcrun", "simctl", "shutdown", "all"], check=False, capture_output=True)
+
+
 # iOS tests shouldn't be run in parallel, because they're dependent on calling
 # Xcode, and starting a simulator. These are both multi-threaded operations, and
 # it's easy to overload the CI machine if there are multiple test processes
@@ -48,7 +62,8 @@ def skip_if_ios_testing_not_supported() -> None:
 # which is guaranteed to run single-process.
 # This can also fail the first time sometimes.
 @pytest.mark.serial
-@pytest.mark.flaky(reruns=2)
+@pytest.mark.flaky(reruns=1)
+@pytest.mark.usefixtures("clean_ios_simulators")
 @pytest.mark.parametrize(
     "build_config",
     [
@@ -173,7 +188,7 @@ def test_ios_testing_with_placeholder(tmp_path: Path, capfd: pytest.CaptureFixtu
 
 
 @pytest.mark.serial
-@pytest.mark.flaky(reruns=2)
+@pytest.mark.flaky(reruns=1)
 def test_ios_test_command_short_circuit(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     skip_if_ios_testing_not_supported()
 
