@@ -276,7 +276,12 @@ def setup_env(
         call(*pip, "install", *pb.build_system_requires, env=build_env)
 
     requires_for_build = pb.get_requires_for_build(
-        "wheel", parse_config_settings(build_options.config_settings)
+        "wheel",
+        parse_config_settings(
+            prepare_config_settings(
+                build_options.config_settings, project=".", package=build_options.package_dir
+            )
+        ),
     )
     if requires_for_build:
         call(*pip, "install", *requires_for_build, env=build_env)
