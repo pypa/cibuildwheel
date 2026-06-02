@@ -230,6 +230,12 @@ def setup_env(
 
     # Apply custom environment variables, and check environment is still valid
     build_env = build_options.environment.as_dictionary(build_env)
+    if not build_env["ANDROID_API_LEVEL"].isdigit():
+        msg = (
+            f"ANDROID_API_LEVEL must be an integer, not {build_env['ANDROID_API_LEVEL']!r}. "
+            "Check the value you set in the environment option."
+        )
+        raise errors.FatalError(msg)
     build_env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
     build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
     for command in ["python"] if use_uv else ["python", "pip"]:
