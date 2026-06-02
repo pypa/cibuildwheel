@@ -230,11 +230,6 @@ def setup_env(
 
     # Apply custom environment variables, and check environment is still valid
     build_env = build_options.environment.as_dictionary(build_env)
-    try:
-        int(build_env["ANDROID_API_LEVEL"])
-    except ValueError as e:
-        msg = f"ANDROID_API_LEVEL: {e}. This variable must be an integer."
-        raise errors.FatalError(msg) from e
     build_env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
     build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
     for command in ["python"] if use_uv else ["python", "pip"]:
@@ -349,7 +344,11 @@ def localized_vars(
             final = final.replace(orig_prefix, str(prefix))
 
         if key == "ANDROID_API_LEVEL":
-            final = int(build_env[key])
+            try:
+                final = int(build_env[key])
+            except ValueError as e:
+                msg = f"ANDROID_API_LEVEL: {e}. This variable must be an integer."
+                raise errors.FatalError(msg) from e
 
         # Build systems vary in whether FLAGS variables are read from sysconfig, and if so,
         # whether they're replaced by environment variables or combined with them. Even
