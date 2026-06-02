@@ -62,7 +62,17 @@ def _split_config_settings(config_settings: str) -> list[str]:
 
 
 def prepare_config_settings(config_settings: str, *, project: PathOrStr, package: PathOrStr) -> str:
-    return prepare_command(config_settings, project=project, package=package)
+    # Substitute the {project}/{package} placeholders on each already-split
+    # token rather than on the raw string. A substituted path may contain
+    # spaces or backslashes (e.g. a Windows `{package}` path), and the result
+    # is later re-parsed with shlex.split (in _split_config_settings /
+    # parse_config_settings) — substituting on the whole string would let
+    # those characters be reinterpreted, splitting one setting into several or
+    # eating backslashes. shlex.join re-quotes each token so the round-trip is
+    # lossless.
+    settings = shlex.split(config_settings)
+    prepared = [prepare_command(setting, project=project, package=package) for setting in settings]
+    return shlex.join(prepared)
 
 
 # Based on build.__main__.main.

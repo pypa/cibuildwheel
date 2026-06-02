@@ -13,7 +13,9 @@ from cibuildwheel import errors
 from cibuildwheel.bashlex_eval import local_environment_executor
 from cibuildwheel.frontend import (
     BuildFrontendConfig,
+    _split_config_settings,
     get_build_frontend_extra_flags,
+    parse_config_settings,
     prepare_config_settings,
 )
 from cibuildwheel.logger import Logger
@@ -606,6 +608,29 @@ def test_prepare_config_settings(config_settings: str, expected: str) -> None:
         prepare_config_settings(config_settings, project="C:/project", package="C:/project/pkg")
         == expected
     )
+
+
+@pytest.mark.parametrize(
+    ("project", "package"),
+    [
+        (R"C:\Users\John Doe\project", R"C:\Users\John Doe\project\pkg"),
+        ("/home/me/my project", "/home/me/my project/pkg"),
+    ],
+)
+def test_prepare_config_settings_special_chars(project: str, package: str) -> None:
+    # Paths with spaces or backslashes must survive the round-trip through the
+    # downstream shlex.split intact (regression test for the {package}/{project}
+    # substitution being mangled by re-parsing).
+    config_settings = "setup-args=--cross-file={package}/cross.ini other-setting={project}"
+    prepared = prepare_config_settings(config_settings, project=project, package=package)
+    assert _split_config_settings(prepared) == [
+        f"-Csetup-args=--cross-file={package}/cross.ini",
+        f"-Cother-setting={project}",
+    ]
+    assert parse_config_settings(prepared) == {
+        "setup-args": f"--cross-file={package}/cross.ini",
+        "other-setting": project,
+    }
 
 
 @pytest.mark.parametrize(
