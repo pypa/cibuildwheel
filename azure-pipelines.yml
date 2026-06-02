@@ -87,5 +87,5 @@ jobs:
 
     - bash: |
         echo "CIBW_ENABLE = $CIBW_ENABLE"
-        python ./bin/run_tests.py --test-select $(testSelect) --num-processes 3
+        python ./bin/run_tests.py --test-select $(testSelect)
       displayName: 'Run tests'
