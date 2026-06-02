@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import dataclasses
 import io
 import json
@@ -367,24 +368,38 @@ class OCIContainer:
         exc_tb: TracebackType | None,
     ) -> None:
         assert self.process is not None
-        self.bash_stdin.write(b"exit 0\n")
-        self.bash_stdin.flush()
-        self.process.wait(timeout=30)
-        self.bash_stdin.close()
-        self.bash_stdout.close()
+        try:
+            # Ask bash to exit cleanly and wait for the `start` process to finish.
+            # If the container/bash has already died, the write raises
+            # BrokenPipeError; if bash refuses to exit, `wait` raises
+            # TimeoutExpired. Both are handled below so we always reach the
+            # cleanup in `finally` rather than leaking the process or container.
+            self.bash_stdin.write(b"exit 0\n")
+            self.bash_stdin.flush()
+            self.process.wait(timeout=30)
 
-        if self.engine.name == "podman":
-            # This works around what seems to be a race condition in the podman
-            # backend. The full reason is not understood. See PR #966 for a
-            # discussion on possible causes and attempts to remove this line.
-            # For now, this seems to work "well enough".
-            self.process.wait()
+            if self.engine.name == "podman":
+                # This works around what seems to be a race condition in the
+                # podman backend. The full reason is not understood. See PR #966
+                # for a discussion on possible causes and attempts to remove this
+                # line. For now, this seems to work "well enough".
+                self.process.wait()
+        except (OSError, subprocess.TimeoutExpired):
+            # bash didn't shut down cleanly; force the process down so it isn't
+            # leaked, then continue to cleanup.
+            if self.process.poll() is None:
+                self.process.kill()
+                self.process.wait()
+        finally:
+            with contextlib.suppress(OSError):
+                self.bash_stdin.close()
+            with contextlib.suppress(OSError):
+                self.bash_stdout.close()
+            self.process = None
 
-        self.process = None
-
-        keep_container = strtobool(os.environ.get("CIBW_DEBUG_KEEP_CONTAINER", ""))
-        if not keep_container:
-            self._remove_container()
+            keep_container = strtobool(os.environ.get("CIBW_DEBUG_KEEP_CONTAINER", ""))
+            if not keep_container:
+                self._remove_container()
 
     def _remove_container(self) -> None:
         assert self.name is not None
