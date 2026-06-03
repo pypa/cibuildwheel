@@ -16,7 +16,7 @@ from packaging.version import Version
 
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call
-from cibuildwheel.util.file import CIBW_CACHE_PATH, download
+from cibuildwheel.util.file import CIBW_CACHE_PATH, download, remove_on_error
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -57,7 +57,8 @@ def _ensure_virtualenv(version: str) -> tuple[Path, Version]:
     path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"
     with FileLock(str(path) + ".lock"):
         if not path.exists():
-            download(url, path, sha256=sha256)
+            with remove_on_error(path):
+                download(url, path, sha256=sha256)
     return (path, Version(version))
 
 

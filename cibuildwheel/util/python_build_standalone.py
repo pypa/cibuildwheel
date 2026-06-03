@@ -9,7 +9,7 @@ import typing
 
 from filelock import FileLock
 
-from cibuildwheel.util.file import download, extract_tar
+from cibuildwheel.util.file import download, extract_tar, remove_on_error
 from cibuildwheel.util.resources import PYTHON_BUILD_STANDALONE_RELEASES
 
 TYPE_CHECKING = False
@@ -136,7 +136,8 @@ def _download_or_get_from_cache(
                 return asset_cache_path
 
         print(f"Downloading python_build_standalone: {asset_url} to {asset_cache_path}")
-        download(asset_url, asset_cache_path, sha256=sha256 or None)
+        with remove_on_error(asset_cache_path):
+            download(asset_url, asset_cache_path, sha256=sha256 or None)
         return asset_cache_path
 
 

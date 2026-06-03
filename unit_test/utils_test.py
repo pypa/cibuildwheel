@@ -1,3 +1,4 @@
+import re
 import textwrap
 from pathlib import Path, PurePath
 from unittest.mock import Mock, call
@@ -6,7 +7,7 @@ import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.ci import fix_ansi_codes_for_github_actions
-from cibuildwheel.util.file import copy_test_sources
+from cibuildwheel.util.file import copy_test_sources, remove_on_error
 from cibuildwheel.util.helpers import (
     FlexibleVersion,
     format_safe,
@@ -393,6 +394,58 @@ def test_copy_test_sources_alternate_copy_into(sample_project: Path) -> None:
         ],
         any_order=True,
     )
+
+
+def test_remove_on_error_keeps_paths(tmp_path: Path) -> None:
+    file_path = tmp_path / "file.txt"
+    file_path.write_text("data")
+    dir_path = tmp_path / "dir"
+    dir_path.mkdir()
+
+    for path in (file_path, dir_path):
+        with remove_on_error(path):
+            pass
+
+    assert file_path.exists()
+    assert dir_path.exists()
+
+
+def test_remove_on_error_file_or_tree(tmp_path: Path) -> None:
+    file_path = tmp_path / "file.txt"
+    file_path.write_text("data")
+    dir_path = tmp_path / "dir"
+    nested_file_path = dir_path / "nested.txt"
+    nested_file_path.parent.mkdir()
+    nested_file_path.write_text("data")
+
+    for path in (file_path, dir_path):
+        with pytest.raises(RuntimeError), remove_on_error(path):
+            raise RuntimeError
+
+    assert not file_path.exists()
+    assert not dir_path.exists()
+
+
+def test_remove_on_error_cleanup_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = tmp_path / "cleanup-failure"
+    path.mkdir()
+    original_exception = RuntimeError("original error")
+    cleanup_exception = PermissionError("cleanup error")
+
+    def _raise_cleanup_error(_: Path) -> None:
+        raise cleanup_exception
+
+    monkeypatch.setattr("cibuildwheel.util.file.shutil.rmtree", _raise_cleanup_error)
+    with (
+        pytest.raises(
+            BaseExceptionGroup,
+            match=re.escape(f"Failed to remove {path}. Please remove it manually."),
+        ) as caught_exception,
+        remove_on_error(path),
+    ):
+        raise original_exception
+
+    assert caught_exception.value.exceptions == (original_exception, cleanup_exception)
 
 
 def test_unwrap() -> None:

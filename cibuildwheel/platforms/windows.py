@@ -30,6 +30,7 @@ from cibuildwheel.util.file import (
     download,
     extract_zip,
     move_file,
+    remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
@@ -112,7 +113,8 @@ def _ensure_nuget() -> Path:
     nuget = CIBW_CACHE_PATH / "nuget.exe"
     with FileLock(str(nuget) + ".lock"):
         if not nuget.exists():
-            download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", nuget)
+            with remove_on_error(nuget):
+                download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", nuget)
     return nuget
 
 
@@ -128,7 +130,8 @@ def install_cpython(configuration: PythonConfiguration, arch: str | None = None)
     with FileLock(str(base_output_dir) + f"-{version}{free_threaded_str}-{arch}.lock"):
         if not installation_path.exists():
             nuget = _ensure_nuget()
-            call(nuget, "install", *nuget_args)
+            with remove_on_error(installation_path.parent):
+                call(nuget, "install", *nuget_args)
     return installation_path / "python.exe"
 
 
@@ -144,8 +147,9 @@ def install_pypy(tmp: Path, arch: str, url: str, sha256: str) -> Path:
         if not installation_path.exists():
             pypy_zip = tmp / zip_filename
             download(url, pypy_zip, sha256=sha256)
-            # Extract to the parent directory because the zip file still contains a directory
-            extract_zip(pypy_zip, installation_path.parent)
+            with remove_on_error(installation_path):
+                # Extract to the parent directory because the zip file still contains a directory
+                extract_zip(pypy_zip, installation_path.parent)
     return installation_path / "python.exe"
 
 
@@ -158,8 +162,9 @@ def install_graalpy(tmp: Path, url: str, sha256: str) -> Path:
         if not installation_path.exists():
             graalpy_zip = tmp / zip_filename
             download(url, graalpy_zip, sha256=sha256)
-            # Extract to the parent directory because the zip file still contains a directory
-            extract_zip(graalpy_zip, installation_path.parent)
+            with remove_on_error(installation_path):
+                # Extract to the parent directory because the zip file still contains a directory
+                extract_zip(graalpy_zip, installation_path.parent)
     return installation_path / "bin" / "graalpy.exe"
 
 
