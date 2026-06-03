@@ -235,7 +235,7 @@ Sometimes a build will fail due to a missing dependency.
 
 **If you need a build tool** (e.g. cmake, automake, ninja), you can install it through a package manager like apt/yum, brew or choco, using the [`before-all`](options.md#before-all) option.
 
-**If your build is linking into a native library dependency**, you can build/install that in [`before-all`](options.md#before-all). However, on Linux, Mac (and Windows if you're using [delvewheel]), the library that you install will be bundled into the wheel in the [repair step]. So take care to ensure that
+**If your build is linking into a native library dependency**, you can build/install that in [`before-all`](options.md#before-all). However, on Linux, Mac, and Windows (which uses [delvewheel] by default since cibuildwheel 4.0), the library that you install will be bundled into the wheel in the [repair step]. So take care to ensure that
 
 - the bundled library doesn't accidentally increase the minimum system requirements (such as the minimum macOS version)
 - the bundled library matches the architecture of the wheel you're building when cross-compiling

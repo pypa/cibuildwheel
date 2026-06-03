@@ -971,6 +971,9 @@ Default:
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
 The command is run on each built wheel (except for pure Python ones) before testing it.
 
+!!! note
+    Since cibuildwheel 4.0, `delvewheel` is the default `repair-wheel-command` on Windows, so extension-module DLLs are bundled automatically. If a wheel has a platform tag but contains no extension module (for example, a package that sets a platform tag but ships a pre-built DLL itself), `delvewheel` may error. In that case, set `repair-wheel-command = ""` to skip the repair step.
+
 The following placeholders must be used inside the command and will be replaced by cibuildwheel:
 
 - `{wheel}` for the absolute path to the built wheel

@@ -349,7 +349,11 @@ def localized_vars(
             final = final.replace(orig_prefix, str(prefix))
 
         if key == "ANDROID_API_LEVEL":
-            final = int(build_env[key])
+            try:
+                final = int(build_env[key])
+            except ValueError as e:
+                msg = f"ANDROID_API_LEVEL: {e}. This variable must be an integer."
+                raise errors.FatalError(msg) from e
 
         # Build systems vary in whether FLAGS variables are read from sysconfig, and if so,
         # whether they're replaced by environment variables or combined with them. Even

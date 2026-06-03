@@ -84,7 +84,7 @@ def _parse_pip_constraint_for_virtualenv(
     If it can't get an exact version, the real constraint will be handled by the
     {macos|windows}.setup_python function.
     If marker_env is provided, marker-bearing constraints are evaluated against it;
-    otherwise, marker-bearing constraints are skipped.
+    otherwise, they are evaluated against the host's default environment.
     """
     env: dict[str, str] = (
         marker_env if marker_env is not None else cast("dict[str, str]", default_environment())
