@@ -5,6 +5,7 @@ import functools
 import hashlib
 import json
 import platform
+import subprocess
 import typing
 
 from filelock import FileLock
@@ -42,6 +43,26 @@ class PythonBuildStandaloneError(Exception):
     """Errors related to python-build-standalone."""
 
 
+def _is_musl_libc() -> bool:
+    """
+    Detect whether the host uses musl libc (e.g. Alpine Linux).
+
+    ``platform.libc_ver()`` only ever reports glibc, so we shell out to ``ldd``,
+    which prints "musl libc" on musl-based systems (and "GNU libc"/"GLIBC" on
+    glibc systems). If ``ldd`` is unavailable, we fall back to assuming glibc.
+    """
+    try:
+        ldd = subprocess.run(
+            ["ldd", "--version"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return False
+    return "musl" in (ldd.stdout + ldd.stderr).lower()
+
+
 def _get_platform_identifiers() -> tuple[str, str, str | None]:
     """
     Detects the current platform and returns architecture, platform, and libc
@@ -67,7 +88,7 @@ def _get_platform_identifiers() -> tuple[str, str, str | None]:
     # Map OS + Libc
     if system == "Linux":
         platform_identifier = "unknown-linux"
-        libc_identifier = "musl" if "musl" in (platform.libc_ver() or ("", "")) else "gnu"
+        libc_identifier = "musl" if _is_musl_libc() else "gnu"
     elif system == "Darwin":
         platform_identifier = "apple-darwin"
     elif system == "Windows":
