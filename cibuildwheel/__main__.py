@@ -4,6 +4,7 @@ import argparse
 import contextlib
 import dataclasses
 import functools
+import io
 import os
 import shutil
 import sys
@@ -30,7 +31,7 @@ from cibuildwheel.util.resources import read_all_configs
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Generator, Iterable, Sequence
-    from typing import Any, Literal, TextIO
+    from typing import Literal
 
 
 @dataclasses.dataclass
@@ -42,23 +43,6 @@ class GlobalOptions:
 class FileReport:
     name: str
     size: str
-
-
-# Taken from https://stackoverflow.com/a/107717
-class Unbuffered:
-    def __init__(self, stream: TextIO) -> None:
-        self.stream = stream
-
-    def write(self, data: str) -> None:
-        self.stream.write(data)
-        self.stream.flush()
-
-    def writelines(self, data: Iterable[str]) -> None:
-        self.stream.writelines(data)
-        self.stream.flush()
-
-    def __getattr__(self, attr: str) -> Any:  # noqa: ANN401
-        return getattr(self.stream, attr)
 
 
 def main() -> None:
@@ -363,7 +347,8 @@ def build_in_directory(args: CommandLineArguments) -> None:
     # Python is buffering by default when running on the CI platforms, giving
     # problems interleaving subprocess call output with unflushed calls to
     # 'print'
-    sys.stdout = Unbuffered(sys.stdout)
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(write_through=True)
 
     # create the cache dir before it gets printed & builds performed
     CIBW_CACHE_PATH.mkdir(parents=True, exist_ok=True)
