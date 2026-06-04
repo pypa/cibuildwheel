@@ -24,15 +24,15 @@ delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
 delvewheel==1.13.0
     # via -r cibuildwheel/resources/constraints.in
-distlib==0.4.0
+distlib==0.4.1
     # via virtualenv
 exceptiongroup==1.3.1
     # via cattrs
-filelock==3.29.0
+filelock==3.29.1
     # via
     #   python-discovery
     #   virtualenv
-idna==3.17
+idna==3.18
     # via
     #   requests
     #   url-normalize
