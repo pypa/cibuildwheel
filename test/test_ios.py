@@ -48,7 +48,7 @@ def skip_if_ios_testing_not_supported() -> None:
 # which is guaranteed to run single-process.
 # This can also fail the first time sometimes.
 @pytest.mark.serial
-@pytest.mark.flaky(reruns=2)
+@pytest.mark.flaky(reruns=1)
 @pytest.mark.parametrize(
     "build_config",
     [
@@ -173,7 +173,7 @@ def test_ios_testing_with_placeholder(tmp_path: Path, capfd: pytest.CaptureFixtu
 
 
 @pytest.mark.serial
-@pytest.mark.flaky(reruns=2)
+@pytest.mark.flaky(reruns=1)
 def test_ios_test_command_short_circuit(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     skip_if_ios_testing_not_supported()
 

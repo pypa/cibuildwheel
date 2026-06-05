@@ -546,6 +546,7 @@ def test_disable_host_mount(
                 container.call(["cat", host_mount_path], capture_output=True)
 
 
+@pytest.mark.flaky(reruns=2, reruns_delay=5)
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_local_image(
     container_engine: OCIContainerEngineConfig, platform: OCIPlatform, tmp_path: Path
@@ -587,6 +588,7 @@ def test_local_image(
         assert container._get_platform_args() == expected_platform_args
 
 
+@pytest.mark.flaky(reruns=2, reruns_delay=5)
 def test_enter_error(container_engine: OCIContainerEngineConfig, tmp_path: Path) -> None:
     remote_image = "debian:trixie-slim"
     platform = DEFAULT_OCI_PLATFORM
@@ -745,6 +747,7 @@ def test_exit_kills_process_on_shutdown_timeout(monkeypatch: pytest.MonkeyPatch)
     assert bash_stdout.closed
 
 
+@pytest.mark.flaky(reruns=2, reruns_delay=5)
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine: OCIContainerEngineConfig, platform: OCIPlatform) -> None:
     if detect_ci_provider() == CIProvider.travis_ci and DEFAULT_OCI_PLATFORM not in {

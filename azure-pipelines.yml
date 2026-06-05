@@ -19,38 +19,53 @@ jobs:
 - job: tests
   strategy:
     matrix:
-      linux_311:
+      linux_313:
         imageName: "ubuntu-latest"
-        pythonVersion: "3.11"
+        pythonVersion: "3.13"
         testSelect: "native"
-      android_311:
+      android_313:
         imageName: "ubuntu-latest"
-        pythonVersion: "3.11"
+        pythonVersion: "3.13"
         testSelect: "android"
-      macos_311:
+      macos_313:
         imageName: "macos-latest"
-        pythonVersion: "3.11"
+        pythonVersion: "3.13"
         testSelect: "native"
-      ios_311:
+      ios_313:
         imageName: "macos-14"  # See https://github.com/actions/runner-images/issues/12777
-        pythonVersion: "3.11"
+        pythonVersion: "3.13"
         testSelect: "ios"
-      android_macos_311:
+      android_macos_313:
         imageName: "macos-latest"
-        pythonVersion: "3.11"
+        pythonVersion: "3.13"
         testSelect: "android"
-      windows_311:
+      windows_313:
         imageName: "windows-latest"
-        pythonVersion: "3.11"
+        pythonVersion: "3.13"
         testSelect: "native"
   timeoutInMinutes: 180
   pool:
     vmImage: $(imageName)
+  variables:
+    # Relocate cibuildwheel's download cache (interpreters) and the per-worker
+    # test pip caches (which live under it) to a stable, cacheable path.
+    CIBW_CACHE_PATH: $(Pipeline.Workspace)/.cibw-cache
 
   steps:
     - task: UsePythonVersion@0
       inputs:
         versionSpec: $(pythonVersion)
+
+    - task: Cache@2
+      displayName: 'Cache cibuildwheel downloads'
+      inputs:
+        # build-platforms.toml carries the interpreter pins; bump the version
+        # prefix to force a cold cache. restoreKeys lets a stale cache still seed
+        # a new run (cibuildwheel re-downloads only what's missing).
+        key: 'cibw-cache | v1 | "$(imageName)" | "$(testSelect)" | cibuildwheel/resources/build-platforms.toml'
+        restoreKeys: |
+          cibw-cache | v1 | "$(imageName)" | "$(testSelect)"
+        path: $(CIBW_CACHE_PATH)
 
     - task: JavaToolInstaller@0
       condition: and(eq(variables['testSelect'], 'android'), eq(variables['Agent.OS'], 'Linux'))

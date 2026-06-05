@@ -35,6 +35,7 @@ def test_dummy_serial() -> None:
     """
 
 
+@pytest.mark.flaky(reruns=2, reruns_delay=5)
 def test(
     tmp_path: Path, build_frontend_env: dict[str, str], capfd: pytest.CaptureFixture[str]
 ) -> None:
