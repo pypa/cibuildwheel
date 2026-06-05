@@ -5,6 +5,34 @@ ref: changelog
 
 # Changelog
 
+### v4.0.0rc2
+
+_5 June 2026_
+
+- ✨ Adds CPython 3.15 support for iOS and Android (#2857, #2858)
+- ✨ Adds Android improvements for building NumPy and related packages, including auditwheel support, pkg-config and Fortran configuration, and the [`xbuild-files`](https://cibuildwheel.pypa.io/en/stable/options/#xbuild-files) option (#2695)
+- ✨ Adds `CIBUILDWHEEL_BUILD_IDENTIFIER` environment variable set to the current build identifier (e.g. `cp311-manylinux_x86_64`) during per-build steps (#2872)
+- 🔐 Adds SHA256 verification for direct downloads of Python interpreters, virtualenv, and python-build-standalone assets (#2873)
+- 🔐 Adds tarfile extraction filter for safe archive extraction (#2856)
+- 🐛 Fixes detection of musl libc when downloading python-build-standalone, which previously always selected the gnu asset on musl hosts like Alpine (#2889)
+- 🐛 Fixes [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) expansion when `{project}` or `{package}` contains spaces or backslashes (#2886)
+- 🐛 Prevents deadlock when `linux32` fails and forwards platform args to the sanity check (#2880, #2888)
+- 🐛 Fixes container resource leaks on start failure and during teardown (#2879, #2887)
+- 🐛 Removes potential partial cache-population in case of error (#2892)
+- 🐛 Raises a clear error when `ANDROID_API_LEVEL` is not an integer (#2891)
+- 🐛 Replaces assert with proper exception in python-build-standalone (#2859)
+- 🛠 Updates dependencies and container pins (#2893, #2882, #2874, #2868, #2862, #2884)
+- 🛠 Minor fixups across error messages, OCI container, and options (#2860)
+- 📚 Updates documentation for delvewheel as the default Windows [`repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command), including the build diagram, schema defaults, and legal note (#2877, #2853, #2891)
+- 📚 Adds intersphinx support for external documentation linking (#2871)
+- 📚 Removes outdated numpy info (#2855)
+- 💼 Improves Azure test reliability with retries and caching (#2890)
+- 💼 Fixes Windows GitLab CI test running (#2870)
+- 💼 Updates CI action pins (#2867)
+- 💼 Adds agent and copilot setup files (#2861)
+- 💼 Uses `if TYPE_CHECKING:` blocks (#2866, #2864)
+- 🧪 Adds unit tests for `OCIContainer._get_platform_args` (#2878)
+
 ### v4.0.0rc1
 
 _14 May 2026_
