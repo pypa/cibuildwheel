@@ -282,6 +282,59 @@ skip = ["*-musllinux_i686"]
 
 Also see [maturin-action](https://github.com/PyO3/maturin-action) which is optimized for Rust wheels, builds the non-Python Rust modules once, and can cross-compile (and can build 32-bit musl, for example).
 
+### Linux: Building wheels with CUDA
+
+On Linux, you can build binary wheels with CUDA to take advantage of NVIDIA GPUs for hardware acceleration.
+Specify the custom Docker containers with CUDA Toolkit as follows:
+
+```yaml
+CIBW_MANYLINUX_X86_64_IMAGE: >-
+  quay.io/manylinux_cuda/manylinux2_28_x86_64_cuda13_1:latest
+CIBW_MANYLINUX_AARCH64_IMAGE: >-
+  quay.io/manylinux_cuda/manylinux2_28_aarch64_cuda13_1:latest
+```
+Currently, we support the following CUDA manylinux containers:
+
+* `quay.io/manylinux_cuda/manylinux2_28_x86_64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux2_28_aarch64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux2_28_x86_64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux2_28_aarch64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux2_34_x86_64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux2_34_aarch64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux2_34_x86_64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux2_34_aarch64_cuda13_1:latest`
+
+A typical GitHub Actions workflow will look like this:
+
+```yaml
+jobs:
+  build-wheels:
+    name: Build wheels
+    runs-on: ${{ matrix.target.runner }}
+    strategy:
+      matrix:
+        manylinux-base: [manylinux_2_28, manylinux_2_34]
+        cuda-version: [12_9, 13_1]
+        target:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3
+        env:
+          CIBW_MANYLINUX_X86_64_IMAGE: >-
+            quay.io/manylinux_cuda/${{ matrix.manylinux-base }}_x86_64_cuda${{ matrix.cuda-version }}:latest
+          CIBW_MANYLINUX_AARCH64_IMAGE: >-
+            quay.io/manylinux_cuda/${{ matrix.manylinux-base }}_aarch64_cuda${{ matrix.cuda-version }}:latest
+          CIBW_BUILD: cp312-manylinux_${{ matrix.target.arch }}
+```
+
 ### macOS: 'No module named XYZ' errors after running cibuildwheel
 
 `cibuildwheel` on Mac installs the distributions from Python.org system-wide during its operation. This is necessary, but it can cause some confusing errors after cibuildwheel has finished.
