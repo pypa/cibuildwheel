@@ -632,6 +632,119 @@ def test_enter_error_cleanup_failure(
         assert "Failed to remove 'bar' container" in err
 
 
+class _FakeStream:
+    def __init__(self, *, write_error: Exception | None = None) -> None:
+        self._write_error = write_error
+        self.closed = False
+
+    def write(self, data: bytes) -> int:
+        if self._write_error is not None:
+            raise self._write_error
+        return len(data)
+
+    def flush(self) -> None:
+        pass
+
+    def close(self) -> None:
+        self.closed = True
+
+
+class _FakeProcess:
+    def __init__(self, *, wait_error: Exception | None = None, alive: bool = True) -> None:
+        self._wait_error = wait_error
+        self._alive = alive
+        self.killed = False
+
+    def wait(self, timeout: float | None = None) -> int:
+        if self._wait_error is not None and timeout is not None:
+            raise self._wait_error
+        return 0
+
+    def poll(self) -> int | None:
+        return None if self._alive else 0
+
+    def kill(self) -> None:
+        self.killed = True
+        self._alive = False
+
+
+def _container_ready_for_exit(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    process: _FakeProcess,
+    bash_stdin: _FakeStream,
+    bash_stdout: _FakeStream,
+) -> tuple[OCIContainer, list[bool]]:
+    """Build a container with the post-__enter__ state faked, ready for __exit__."""
+    monkeypatch.setattr(cibuildwheel.oci_container, "detect_ci_provider", lambda: None)
+    container = OCIContainer(
+        engine=OCIContainerEngineConfig("docker"), image="foo", oci_platform=OCIPlatform.AMD64
+    )
+    container.name = "bar"
+    removed: list[bool] = []
+    monkeypatch.setattr(container, "_remove_container", lambda: removed.append(True))
+    monkeypatch.setattr(container, "process", process)
+    # bash_stdin/bash_stdout are only set during __enter__, so raising=False
+    monkeypatch.setattr(container, "bash_stdin", bash_stdin, raising=False)
+    monkeypatch.setattr(container, "bash_stdout", bash_stdout, raising=False)
+    return container, removed
+
+
+def test_exit_clean_shutdown_removes_container(monkeypatch: pytest.MonkeyPatch) -> None:
+    process = _FakeProcess(alive=True)
+    bash_stdin = _FakeStream()
+    bash_stdout = _FakeStream()
+    container, removed = _container_ready_for_exit(
+        monkeypatch, process=process, bash_stdin=bash_stdin, bash_stdout=bash_stdout
+    )
+
+    container.__exit__(None, None, None)
+
+    assert removed == [True]
+    assert not process.killed
+    assert container.process is None
+    assert bash_stdin.closed
+    assert bash_stdout.closed
+
+
+def test_exit_removes_container_when_bash_already_dead(monkeypatch: pytest.MonkeyPatch) -> None:
+    # bash has already exited, so writing "exit 0" raises BrokenPipeError. The
+    # container must still be removed rather than leaked.
+    process = _FakeProcess(alive=False)
+    bash_stdin = _FakeStream(write_error=BrokenPipeError())
+    bash_stdout = _FakeStream()
+    container, removed = _container_ready_for_exit(
+        monkeypatch, process=process, bash_stdin=bash_stdin, bash_stdout=bash_stdout
+    )
+
+    container.__exit__(None, None, None)
+
+    assert removed == [True]
+    assert container.process is None
+    assert bash_stdin.closed
+    assert bash_stdout.closed
+    assert not process.killed  # already dead, nothing to kill
+
+
+def test_exit_kills_process_on_shutdown_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    # bash refuses to exit, so process.wait(timeout=30) raises TimeoutExpired. The
+    # process must be killed and the container removed rather than leaked.
+    process = _FakeProcess(wait_error=subprocess.TimeoutExpired(cmd="bash", timeout=30))
+    bash_stdin = _FakeStream()
+    bash_stdout = _FakeStream()
+    container, removed = _container_ready_for_exit(
+        monkeypatch, process=process, bash_stdin=bash_stdin, bash_stdout=bash_stdout
+    )
+
+    container.__exit__(None, None, None)
+
+    assert process.killed
+    assert removed == [True]
+    assert container.process is None
+    assert bash_stdin.closed
+    assert bash_stdout.closed
+
+
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine: OCIContainerEngineConfig, platform: OCIPlatform) -> None:
     if detect_ci_provider() == CIProvider.travis_ci and DEFAULT_OCI_PLATFORM not in {
