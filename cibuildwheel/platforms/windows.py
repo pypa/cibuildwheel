@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import dataclasses
-import json
 import os
 import platform as platform_module
 import shutil
@@ -390,42 +389,6 @@ def setup_python(
         setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
         setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
 
-    if implementation_id.startswith("gp311"):
-        # GraalPy 24 fails to discover compilers, setup the relevant environment
-        # variables. Adapted from
-        # https://github.com/microsoft/vswhere/wiki/Start-Developer-Command-Prompt
-        # Remove when GraalPy 24.x is dropped.
-        vcpath = call(
-            Path(os.environ["PROGRAMFILES(X86)"])
-            / "Microsoft Visual Studio"
-            / "Installer"
-            / "vswhere.exe",
-            "-products",
-            "*",
-            "-latest",
-            "-property",
-            "installationPath",
-            capture_stdout=True,
-        ).strip()
-        log.notice(f"Discovering Visual Studio for GraalPy at {vcpath}")
-        vcvars_file = tmp / "vcvars.json"
-        call(
-            f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
-            "-no_logo",
-            "-arch=amd64",
-            "-host_arch=amd64",
-            "&&",
-            "python",
-            "-c",
-            # this command needs to be one line for Windows reasons
-            "import sys, json, pathlib, os; pathlib.Path(sys.argv[1]).write_text(json.dumps(dict(os.environ)))",
-            vcvars_file,
-            env=env,
-        )
-        with open(vcvars_file, encoding="utf-8") as f:
-            vcvars = json.load(f)
-        env.update(vcvars)
-
     return base_python, env
 
 
@@ -510,22 +473,6 @@ def build(options: Options, tmp_path: Path) -> None:
                         package=options.globals.package_dir,
                     ),
                 )
-
-                if (
-                    config.identifier.startswith("gp311")
-                    and build_frontend.name == "build"
-                    and "--no-isolation" not in extra_flags
-                    and "-n" not in extra_flags
-                ):
-                    # GraalPy 24 fails to discover its standard library when a venv is created
-                    # from a virtualenv seeded executable. See
-                    # https://github.com/oracle/graalpython/issues/491 and remove this once
-                    # GraalPy 24 is dropped.
-                    log.notice(
-                        "Disabling build isolation to workaround GraalPy bug. If the build fails, consider using pip or build[uv] as build frontend."
-                    )
-                    shell("graalpy -m pip install setuptools wheel", env=env)
-                    extra_flags = [*extra_flags, "-n"]
 
                 match build_frontend.name:
                     case "pip":

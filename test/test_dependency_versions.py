@@ -179,19 +179,6 @@ def test_dependency_constraints(
         msg = f"Unknown method: {method}"
         raise ValueError(msg)
 
-    skip = ""
-
-    if (
-        utils.get_platform() == "windows"
-        and method == "file"
-        and build_frontend_env_nouv["CIBW_BUILD_FRONTEND"] == "build"
-    ):
-        # GraalPy 24 fails to discover its standard library when a venv is created
-        # from a virtualenv seeded executable. See
-        # https://github.com/oracle/graalpython/issues/491 and remove this once
-        # GraalPy 24 is dropped
-        skip = "gp311*"
-
     # cross-platform Python script for dependency constraint checks
     before_build_script = project_dir / "check_versions.py"
     before_build_script.write_text(CHECK_VERSIONS_SCRIPT)
@@ -200,7 +187,6 @@ def test_dependency_constraints(
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_SKIP": skip,
             "CIBW_DEPENDENCY_VERSIONS": dependency_version_option,
             "CIBW_BEFORE_BUILD": f"python {before_build_script.name}",
             "EXPECTED_VERSIONS": json.dumps(tool_versions),
@@ -211,10 +197,5 @@ def test_dependency_constraints(
 
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
-
-    if skip == "gp*":
-        # See reference to https://github.com/oracle/graalpython/issues/491
-        # above
-        expected_wheels = [w for w in expected_wheels if "graalpy311" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
