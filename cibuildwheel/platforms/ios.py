@@ -25,7 +25,13 @@ from cibuildwheel.logger import log
 from cibuildwheel.platforms.macos import install_cpython as install_build_cpython
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell, split_command
-from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
+from cibuildwheel.util.file import (
+    CIBW_CACHE_PATH,
+    copy_test_sources,
+    download,
+    move_file,
+    remove_on_error,
+)
 from cibuildwheel.util.helpers import prepare_command, unwrap_preserving_paragraphs
 from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.venv import constraint_flags, virtualenv
@@ -140,8 +146,9 @@ def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threadin
         if not installation_path.exists():
             downloaded_tar_gz = tmp / ios_python_tar_gz
             download(config.url, downloaded_tar_gz, sha256=config.sha256)
-            installation_path.mkdir(parents=True, exist_ok=True)
-            call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
+            with remove_on_error(installation_path):
+                installation_path.mkdir(parents=True)
+                call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
             downloaded_tar_gz.unlink()
 
     return installation_path

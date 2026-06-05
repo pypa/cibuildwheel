@@ -27,7 +27,13 @@ from cibuildwheel.frontend import (
 from cibuildwheel.logger import log
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
-from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
+from cibuildwheel.util.file import (
+    CIBW_CACHE_PATH,
+    copy_test_sources,
+    download,
+    move_file,
+    remove_on_error,
+)
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
 from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
@@ -196,7 +202,8 @@ def install_pypy(tmp: Path, url: str, sha256: str) -> Path:
             downloaded_tar_bz2 = tmp / pypy_tar_bz2
             download(url, downloaded_tar_bz2, sha256=sha256)
             installation_path.parent.mkdir(parents=True, exist_ok=True)
-            call("tar", "-C", installation_path.parent, "-xf", downloaded_tar_bz2)
+            with remove_on_error(installation_path):
+                call("tar", "-C", installation_path.parent, "-xf", downloaded_tar_bz2)
             downloaded_tar_bz2.unlink()
     return installation_path / "bin" / "pypy3"
 
@@ -210,9 +217,17 @@ def install_graalpy(tmp: Path, url: str, sha256: str) -> Path:
         if not installation_path.exists():
             downloaded_archive = tmp / graalpy_archive
             download(url, downloaded_archive, sha256=sha256)
-            installation_path.mkdir(parents=True)
-            # GraalPy top-folder name is inconsistent with archive name
-            call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
+            with remove_on_error(installation_path):
+                installation_path.mkdir(parents=True)
+                # GraalPy top-folder name is inconsistent with archive name
+                call(
+                    "tar",
+                    "-C",
+                    installation_path,
+                    "--strip-components=1",
+                    "-xzf",
+                    downloaded_archive,
+                )
             downloaded_archive.unlink()
     return installation_path / "bin" / "graalpy"
 

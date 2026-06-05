@@ -29,6 +29,7 @@ from cibuildwheel.util.file import (
     extract_tar,
     extract_zip,
     move_file,
+    remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
@@ -92,10 +93,11 @@ def ensure_node(major_version: str) -> Path:
             with TemporaryDirectory() as tmp_path:
                 archive = Path(tmp_path) / f"{name}.{ext}"
                 download(url, archive)
-                if ext == "zip":
-                    extract_zip(archive, path.parent)
-                else:
-                    extract_tar(archive, path.parent)
+                with remove_on_error(path):
+                    if ext == "zip":
+                        extract_zip(archive, path.parent)
+                    else:
+                        extract_tar(archive, path.parent)
     assert path.exists()
     if not IS_WIN:
         return path / "bin"
@@ -110,18 +112,19 @@ def install_emscripten(env: dict[str, str], version: str, xbuildenv_cache_path: 
     with FileLock(CIBW_CACHE_PATH / "emscripten.lock"):
         if emscripten_dir.exists():
             return emscripten_dir
-        call(
-            "pyodide",
-            "xbuildenv",
-            "install-emscripten",
-            "--force",
-            "--version",
-            version,
-            "--path",
-            str(xbuildenv_cache_path),
-            env=env,
-            cwd=CIBW_CACHE_PATH,
-        )
+        with remove_on_error(emscripten_dir):
+            call(
+                "pyodide",
+                "xbuildenv",
+                "install-emscripten",
+                "--force",
+                "--version",
+                version,
+                "--path",
+                str(xbuildenv_cache_path),
+                env=env,
+                cwd=CIBW_CACHE_PATH,
+            )
     assert emscripten_dir.exists()
     return emscripten_dir
 
@@ -208,17 +211,18 @@ def install_xbuildenv(env: dict[str, str], xbuildenv_cache_path: Path, pyodide_v
         env.pop("PYODIDE_ROOT", None)
 
         # Install the xbuildenv
-        call(
-            "pyodide",
-            "xbuildenv",
-            "install",
-            "--path",
-            str(xbuildenv_cache_path),
-            pyodide_version,
-            env=env,
-            cwd=CIBW_CACHE_PATH,
-        )
-        assert pyodide_root.exists()
+        with remove_on_error(xbuildenv_cache_path / pyodide_version):
+            call(
+                "pyodide",
+                "xbuildenv",
+                "install",
+                "--path",
+                str(xbuildenv_cache_path),
+                pyodide_version,
+                env=env,
+                cwd=CIBW_CACHE_PATH,
+            )
+            assert pyodide_root.exists()
 
     return str(pyodide_root)
 

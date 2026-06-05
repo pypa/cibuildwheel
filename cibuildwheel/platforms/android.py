@@ -30,7 +30,13 @@ from cibuildwheel.frontend import (
 from cibuildwheel.logger import log
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
-from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
+from cibuildwheel.util.file import (
+    CIBW_CACHE_PATH,
+    copy_test_sources,
+    download,
+    move_file,
+    remove_on_error,
+)
 from cibuildwheel.util.helpers import prepare_command
 from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
@@ -182,7 +188,8 @@ def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
     python_tgz = CIBW_CACHE_PATH / config.url.rpartition("/")[-1]
     with FileLock(f"{python_tgz}.lock"):
         if not python_tgz.exists():
-            download(config.url, python_tgz, sha256=config.sha256)
+            with remove_on_error(python_tgz):
+                download(config.url, python_tgz, sha256=config.sha256)
 
     python_dir = build_path / "python"
     python_dir.mkdir()
