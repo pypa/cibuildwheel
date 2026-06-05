@@ -344,11 +344,11 @@ def build_in_directory(args: CommandLineArguments) -> None:
     # Add CIBUILDWHEEL environment variable
     os.environ["CIBUILDWHEEL"] = "1"
 
-    # Python is buffering by default when running on the CI platforms, giving
-    # problems interleaving subprocess call output with unflushed calls to
-    # 'print'
+    # Python block-buffers stdout when it isn't a tty, which de-interleaves
+    # `print` output and direct fd-1 writes from subprocesses sharing this
+    # stdout. line_buffering allows each newline to flush all the way to fd-1.
     if isinstance(sys.stdout, io.TextIOWrapper):
-        sys.stdout.reconfigure(write_through=True)
+        sys.stdout.reconfigure(line_buffering=True)
 
     # create the cache dir before it gets printed & builds performed
     CIBW_CACHE_PATH.mkdir(parents=True, exist_ok=True)
