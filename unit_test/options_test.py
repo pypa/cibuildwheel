@@ -125,6 +125,28 @@ def test_passthrough(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     }
 
 
+@pytest.mark.parametrize("arch", ["x86_64", "aarch64"])
+@pytest.mark.parametrize(
+    "alias",
+    [
+        "manylinux_2_28_cuda12_9",
+        "manylinux_2_28_cuda13_1",
+        "manylinux_2_34_cuda12_9",
+        "manylinux_2_34_cuda13_1",
+    ],
+)
+def test_cuda_pinned_images(arch: str, alias: str) -> None:
+    pinned_images = _get_pinned_container_images()
+
+    # CUDA aliases exist for x86_64 and aarch64, and are pinned by digest
+    image = pinned_images[arch][alias]
+    assert image.startswith(f"quay.io/manylinux_cuda/{alias.replace('cuda', arch + '_cuda', 1)}@")
+    assert "@sha256:" in image
+
+    # ... but not for architectures without CUDA images
+    assert alias not in pinned_images["i686"]
+
+
 @pytest.mark.parametrize(
     "env_var_value",
     [
