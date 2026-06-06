@@ -5,7 +5,6 @@ import functools
 import json
 import os
 import shutil
-import subprocess
 import sys
 import tomllib
 import typing
@@ -15,11 +14,11 @@ from typing import Final, TypedDict
 
 from filelock import FileLock
 
-from cibuildwheel import errors
+from cibuildwheel import errors, platforms  # pylint: disable=cyclic-import
 from cibuildwheel.architecture import Architecture
-from cibuildwheel.audit import run_audit
 from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config_settings
 from cibuildwheel.logger import log
+from cibuildwheel.platforms._run import run_host_build
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import (
@@ -28,11 +27,10 @@ from cibuildwheel.util.file import (
     download,
     extract_tar,
     extract_zip,
-    move_file,
     remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
-from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
+from cibuildwheel.util.packaging import get_pip_version
 from cibuildwheel.util.python_build_standalone import (
     PythonBuildStandaloneError,
     create_python_build_standalone_environment,
@@ -41,10 +39,10 @@ from cibuildwheel.venv import constraint_flags, virtualenv
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from collections.abc import Set
+    from collections.abc import Sequence, Set
 
     from cibuildwheel.environment import ParsedEnvironment
-    from cibuildwheel.options import Options
+    from cibuildwheel.options import BuildOptions, Options
     from cibuildwheel.selector import BuildSelector
 
 IS_WIN: Final[bool] = sys.platform.startswith("win")
@@ -345,235 +343,229 @@ def get_python_configurations(
     return [c for c in all_python_configurations() if build_selector(c.identifier)]
 
 
+@dataclasses.dataclass(frozen=True)
+class BuildState:
+    config: PythonConfiguration
+    options: BuildOptions
+    identifier_tmp_dir: Path
+    env: dict[str, str]
+    pip_version: str
+
+
 def build(options: Options, tmp_path: Path) -> None:
-    python_configurations = get_python_configurations(
-        options.globals.build_selector, options.globals.architectures
+    run_host_build(platforms.pyodide, options, tmp_path)
+
+
+def before_all(options: Options, python_configurations: Sequence[PythonConfiguration]) -> None:
+    before_all_options = options.build_options(python_configurations[0].identifier)
+    if before_all_options.before_all:
+        log.step("Running before_all...")
+        env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
+        before_all_prepared = prepare_command(
+            before_all_options.before_all, project=".", package=before_all_options.package_dir
+        )
+        shell(before_all_prepared, env=env)
+
+
+def setup(config: PythonConfiguration, options: Options, tmp_path: Path) -> BuildState:
+    build_options = options.build_options(config.identifier)
+    build_frontend = build_options.build_frontend
+
+    if build_frontend.name == "pip":
+        msg = "The pyodide platform doesn't support pip frontend"
+        raise errors.FatalError(msg)
+
+    identifier_tmp_dir = tmp_path / config.identifier
+    identifier_tmp_dir.mkdir()
+
+    constraints_path = build_options.dependency_constraints.get_for_python_version(
+        version=config.version, variant="pyodide", tmp_dir=identifier_tmp_dir
     )
 
-    if not python_configurations:
+    env = setup_python(
+        tmp=identifier_tmp_dir / "build",
+        python_configuration=config,
+        constraints_path=constraints_path,
+        environment=build_options.environment,
+        user_pyodide_version=build_options.pyodide_version,
+    )
+    env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
+    pip_version = get_pip_version(env)
+    # The Pyodide command line runner mounts all directories in the host
+    # filesystem into the Pyodide file system, except for the custom
+    # file systems /dev, /lib, /proc, and /tmp. Mounting the mount
+    # points for alternate file systems causes some mysterious failure
+    # of the process (it just quits without any clear error).
+    #
+    # Because of this, by default Pyodide can't see anything under /tmp.
+    # This environment variable tells it also to mount our temp
+    # directory.
+    oldmounts = ""
+    extra_mounts = [str(identifier_tmp_dir)]
+    if Path.cwd().is_relative_to("/tmp"):
+        extra_mounts.append(str(Path.cwd()))
+
+    if "_PYODIDE_EXTRA_MOUNTS" in env:
+        oldmounts = env["_PYODIDE_EXTRA_MOUNTS"] + ":"
+    env["_PYODIDE_EXTRA_MOUNTS"] = oldmounts + ":".join(extra_mounts)
+
+    return BuildState(config, build_options, identifier_tmp_dir, env, pip_version)
+
+
+def before_build(state: BuildState) -> None:
+    build_options = state.options
+    if build_options.before_build:
+        log.step("Running before_build...")
+        before_build_prepared = prepare_command(
+            build_options.before_build, project=".", package=build_options.package_dir
+        )
+        shell(before_build_prepared, env=state.env)
+
+
+def build_wheel(state: BuildState) -> Path:
+    build_options = state.options
+    built_wheel_dir = state.identifier_tmp_dir / "built_wheel"
+    built_wheel_dir.mkdir()
+
+    log.step("Building wheel...")
+
+    extra_flags = get_build_frontend_extra_flags(
+        build_options.build_frontend,
+        build_options.build_verbosity,
+        prepare_config_settings(
+            build_options.config_settings,
+            project=".",
+            package=build_options.package_dir,
+        ),
+    )
+
+    call(
+        "pyodide",
+        "build",
+        build_options.package_dir,
+        f"--outdir={built_wheel_dir}",
+        *extra_flags,
+        env=state.env,
+    )
+    built_wheel = next(built_wheel_dir.glob("*.whl"))
+
+    if built_wheel.name.endswith("none-any.whl"):
+        raise errors.NonPlatformWheelError()
+    return built_wheel
+
+
+def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
+    build_options = state.options
+    repaired_wheel_dir = state.identifier_tmp_dir / "repaired_wheel"
+    repaired_wheel_dir.mkdir()
+
+    if build_options.repair_command:
+        log.step("Repairing wheel...")
+
+        repair_command_prepared = prepare_command(
+            build_options.repair_command,
+            wheel=built_wheel,
+            dest_dir=repaired_wheel_dir,
+            package=build_options.package_dir,
+            project=".",
+        )
+        shell(repair_command_prepared, env=state.env)
+        log.step_end()
+    else:
+        shutil.move(str(built_wheel), repaired_wheel_dir)
+
+    return next(repaired_wheel_dir.glob("*.whl"))
+
+
+def test_wheel(state: BuildState, wheel: Path) -> None:
+    build_options = state.options
+    config = state.config
+    if not (build_options.test_command and build_options.test_selector(config.identifier)):
         return
 
-    try:
-        before_all_options_identifier = python_configurations[0].identifier
-        before_all_options = options.build_options(before_all_options_identifier)
+    log.step("Testing wheel...")
 
-        if before_all_options.before_all:
-            log.step("Running before_all...")
-            env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
-            before_all_prepared = prepare_command(
-                before_all_options.before_all, project=".", package=before_all_options.package_dir
-            )
-            shell(before_all_prepared, env=env)
+    venv_dir = state.identifier_tmp_dir / "venv-test"
+    # set up a virtual environment to install and test from, to make sure
+    # there are no dependencies that were pulled in at build time.
 
-        built_wheels: list[Path] = []
+    virtualenv_env = state.env.copy()
+    virtualenv_env["PATH"] = os.pathsep.join(
+        [
+            str(ensure_node(config.node_version)),
+            virtualenv_env["PATH"],
+        ]
+    )
 
-        for config in python_configurations:
-            build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend
+    # pyodide venv uses virtualenv under the hood
+    # use the pip embedded with virtualenv & disable network updates
+    virtualenv_create_env = virtualenv_env.copy()
+    virtualenv_create_env["VIRTUALENV_PIP"] = state.pip_version
+    virtualenv_create_env["VIRTUALENV_NO_PERIODIC_UPDATE"] = "1"
 
-            if build_frontend.name == "pip":
-                msg = "The pyodide platform doesn't support pip frontend"
-                raise errors.FatalError(msg)
+    call("pyodide", "venv", venv_dir, env=virtualenv_create_env)
 
-            log.build_start(config.identifier)
+    virtualenv_env["PATH"] = os.pathsep.join(
+        [
+            str(venv_dir / "bin"),
+            virtualenv_env["PATH"],
+        ]
+    )
+    virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
 
-            identifier_tmp_dir = tmp_path / config.identifier
+    virtualenv_env = build_options.test_environment.as_dictionary(prev_environment=virtualenv_env)
 
-            built_wheel_dir = identifier_tmp_dir / "built_wheel"
-            repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
-            identifier_tmp_dir.mkdir()
-            built_wheel_dir.mkdir()
-            repaired_wheel_dir.mkdir()
+    # check that we are using the Python from the virtual environment
+    call("which", "python", env=virtualenv_env)
 
-            constraints_path = build_options.dependency_constraints.get_for_python_version(
-                version=config.version, variant="pyodide", tmp_dir=identifier_tmp_dir
-            )
+    if build_options.before_test:
+        before_test_prepared = prepare_command(
+            build_options.before_test,
+            project=".",
+            package=build_options.package_dir,
+            wheel=wheel,
+        )
+        shell(before_test_prepared, env=virtualenv_env)
 
-            env = setup_python(
-                tmp=identifier_tmp_dir / "build",
-                python_configuration=config,
-                constraints_path=constraints_path,
-                environment=build_options.environment,
-                user_pyodide_version=build_options.pyodide_version,
-            )
-            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
-            pip_version = get_pip_version(env)
-            # The Pyodide command line runner mounts all directories in the host
-            # filesystem into the Pyodide file system, except for the custom
-            # file systems /dev, /lib, /proc, and /tmp. Mounting the mount
-            # points for alternate file systems causes some mysterious failure
-            # of the process (it just quits without any clear error).
-            #
-            # Because of this, by default Pyodide can't see anything under /tmp.
-            # This environment variable tells it also to mount our temp
-            # directory.
-            oldmounts = ""
-            extra_mounts = [str(identifier_tmp_dir)]
-            if Path.cwd().is_relative_to("/tmp"):
-                extra_mounts.append(str(Path.cwd()))
+    # install the wheel
+    call(
+        "pip",
+        "install",
+        f"{wheel}{build_options.test_extras}",
+        env=virtualenv_env,
+    )
 
-            if "_PYODIDE_EXTRA_MOUNTS" in env:
-                oldmounts = env["_PYODIDE_EXTRA_MOUNTS"] + ":"
-            env["_PYODIDE_EXTRA_MOUNTS"] = oldmounts + ":".join(extra_mounts)
+    # test the wheel
+    if build_options.test_requires:
+        call("pip", "install", *build_options.test_requires, env=virtualenv_env)
 
-            compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
-            if compatible_wheel:
-                log.step_end()
-                print(
-                    f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
-                )
-                built_wheel = compatible_wheel
-            else:
-                if build_options.before_build:
-                    log.step("Running before_build...")
-                    before_build_prepared = prepare_command(
-                        build_options.before_build, project=".", package=build_options.package_dir
-                    )
-                    shell(before_build_prepared, env=env)
+    # run the tests from a temp dir, with an absolute path in the command
+    # (this ensures that Python runs the tests against the installed wheel
+    # and not the repo code)
+    test_command_prepared = prepare_command(
+        build_options.test_command,
+        project=Path.cwd(),
+        package=build_options.package_dir.resolve(),
+    )
 
-                log.step("Building wheel...")
+    test_cwd = state.identifier_tmp_dir / "test_cwd"
+    test_cwd.mkdir(exist_ok=True)
 
-                extra_flags = get_build_frontend_extra_flags(
-                    build_frontend,
-                    build_options.build_verbosity,
-                    prepare_config_settings(
-                        build_options.config_settings,
-                        project=".",
-                        package=build_options.package_dir,
-                    ),
-                )
+    if build_options.test_sources:
+        copy_test_sources(
+            build_options.test_sources,
+            Path.cwd(),
+            test_cwd,
+        )
+    else:
+        # Use the test_fail.py file to raise a nice error if the user
+        # tries to run tests in the cwd
+        (test_cwd / "test_fail.py").write_text(resources.TEST_FAIL_CWD_FILE.read_text())
 
-                call(
-                    "pyodide",
-                    "build",
-                    build_options.package_dir,
-                    f"--outdir={built_wheel_dir}",
-                    *extra_flags,
-                    env=env,
-                )
-                built_wheel = next(built_wheel_dir.glob("*.whl"))
+    shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
-                if built_wheel.name.endswith("none-any.whl"):
-                    raise errors.NonPlatformWheelError()
 
-                if build_options.repair_command:
-                    log.step("Repairing wheel...")
-
-                    repair_command_prepared = prepare_command(
-                        build_options.repair_command,
-                        wheel=built_wheel,
-                        dest_dir=repaired_wheel_dir,
-                        package=build_options.package_dir,
-                        project=".",
-                    )
-                    shell(repair_command_prepared, env=env)
-                    log.step_end()
-                else:
-                    shutil.move(str(built_wheel), repaired_wheel_dir)
-
-                repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
-
-                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
-                    raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
-
-                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
-
-            if build_options.test_command and build_options.test_selector(config.identifier):
-                log.step("Testing wheel...")
-
-                venv_dir = identifier_tmp_dir / "venv-test"
-                # set up a virtual environment to install and test from, to make sure
-                # there are no dependencies that were pulled in at build time.
-
-                virtualenv_env = env.copy()
-                virtualenv_env["PATH"] = os.pathsep.join(
-                    [
-                        str(ensure_node(config.node_version)),
-                        virtualenv_env["PATH"],
-                    ]
-                )
-
-                # pyodide venv uses virtualenv under the hood
-                # use the pip embedded with virtualenv & disable network updates
-                virtualenv_create_env = virtualenv_env.copy()
-                virtualenv_create_env["VIRTUALENV_PIP"] = pip_version
-                virtualenv_create_env["VIRTUALENV_NO_PERIODIC_UPDATE"] = "1"
-
-                call("pyodide", "venv", venv_dir, env=virtualenv_create_env)
-
-                virtualenv_env["PATH"] = os.pathsep.join(
-                    [
-                        str(venv_dir / "bin"),
-                        virtualenv_env["PATH"],
-                    ]
-                )
-                virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
-
-                virtualenv_env = build_options.test_environment.as_dictionary(
-                    prev_environment=virtualenv_env
-                )
-
-                # check that we are using the Python from the virtual environment
-                call("which", "python", env=virtualenv_env)
-
-                if build_options.before_test:
-                    before_test_prepared = prepare_command(
-                        build_options.before_test,
-                        project=".",
-                        package=build_options.package_dir,
-                        wheel=repaired_wheel,
-                    )
-                    shell(before_test_prepared, env=virtualenv_env)
-
-                # install the wheel
-                call(
-                    "pip",
-                    "install",
-                    f"{repaired_wheel}{build_options.test_extras}",
-                    env=virtualenv_env,
-                )
-
-                # test the wheel
-                if build_options.test_requires:
-                    call("pip", "install", *build_options.test_requires, env=virtualenv_env)
-
-                # run the tests from a temp dir, with an absolute path in the command
-                # (this ensures that Python runs the tests against the installed wheel
-                # and not the repo code)
-                test_command_prepared = prepare_command(
-                    build_options.test_command,
-                    project=Path.cwd(),
-                    package=build_options.package_dir.resolve(),
-                )
-
-                test_cwd = identifier_tmp_dir / "test_cwd"
-                test_cwd.mkdir(exist_ok=True)
-
-                if build_options.test_sources:
-                    copy_test_sources(
-                        build_options.test_sources,
-                        Path.cwd(),
-                        test_cwd,
-                    )
-                else:
-                    # Use the test_fail.py file to raise a nice error if the user
-                    # tries to run tests in the cwd
-                    (test_cwd / "test_fail.py").write_text(resources.TEST_FAIL_CWD_FILE.read_text())
-
-                shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
-
-            # we're all done here; move it to output (overwrite existing)
-            output_wheel: Path | None = None
-            if compatible_wheel is None:
-                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
-                moved_wheel = move_file(repaired_wheel, output_wheel)
-                if moved_wheel != output_wheel.resolve():
-                    log.warning(
-                        f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
-                    )
-                built_wheels.append(output_wheel)
-            log.build_end(output_wheel)
-
-    except subprocess.CalledProcessError as error:
-        msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
-        raise errors.FatalError(msg) from error
+def teardown(state: BuildState) -> None:
+    # Unlike the other platforms, pyodide has never cleaned up its per-identifier
+    # tmp dir here; the whole run tmp_path is removed by the caller at the end.
+    pass
