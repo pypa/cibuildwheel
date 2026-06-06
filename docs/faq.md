@@ -221,6 +221,60 @@ Your build might need some compiler flags to be set through environment variable
 Consider incorporating these into your package, for example, in `setup.py` using [`extra_compile_args` or
 `extra_link_args`](https://setuptools.pypa.io/en/latest/userguide/ext_modules.html#setuptools.Extension).
 
+### Building wheels with CUDA on Linux
+
+On Linux, you can build binary wheels with CUDA to take advantage of NVIDIA GPUs for hardware acceleration.
+Specify the custom Docker containers with CUDA Toolkit as follows:
+
+```yaml
+CIBW_MANYLINUX_X86_64_IMAGE: >-
+  quay.io/manylinux_cuda/manylinux2_28_x86_64_cuda13_1:latest
+CIBW_MANYLINUX_AARCH64_IMAGE: >-
+  quay.io/manylinux_cuda/manylinux2_28_aarch64_cuda13_1:latest
+```
+Currently, we support the following CUDA manylinux containers:
+
+* `quay.io/manylinux_cuda/manylinux2_28_x86_64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux2_28_aarch64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux2_28_x86_64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux2_28_aarch64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux2_34_x86_64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux2_34_aarch64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux2_34_x86_64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux2_34_aarch64_cuda13_1:latest`
+
+A typical GitHub Actions workflow will look like this:
+
+```yaml
+jobs:
+  build-wheels:
+    name: Build wheels
+    runs-on: ${{ matrix.target.runner }}
+    strategy:
+      matrix:
+        manylinux-base: [manylinux_2_28, manylinux_2_34]
+        cuda-version: [12_9, 13_1]
+        target:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3
+        env:
+          CIBW_MANYLINUX_X86_64_IMAGE: >-
+            quay.io/manylinux_cuda/${{ matrix.manylinux-base }}_x86_64_cuda${{ matrix.cuda-version }}:latest
+          CIBW_MANYLINUX_AARCH64_IMAGE: >-
+            quay.io/manylinux_cuda/${{ matrix.manylinux-base }}_aarch64_cuda${{ matrix.cuda-version }}:latest
+          CIBW_BUILD: cp312-manylinux_${{ matrix.target.arch }}
+```
+
+
 ## Troubleshooting
 
 If your wheel didn't compile, you might have a mistake in your config.
