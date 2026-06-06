@@ -14,14 +14,14 @@ from typing import assert_never
 from filelock import FileLock
 from packaging.version import Version
 
-from cibuildwheel import errors
-from cibuildwheel.audit import run_audit
+from cibuildwheel import errors, platforms  # pylint: disable=cyclic-import
 from cibuildwheel.frontend import (
     BuildFrontendName,
     get_build_frontend_extra_flags,
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
+from cibuildwheel.platforms._run import run_host_build
 from cibuildwheel.platforms.macos import install_cpython as install_build_cpython
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell, split_command
@@ -29,11 +29,9 @@ from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
     download,
-    move_file,
     remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap_preserving_paragraphs
-from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.venv import constraint_flags, virtualenv
 
 TYPE_CHECKING = False
@@ -42,7 +40,7 @@ if TYPE_CHECKING:
 
     from cibuildwheel.architecture import Architecture
     from cibuildwheel.environment import ParsedEnvironment
-    from cibuildwheel.options import Options
+    from cibuildwheel.options import BuildOptions, Options
     from cibuildwheel.selector import BuildSelector
 
 
@@ -438,339 +436,327 @@ def setup_python(
     return target_install_path, env
 
 
+@dataclasses.dataclass(frozen=True)
+class BuildState:
+    config: PythonConfiguration
+    options: BuildOptions
+    identifier_tmp_dir: Path
+    target_install_path: Path
+    env: dict[str, str]
+
+
 def build(options: Options, tmp_path: Path) -> None:
     if sys.platform != "darwin":
         msg = "iOS binaries can only be built on macOS"
         raise errors.FatalError(msg)
 
-    python_configurations = get_python_configurations(
-        build_selector=options.globals.build_selector,
-        architectures=options.globals.architectures,
+    run_host_build(platforms.ios, options, tmp_path)
+
+
+def before_all(options: Options, python_configurations: Sequence[PythonConfiguration]) -> None:
+    before_all_options = options.build_options(python_configurations[0].identifier)
+    if before_all_options.before_all:
+        log.step("Running before_all...")
+        env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
+        env.setdefault("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
+        before_all_prepared = prepare_command(
+            before_all_options.before_all,
+            project=".",
+            package=before_all_options.package_dir,
+        )
+        shell(before_all_prepared, env=env)
+
+
+def setup(config: PythonConfiguration, options: Options, tmp_path: Path) -> BuildState:
+    build_options = options.build_options(config.identifier)
+    build_frontend = build_options.build_frontend
+    # uv doesn't support iOS
+    # Not using set because mypy can't narrow it
+    if build_frontend.name == "build[uv]" or build_frontend.name == "uv":  # noqa: PLR1714
+        msg = "uv doesn't support iOS"
+        raise errors.FatalError(msg)
+
+    identifier_tmp_dir = tmp_path / config.identifier
+    identifier_tmp_dir.mkdir()
+
+    constraints_path = build_options.dependency_constraints.get_for_python_version(
+        version=config.version, tmp_dir=identifier_tmp_dir
     )
 
-    if not python_configurations:
-        return
+    target_install_path, env = setup_python(
+        identifier_tmp_dir / "build",
+        python_configuration=config,
+        dependency_constraint=constraints_path,
+        environment=build_options.environment,
+        build_frontend=build_frontend.name,
+        xbuild_tools=build_options.xbuild_tools,
+    )
+    env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
+
+    return BuildState(config, build_options, identifier_tmp_dir, target_install_path, env)
+
+
+def before_build(state: BuildState) -> None:
+    build_options = state.options
+    if build_options.before_build:
+        log.step("Running before_build...")
+        before_build_prepared = prepare_command(
+            build_options.before_build,
+            project=".",
+            package=build_options.package_dir,
+        )
+        shell(before_build_prepared, env=state.env)
+
+
+def build_wheel(state: BuildState) -> Path:
+    build_options = state.options
+    build_frontend = build_options.build_frontend
+    built_wheel_dir = state.identifier_tmp_dir / "built_wheel"
+
+    log.step("Building wheel...")
+    built_wheel_dir.mkdir()
+
+    extra_flags = get_build_frontend_extra_flags(
+        build_frontend,
+        build_options.build_verbosity,
+        prepare_config_settings(
+            build_options.config_settings,
+            project=".",
+            package=build_options.package_dir,
+        ),
+    )
+
+    match build_frontend.name:
+        case "pip":
+            # Path.resolve() is needed. Without it pip wheel may try to
+            # fetch package from pypi.org. See
+            # https://github.com/pypa/cibuildwheel/pull/369
+            call(
+                "python",
+                "-m",
+                "pip",
+                "wheel",
+                build_options.package_dir.resolve(),
+                f"--wheel-dir={built_wheel_dir}",
+                "--no-deps",
+                *extra_flags,
+                env=state.env,
+            )
+        case "build":
+            call(
+                "python",
+                "-m",
+                "build",
+                build_options.package_dir,
+                "--wheel",
+                f"--outdir={built_wheel_dir}",
+                *extra_flags,
+                env=state.env,
+            )
+        case "build[uv]" | "uv":
+            # rejected in setup(); handled here so the match stays exhaustive
+            msg = "uv doesn't support iOS"
+            raise errors.FatalError(msg)
+        case _:
+            assert_never(build_frontend)
+
+    built_wheel = next(built_wheel_dir.glob("*.whl"))
+
+    if built_wheel.name.endswith("none-any.whl"):
+        raise errors.NonPlatformWheelError()
+    return built_wheel
+
+
+def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
+    build_options = state.options
+    repaired_wheel_dir = state.identifier_tmp_dir / "repaired_wheel"
+    repaired_wheel_dir.mkdir()
+
+    if build_options.repair_command:
+        log.step("Repairing wheel...")
+
+        repair_command_prepared = prepare_command(
+            build_options.repair_command,
+            wheel=built_wheel,
+            dest_dir=repaired_wheel_dir,
+            package=build_options.package_dir,
+            project=".",
+        )
+        shell(repair_command_prepared, env=state.env)
+    else:
+        shutil.move(str(built_wheel), repaired_wheel_dir)
 
     try:
-        before_all_options_identifier = python_configurations[0].identifier
-        before_all_options = options.build_options(before_all_options_identifier)
+        repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+    except StopIteration:
+        raise errors.RepairStepProducedNoWheelError() from None
 
-        if before_all_options.before_all:
-            log.step("Running before_all...")
-            env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
-            env.setdefault("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
-            before_all_prepared = prepare_command(
-                before_all_options.before_all,
-                project=".",
-                package=before_all_options.package_dir,
-            )
-            shell(before_all_prepared, env=env)
+    log.step_end()
+    return repaired_wheel
 
-        built_wheels: list[Path] = []
 
-        for config in python_configurations:
-            build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend
-            # uv doesn't support iOS
-            # Not using set because mypy can't narrow it
-            if build_frontend.name == "build[uv]" or build_frontend.name == "uv":  # noqa: PLR1714
-                msg = "uv doesn't support iOS"
-                raise errors.FatalError(msg)
+def test_wheel(state: BuildState, wheel: Path) -> None:
+    build_options = state.options
+    config = state.config
+    if not (build_options.test_command and build_options.test_selector(config.identifier)):
+        return
 
-            log.build_start(config.identifier)
+    if not config.is_simulator:
+        log.step("Skipping tests on non-simulator SDK")
+        return
+    if config.arch != os.uname().machine:
+        log.step("Skipping tests on non-native simulator architecture")
+        return
 
-            identifier_tmp_dir = tmp_path / config.identifier
-            identifier_tmp_dir.mkdir()
-            built_wheel_dir = identifier_tmp_dir / "built_wheel"
-            repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
+    test_env = build_options.test_environment.as_dictionary(prev_environment=state.env)
 
-            constraints_path = build_options.dependency_constraints.get_for_python_version(
-                version=config.version, tmp_dir=identifier_tmp_dir
-            )
+    if build_options.before_test:
+        before_test_prepared = prepare_command(
+            build_options.before_test,
+            project=".",
+            package=build_options.package_dir,
+        )
+        shell(before_test_prepared, env=test_env)
 
-            target_install_path, env = setup_python(
-                identifier_tmp_dir / "build",
-                python_configuration=config,
-                dependency_constraint=constraints_path,
-                environment=build_options.environment,
-                build_frontend=build_frontend.name,
-                xbuild_tools=build_options.xbuild_tools,
-            )
-            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
+    log.step("Setting up test harness...")
+    # Clone the testbed project into the build directory
+    testbed_path = state.identifier_tmp_dir / "testbed"
+    call(
+        "python",
+        state.target_install_path / "testbed",
+        "clone",
+        testbed_path,
+        env=test_env,
+    )
 
-            compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
-            if compatible_wheel:
-                log.step_end()
-                print(
-                    f"\nFound previously built wheel {compatible_wheel.name} "
-                    f"that is compatible with {config.identifier}. "
-                    "Skipping build step..."
-                )
-                test_wheel = compatible_wheel
-            else:
-                if build_options.before_build:
-                    log.step("Running before_build...")
-                    before_build_prepared = prepare_command(
-                        build_options.before_build,
-                        project=".",
-                        package=build_options.package_dir,
-                    )
-                    shell(before_build_prepared, env=env)
+    testbed_app_path = testbed_path / "iOSTestbed" / "app"
 
-                log.step("Building wheel...")
-                built_wheel_dir.mkdir()
+    # Copy the test sources to the testbed app
+    if build_options.test_sources:
+        copy_test_sources(
+            build_options.test_sources,
+            Path.cwd(),
+            testbed_app_path,
+        )
+    else:
+        (testbed_app_path / "test_fail.py").write_text(resources.TEST_FAIL_CWD_FILE.read_text())
 
-                extra_flags = get_build_frontend_extra_flags(
-                    build_frontend,
-                    build_options.build_verbosity,
-                    prepare_config_settings(
-                        build_options.config_settings,
-                        project=".",
-                        package=build_options.package_dir,
-                    ),
-                )
+    log.step("Installing test requirements...")
+    # Install the compiled wheel (with any test extras), plus
+    # the test requirements. Use the --platform tag to force
+    # the installation of iOS wheels; this requires the use of
+    # --only-binary=:all:
+    ios_version = test_env["IPHONEOS_DEPLOYMENT_TARGET"]
+    platform_tag = f"ios_{ios_version.replace('.', '_')}_{config.arch}_{config.sdk}"
 
-                match build_frontend.name:
-                    case "pip":
-                        # Path.resolve() is needed. Without it pip wheel may try to
-                        # fetch package from pypi.org. See
-                        # https://github.com/pypa/cibuildwheel/pull/369
-                        call(
-                            "python",
-                            "-m",
-                            "pip",
-                            "wheel",
-                            build_options.package_dir.resolve(),
-                            f"--wheel-dir={built_wheel_dir}",
-                            "--no-deps",
-                            *extra_flags,
-                            env=env,
-                        )
-                    case "build":
-                        call(
-                            "python",
-                            "-m",
-                            "build",
-                            build_options.package_dir,
-                            "--wheel",
-                            f"--outdir={built_wheel_dir}",
-                            *extra_flags,
-                            env=env,
-                        )
-                    case _:
-                        assert_never(build_frontend)
+    call(
+        "python",
+        "-m",
+        "pip",
+        "install",
+        "--only-binary=:all:",
+        "--platform",
+        platform_tag,
+        "--target",
+        testbed_path / "iOSTestbed" / "app_packages",
+        f"{wheel}{build_options.test_extras}",
+        *build_options.test_requires,
+        env=test_env,
+    )
 
-                built_wheel = next(built_wheel_dir.glob("*.whl"))
+    log.step("Running test suite...")
 
-                if built_wheel.name.endswith("none-any.whl"):
-                    raise errors.NonPlatformWheelError()
+    # iOS doesn't support placeholders in the test command,
+    # because the source dir isn't visible on the simulator.
+    if "{project}" in build_options.test_command or "{package}" in build_options.test_command:
+        msg = unwrap_preserving_paragraphs(
+            f"""
+            iOS tests configured with a test command that uses the "{{project}}" or
+            "{{package}}" placeholder. iOS tests cannot use placeholders, because the
+            source directory is not visible on the simulator.
 
-                repaired_wheel_dir.mkdir()
-                if build_options.repair_command:
-                    log.step("Repairing wheel...")
+            In addition, iOS tests must run as a Python module, so the test command
+            must begin with 'python -m'.
 
-                    repair_command_prepared = prepare_command(
-                        build_options.repair_command,
-                        wheel=built_wheel,
-                        dest_dir=repaired_wheel_dir,
-                        package=build_options.package_dir,
-                        project=".",
-                    )
-                    shell(repair_command_prepared, env=env)
-                else:
-                    shutil.move(str(built_wheel), repaired_wheel_dir)
+            Test command: {build_options.test_command!r}
+            """
+        )
+        raise errors.FatalError(msg)
 
-                try:
-                    repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
-                except StopIteration:
-                    raise errors.RepairStepProducedNoWheelError() from None
+    test_command_list = shlex.split(build_options.test_command)
+    try:
+        for test_command_parts in split_command(test_command_list):
+            match test_command_parts:
+                case ["python", "-m", *rest]:
+                    final_command = rest
+                case ["pytest", *rest]:
+                    # pytest works exactly the same as a module, so we
+                    # can just run it as a module.
+                    msg = unwrap_preserving_paragraphs(f"""
+                        iOS tests configured with a test command which doesn't start
+                        with 'python -m'. iOS tests must execute python modules - other
+                        entrypoints are not supported.
 
-                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
-                    raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+                        cibuildwheel will try to execute it as if it started with
+                        'python -m'. If this works, all you need to do is add that to
+                        your test command.
 
-                log.step_end()
-
-                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
-
-                test_wheel = repaired_wheel
-
-            if build_options.test_command and build_options.test_selector(config.identifier):
-                if not config.is_simulator:
-                    log.step("Skipping tests on non-simulator SDK")
-                elif config.arch != os.uname().machine:
-                    log.step("Skipping tests on non-native simulator architecture")
-                else:
-                    test_env = build_options.test_environment.as_dictionary(prev_environment=env)
-
-                    if build_options.before_test:
-                        before_test_prepared = prepare_command(
-                            build_options.before_test,
-                            project=".",
-                            package=build_options.package_dir,
-                        )
-                        shell(before_test_prepared, env=test_env)
-
-                    log.step("Setting up test harness...")
-                    # Clone the testbed project into the build directory
-                    testbed_path = identifier_tmp_dir / "testbed"
-                    call(
-                        "python",
-                        target_install_path / "testbed",
-                        "clone",
-                        testbed_path,
-                        env=test_env,
-                    )
-
-                    testbed_app_path = testbed_path / "iOSTestbed" / "app"
-
-                    # Copy the test sources to the testbed app
-                    if build_options.test_sources:
-                        copy_test_sources(
-                            build_options.test_sources,
-                            Path.cwd(),
-                            testbed_app_path,
-                        )
-                    else:
-                        (testbed_app_path / "test_fail.py").write_text(
-                            resources.TEST_FAIL_CWD_FILE.read_text()
-                        )
-
-                    log.step("Installing test requirements...")
-                    # Install the compiled wheel (with any test extras), plus
-                    # the test requirements. Use the --platform tag to force
-                    # the installation of iOS wheels; this requires the use of
-                    # --only-binary=:all:
-                    ios_version = test_env["IPHONEOS_DEPLOYMENT_TARGET"]
-                    platform_tag = f"ios_{ios_version.replace('.', '_')}_{config.arch}_{config.sdk}"
-
-                    call(
-                        "python",
-                        "-m",
-                        "pip",
-                        "install",
-                        "--only-binary=:all:",
-                        "--platform",
-                        platform_tag,
-                        "--target",
-                        testbed_path / "iOSTestbed" / "app_packages",
-                        f"{test_wheel}{build_options.test_extras}",
-                        *build_options.test_requires,
-                        env=test_env,
-                    )
-
-                    log.step("Running test suite...")
-
-                    # iOS doesn't support placeholders in the test command,
-                    # because the source dir isn't visible on the simulator.
-                    if (
-                        "{project}" in build_options.test_command
-                        or "{package}" in build_options.test_command
-                    ):
-                        msg = unwrap_preserving_paragraphs(
-                            f"""
-                            iOS tests configured with a test command that uses the "{{project}}" or
-                            "{{package}}" placeholder. iOS tests cannot use placeholders, because the
-                            source directory is not visible on the simulator.
-
-                            In addition, iOS tests must run as a Python module, so the test command
-                            must begin with 'python -m'.
+                        Test command: {build_options.test_command!r}
+                    """)
+                    log.warning(msg)
+                    final_command = ["pytest", *rest]
+                case _:
+                    msg = unwrap_preserving_paragraphs(
+                        f"""
+                            iOS tests configured with a test command which doesn't start
+                            with 'python -m'. iOS tests must execute python modules - other
+                            entrypoints are not supported.
 
                             Test command: {build_options.test_command!r}
-                            """
-                        )
-                        raise errors.FatalError(msg)
-
-                    test_command_list = shlex.split(build_options.test_command)
-                    try:
-                        for test_command_parts in split_command(test_command_list):
-                            match test_command_parts:
-                                case ["python", "-m", *rest]:
-                                    final_command = rest
-                                case ["pytest", *rest]:
-                                    # pytest works exactly the same as a module, so we
-                                    # can just run it as a module.
-                                    msg = unwrap_preserving_paragraphs(f"""
-                                        iOS tests configured with a test command which doesn't start
-                                        with 'python -m'. iOS tests must execute python modules - other
-                                        entrypoints are not supported.
-
-                                        cibuildwheel will try to execute it as if it started with
-                                        'python -m'. If this works, all you need to do is add that to
-                                        your test command.
-
-                                        Test command: {build_options.test_command!r}
-                                    """)
-                                    log.warning(msg)
-                                    final_command = ["pytest", *rest]
-                                case _:
-                                    msg = unwrap_preserving_paragraphs(
-                                        f"""
-                                            iOS tests configured with a test command which doesn't start
-                                            with 'python -m'. iOS tests must execute python modules - other
-                                            entrypoints are not supported.
-
-                                            Test command: {build_options.test_command!r}
-                                        """
-                                    )
-                                    raise errors.FatalError(msg)
-
-                            test_runtime_args = build_options.test_runtime.args
-
-                            # 2025-10: The GitHub Actions macos-15 runner has a known issue where
-                            # the default simulator won't start due to a disk performance issue;
-                            # see https://github.com/actions/runner-images/issues/12777 for details.
-                            # In the meantime, if it looks like we're running on a GitHub Actions
-                            # macos-15 runner, use a simulator that is known to work, unless the
-                            # user explicitly specifies a simulator.
-                            os_version, _, arch = platform.mac_ver()
-                            if (
-                                "GITHUB_ACTIONS" in os.environ
-                                and os_version.startswith("15.")
-                                and arch == "arm64"
-                                and not any(
-                                    arg.startswith("--simulator") for arg in test_runtime_args
-                                )
-                            ):
-                                test_runtime_args = [
-                                    "--simulator",
-                                    "iPhone 16e,OS=18.5",
-                                    *test_runtime_args,
-                                ]
-
-                            call(
-                                "python",
-                                testbed_path,
-                                "run",
-                                *(["--verbose"] if build_options.build_verbosity > 0 else []),
-                                *test_runtime_args,
-                                "--",
-                                *final_command,
-                                env=test_env,
-                            )
-                    except subprocess.CalledProcessError:
-                        # catches the first test command failure in the loop,
-                        # implementing short-circuiting
-                        log.step_end(success=False)
-                        log.error(f"Test suite failed on {config.identifier}")
-                        sys.exit(1)
-
-                    log.step_end()
-
-            # We're all done here; move it to output (overwrite existing)
-            output_wheel: Path | None = None
-            if compatible_wheel is None:
-                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
-                moved_wheel = move_file(repaired_wheel, output_wheel)
-                if moved_wheel != output_wheel.resolve():
-                    log.warning(
-                        f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                        """
                     )
-                built_wheels.append(output_wheel)
+                    raise errors.FatalError(msg)
 
-            # Clean up
-            shutil.rmtree(identifier_tmp_dir)
+            test_runtime_args = build_options.test_runtime.args
 
-            log.build_end(output_wheel)
-    except subprocess.CalledProcessError as error:
-        msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
-        raise errors.FatalError(msg) from error
+            # 2025-10: The GitHub Actions macos-15 runner has a known issue where
+            # the default simulator won't start due to a disk performance issue;
+            # see https://github.com/actions/runner-images/issues/12777 for details.
+            # In the meantime, if it looks like we're running on a GitHub Actions
+            # macos-15 runner, use a simulator that is known to work, unless the
+            # user explicitly specifies a simulator.
+            os_version, _, arch = platform.mac_ver()
+            if (
+                "GITHUB_ACTIONS" in os.environ
+                and os_version.startswith("15.")
+                and arch == "arm64"
+                and not any(arg.startswith("--simulator") for arg in test_runtime_args)
+            ):
+                test_runtime_args = [
+                    "--simulator",
+                    "iPhone 16e,OS=18.5",
+                    *test_runtime_args,
+                ]
+
+            call(
+                "python",
+                testbed_path,
+                "run",
+                *(["--verbose"] if build_options.build_verbosity > 0 else []),
+                *test_runtime_args,
+                "--",
+                *final_command,
+                env=test_env,
+            )
+    except subprocess.CalledProcessError:
+        # catches the first test command failure in the loop,
+        # implementing short-circuiting
+        log.step_end(success=False)
+        log.error(f"Test suite failed on {config.identifier}")
+        sys.exit(1)
+
+    log.step_end()
+
+
+def teardown(state: BuildState) -> None:
+    shutil.rmtree(state.identifier_tmp_dir)
