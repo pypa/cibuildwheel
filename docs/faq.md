@@ -130,21 +130,21 @@ By default it lives under the OS user-cache directory:
 | macOS / iOS  | `~/Library/Caches/cibuildwheel`               |
 | Windows      | `%LOCALAPPDATA%\pypa\cibuildwheel\Cache`      |
 
-Set the `CIBW_CACHE_PATH` environment variable to point cibuildwheel at a different folder. On CI you'll typically want a workspace-relative path so that the runner's cache action can persist it between runs.
+Set the `CIBW_CACHE_PATH` environment variable to point cibuildwheel at a different folder. On CI you'll typically want a workflow-defined path so that the runner's cache action can persist it between runs.
 
 #### Persisting the cache on GitHub Actions
 
 ```yaml
 - uses: actions/cache@v5
   with:
-    path: .cibw-cache
+    path: ${{ runner.temp }}/cibw-cache
     key: cibw-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
     restore-keys: |
       cibw-${{ runner.os }}-
 
 - uses: pypa/cibuildwheel@v3.4.1
   env:
-    CIBW_CACHE_PATH: ${{ github.workspace }}/.cibw-cache
+    CIBW_CACHE_PATH: ${{ runner.temp }}/cibw-cache
 ```
 
 The `restore-keys` fallback lets a slightly stale cache still be reused if `pyproject.toml` changes. Adjust the cache key to whatever set of inputs determines what cibuildwheel will download (e.g. include a hash of `pyproject.toml`'s `[tool.cibuildwheel]` section, or pin on a Python build-tools version).
@@ -152,6 +152,9 @@ The `restore-keys` fallback lets a slightly stale cache still be reused if `pypr
 For platform-specific notes (e.g. caching the official python.org installers on macOS, or NuGet CPython downloads on Windows), see the [platforms documentation](platforms.md).
 
 If the cache becomes stale or corrupt, run `cibuildwheel --clean-cache` (or simply delete the folder) before re-running.
+
+!!! warning "Cache poisoning security risk"
+    Use of caching in a release pipeline means the cache folder is now a possible security risk - an attacker could [poison the cache](https://hivesecurity.gitlab.io/blog/github-actions-cache-poisoning-supply-chain/) with executables they have compromised. If you use this for release builds, consider who has access to modify the cache. Specifically be careful if your repo has any workflows using `pull_request_target`, even if they appear unrelated.
 
 [virtualenv]: https://virtualenv.pypa.io/
 [pbs]: https://gregoryszorc.com/docs/python-build-standalone/main/
