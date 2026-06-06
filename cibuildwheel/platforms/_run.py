@@ -132,6 +132,8 @@ def run_host_build(
                     backend.before_build(state)
                     built_wheel = backend.build_wheel(state)
                     repaired_wheel = backend.repair_wheel(state, built_wheel)
+                    if repaired_wheel.name in {w.name for w in built_wheels}:
+                        raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
                     run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
             else:
                 # Test-only stage: consume a wheel built by an earlier run.
@@ -142,9 +144,12 @@ def run_host_build(
 
             output_wheel: Path | None = None
             if Stage.BUILD in stages and compatible_wheel is None:
-                output_wheel = move_file(
-                    repaired_wheel, build_options.output_dir / repaired_wheel.name
-                )
+                expected_wheel = build_options.output_dir / repaired_wheel.name
+                output_wheel = move_file(repaired_wheel, expected_wheel)
+                if output_wheel != expected_wheel.resolve():
+                    log.warning(
+                        f"{repaired_wheel} was moved to {output_wheel} instead of {expected_wheel}"
+                    )
                 built_wheels.append(output_wheel)
 
             backend.teardown(state)
