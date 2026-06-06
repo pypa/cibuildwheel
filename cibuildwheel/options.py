@@ -880,11 +880,7 @@ class Options:
                         f"manylinux-{build_platform}-image", ignore_empty=True
                     )
                     self._check_pinned_image(config_value, pinned_images)
-                    if config_value in pinned_images:
-                        image = pinned_images[config_value]
-                    else:
-                        image = config_value
-                    manylinux_images[build_platform] = image
+                    manylinux_images[build_platform] = pinned_images.get(config_value, config_value)
 
                 for build_platform in MUSLLINUX_ARCHS:
                     pinned_images = all_pinned_container_images[build_platform]
@@ -892,11 +888,7 @@ class Options:
                         f"musllinux-{build_platform}-image", ignore_empty=True
                     )
                     self._check_pinned_image(config_value, pinned_images)
-                    if config_value in pinned_images:
-                        image = pinned_images[config_value]
-                    else:
-                        image = config_value
-                    musllinux_images[build_platform] = image
+                    musllinux_images[build_platform] = pinned_images.get(config_value, config_value)
 
             container_engine_str = self.reader.get(
                 "container-engine",
