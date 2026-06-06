@@ -228,20 +228,20 @@ Specify the custom Docker containers with CUDA Toolkit as follows:
 
 ```yaml
 CIBW_MANYLINUX_X86_64_IMAGE: >-
-  quay.io/manylinux_cuda/manylinux2_28_x86_64_cuda13_1:latest
+  quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda13_1:latest
 CIBW_MANYLINUX_AARCH64_IMAGE: >-
-  quay.io/manylinux_cuda/manylinux2_28_aarch64_cuda13_1:latest
+  quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda13_1:latest
 ```
 Currently, we support the following CUDA manylinux containers:
 
-* `quay.io/manylinux_cuda/manylinux2_28_x86_64_cuda12_9:latest`
-* `quay.io/manylinux_cuda/manylinux2_28_aarch64_cuda12_9:latest`
-* `quay.io/manylinux_cuda/manylinux2_28_x86_64_cuda13_1:latest`
-* `quay.io/manylinux_cuda/manylinux2_28_aarch64_cuda13_1:latest`
-* `quay.io/manylinux_cuda/manylinux2_34_x86_64_cuda12_9:latest`
-* `quay.io/manylinux_cuda/manylinux2_34_aarch64_cuda12_9:latest`
-* `quay.io/manylinux_cuda/manylinux2_34_x86_64_cuda13_1:latest`
-* `quay.io/manylinux_cuda/manylinux2_34_aarch64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_x86_64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_aarch64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_x86_64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_aarch64_cuda13_1:latest`
 
 A typical GitHub Actions workflow will look like this:
 
