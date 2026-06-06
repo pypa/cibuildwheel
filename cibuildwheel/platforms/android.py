@@ -5,7 +5,6 @@ import platform
 import re
 import shlex
 import shutil
-import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
@@ -21,29 +20,29 @@ from packaging.utils import canonicalize_name
 
 from cibuildwheel import errors, platforms  # pylint: disable=cyclic-import
 from cibuildwheel.architecture import Architecture, arch_synonym
-from cibuildwheel.audit import run_audit
 from cibuildwheel.frontend import (
     get_build_frontend_extra_flags,
     parse_config_settings,
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
+from cibuildwheel.platforms._run import run_host_build
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
     download,
-    move_file,
     remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command
-from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
 from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from cibuildwheel.options import BuildOptions, Options
     from cibuildwheel.selector import BuildSelector
     from cibuildwheel.typing import PathOrStr
@@ -101,7 +100,7 @@ def shell_prepared(command: str, *, build_options: BuildOptions, env: dict[str, 
     )
 
 
-def before_all(options: Options, python_configurations: list[PythonConfiguration]) -> None:
+def before_all(options: Options, python_configurations: Sequence[PythonConfiguration]) -> None:
     before_all_options = options.build_options(python_configurations[0].identifier)
     if before_all_options.before_all:
         log.step("Running before_all...")
@@ -130,57 +129,23 @@ def build(options: Options, tmp_path: Path) -> None:
         )
         raise errors.FatalError(msg)
 
-    configs = get_python_configurations(
-        options.globals.build_selector, options.globals.architectures
-    )
-    if not configs:
-        return
+    run_host_build(platforms.android, options, tmp_path)
 
-    try:
-        before_all(options, configs)
 
-        built_wheels: list[Path] = []
-        for config in configs:
-            log.build_start(config.identifier)
-            build_options = options.build_options(config.identifier)
-            build_path = tmp_path / config.identifier
-            build_path.mkdir()
-            python_dir = setup_target_python(config, build_path)
-            build_env, android_env = setup_env(config, build_options, build_path, python_dir)
+def setup(config: PythonConfiguration, options: Options, tmp_path: Path) -> BuildState:
+    build_options = options.build_options(config.identifier)
+    build_path = tmp_path / config.identifier
+    build_path.mkdir()
+    python_dir = setup_target_python(config, build_path)
+    build_env, android_env = setup_env(config, build_options, build_path, python_dir)
 
-            state = BuildState(
-                config, build_options, build_path, python_dir, build_env, android_env
-            )
-            setup_xbuild_files(state)
+    state = BuildState(config, build_options, build_path, python_dir, build_env, android_env)
+    setup_xbuild_files(state)
+    return state
 
-            compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
-            if compatible_wheel:
-                print(
-                    f"\nFound previously built wheel {compatible_wheel.name} that is "
-                    f"compatible with {config.identifier}. Skipping build step..."
-                )
-                repaired_wheel = compatible_wheel
-            else:
-                before_build(state)
-                built_wheel = build_wheel(state)
-                repaired_wheel = repair_wheel(state, built_wheel)
-                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
 
-            test_wheel(state, repaired_wheel)
-
-            output_wheel: Path | None = None
-            if compatible_wheel is None:
-                output_wheel = move_file(
-                    repaired_wheel, build_options.output_dir / repaired_wheel.name
-                )
-                built_wheels.append(output_wheel)
-
-            shutil.rmtree(build_path)
-            log.build_end(output_wheel)
-
-    except subprocess.CalledProcessError as error:
-        msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
-        raise errors.FatalError(msg) from error
+def teardown(state: BuildState) -> None:
+    shutil.rmtree(state.build_path)
 
 
 def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
