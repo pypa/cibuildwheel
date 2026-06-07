@@ -493,7 +493,7 @@ def build(options: Options, tmp_path: Path) -> None:
     abs_package_dir = options.globals.package_dir.resolve()
     if cwd != abs_package_dir and cwd not in abs_package_dir.parents:
         msg = "package_dir must be inside the working directory"
-        raise Exception(msg)
+        raise errors.ConfigurationError(msg)
 
     container_project_path = PurePosixPath("/project")
     container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)

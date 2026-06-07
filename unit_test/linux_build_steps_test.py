@@ -3,15 +3,16 @@ from __future__ import annotations
 import textwrap
 from pprint import pprint
 
+import pytest
+
 import cibuildwheel.platforms.linux
+from cibuildwheel.errors import ConfigurationError
 from cibuildwheel.oci_container import OCIContainerEngineConfig
 from cibuildwheel.options import CommandLineArguments, Options
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from pathlib import Path
-
-    import pytest
 
 
 def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -99,3 +100,24 @@ def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
     ]
     assert before_alls(build_steps[3]) == [""] * 4
     assert container_engines(build_steps[3]) == [default_container_engine] * 4
+
+
+def test_package_dir_outside_working_directory_raises_configuration_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    work_dir = tmp_path / "work"
+    work_dir.mkdir()
+    package_dir = tmp_path / "package"
+    package_dir.mkdir()
+    package_dir.joinpath("pyproject.toml").touch()
+
+    monkeypatch.chdir(work_dir)
+
+    command_line_arguments = CommandLineArguments.defaults()
+    command_line_arguments.package_dir = package_dir
+    options = Options(platform="linux", command_line_arguments=command_line_arguments, env={})
+
+    with pytest.raises(
+        ConfigurationError, match="package_dir must be inside the working directory"
+    ):
+        cibuildwheel.platforms.linux.build(options, tmp_path / "build")
