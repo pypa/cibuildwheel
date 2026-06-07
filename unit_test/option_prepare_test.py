@@ -34,12 +34,13 @@ def mock_build_container(monkeypatch: pytest.MonkeyPatch) -> None:
         return nullcontext(kwargs)
 
     monkeypatch.setenv("CIBW_PLATFORM", "linux")
+    monkeypatch.setenv("CIBW_CONTAINER_ENGINE", "docker")
     monkeypatch.setattr(platform_module, "machine", lambda: "x86_64")
 
     monkeypatch.setattr(subprocess, "Popen", fail_on_call)
     monkeypatch.setattr(subprocess, "run", ignore_call)
     monkeypatch.setattr(file, "download", fail_on_call)
-    monkeypatch.setattr("cibuildwheel.platforms.linux.OCIContainer", ignore_context_call)
+    monkeypatch.setattr("cibuildwheel.platforms.linux.create_builder", ignore_context_call)
 
     monkeypatch.setattr(
         "cibuildwheel.platforms.linux.build_in_container",

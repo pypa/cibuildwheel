@@ -370,3 +370,74 @@ jobs:
         CIBW_BUILD: cp314-*
         CIBW_BUILD_FRONTEND: 'build[uv]'
         CIBW_PLATFORM: ${{ matrix.test_select }}
+
+  test-native-linux:
+    needs: sample
+    name: Test native linux on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    container:
+      image: quay.io/pypa/manylinux_2_28:latest # zizmor: ignore[unpinned-images]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ "ubuntu-latest", "ubuntu-24.04-arm" ]
+    steps:
+    - name: Prepare container
+      shell: bash
+      run: |
+        exec 2>&1
+        CPYTHON_DIR="${RUNNER_TOOL_CACHE}/Python"
+        if [ -d "${CPYTHON_DIR}" ]; then
+          echo "::group::Removing existing CPython tool cache"
+          set -x
+          rm -rf "${CPYTHON_DIR}"
+          set +x
+          echo "::endgroup::"
+        fi
+        for SOURCE_DIR in /opt/_internal/cpython-*; do
+          echo "::group::Adding '${SOURCE_DIR}' to the tool cache"
+          set -x
+          VERSION_MANYLINUX=${SOURCE_DIR:23}
+          case "${VERSION_MANYLINUX}" in
+            *-nogil) ARCH="${RUNNER_ARCH,,}-freethreaded";;
+            *) ARCH="${RUNNER_ARCH,,}";;
+          esac
+          VERSION=${VERSION_MANYLINUX%%-*}
+          case "${VERSION}" in
+            *a*) VERSION=${VERSION/a/-alpha.};;
+            *b*) VERSION=${VERSION/b/-beta.};;
+            *rc*) VERSION=${VERSION/rc/-rc.};;
+          esac
+          DEST_DIR="${CPYTHON_DIR}/${VERSION}"
+          mkdir -p "${DEST_DIR}"
+          ln -s ${SOURCE_DIR} "${DEST_DIR}/${ARCH}"
+          touch "${DEST_DIR}/${ARCH}.complete"
+          set +x
+          echo "::endgroup::"
+        done
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - name: Download a sample project
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: sample_proj
+        path: sample_proj
+    - name: Run a sample build (GitHub Action)
+      uses: ./
+      with:
+        package-dir: sample_proj
+        output-dir: wheelhouse
+      env:
+        CIBW_CONTAINER_ENGINE: "none"
+        CIBW_BUILD_FRONTEND: 'build[uv]'
+        CIBW_SKIP: "*-musllinux*"
+
+    - name: Install dependencies
+      run: uv sync --no-dev --group test
+
+    - name: Test cibuildwheel
+      env:
+        CIBW_CONTAINER_ENGINE: "none"
+        CIBW_PLATFORM: "linux"
+      run: uv run --no-sync bin/run_tests.py --test-select=native

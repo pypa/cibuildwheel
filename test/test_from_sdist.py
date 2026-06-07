@@ -45,6 +45,9 @@ def cibuildwheel_from_sdist_run(
         env.update(add_env)
 
     env["CIBW_BUILD"] = "cp{}{}-*".format(*utils.SINGLE_PYTHON_VERSION)
+    if os.environ.get("CIBW_CONTAINER_ENGINE", "docker") == "none":
+        skip = env.get("CIBW_SKIP", "")
+        env["CIBW_SKIP"] = f"{skip} *-musllinux_*".strip()
 
     with TemporaryDirectory() as tmp_output_dir:
         subprocess.run(
