@@ -199,7 +199,7 @@ def test_build_limited_python() -> None:
     assert build_selector("cp37-win32")
     assert build_selector("cp38-win32")
     assert build_selector("pp37-win_amd64")
-    assert build_selector("gp311_242-win_amd64")
+    assert build_selector("gp312_250-win_amd64")
 
 
 def test_build_limited_python_partial() -> None:

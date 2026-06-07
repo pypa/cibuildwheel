@@ -21,7 +21,6 @@ python_configurations = [
   { identifier = "pp39-manylinux_x86_64", version = "3.9", path_str = "/opt/python/pp39-pypy39_pp73" },
   { identifier = "pp310-manylinux_x86_64", version = "3.10", path_str = "/opt/python/pp310-pypy310_pp73" },
   { identifier = "pp311-manylinux_x86_64", version = "3.11", path_str = "/opt/python/pp311-pypy311_pp73" },
-  { identifier = "gp311_242-manylinux_x86_64", version = "3.11", path_str = "/opt/python/graalpy311-graalpy242_311_native" },
   { identifier = "gp312_250-manylinux_x86_64", version = "3.12", path_str = "/opt/python/graalpy312-graalpy250_312_native" },
   { identifier = "cp39-manylinux_aarch64", version = "3.9", path_str = "/opt/python/cp39-cp39" },
   { identifier = "cp310-manylinux_aarch64", version = "3.10", path_str = "/opt/python/cp310-cp310" },
@@ -71,7 +70,6 @@ python_configurations = [
   { identifier = "pp39-manylinux_aarch64", version = "3.9", path_str = "/opt/python/pp39-pypy39_pp73" },
   { identifier = "pp310-manylinux_aarch64", version = "3.10", path_str = "/opt/python/pp310-pypy310_pp73" },
   { identifier = "pp311-manylinux_aarch64", version = "3.11", path_str = "/opt/python/pp311-pypy311_pp73" },
-  { identifier = "gp311_242-manylinux_aarch64", version = "3.11", path_str = "/opt/python/graalpy311-graalpy242_311_native" },
   { identifier = "gp312_250-manylinux_aarch64", version = "3.12", path_str = "/opt/python/graalpy312-graalpy250_312_native" },
   { identifier = "pp39-manylinux_i686", version = "3.9", path_str = "/opt/python/pp39-pypy39_pp73" },
   { identifier = "pp310-manylinux_i686", version = "3.10", path_str = "/opt/python/pp310-pypy310_pp73" },
@@ -176,8 +174,6 @@ python_configurations = [
   { identifier = "pp310-macosx_arm64", version = "3.10", url = "https://downloads.python.org/pypy/pypy3.10-v7.3.19-macos_arm64.tar.bz2", sha256 = "3db8a03fc496164801646844d7f3b12baa0adb3ad9a0b7cb124521bc2e168a36" },
   { identifier = "pp311-macosx_x86_64", version = "3.11", url = "https://downloads.python.org/pypy/pypy3.11-v7.3.23-macos_x86_64.tar.bz2", sha256 = "c95363c4e87235d11a6cec8128239c291b1eb67a752778fbcfe029a71da82b5e" },
   { identifier = "pp311-macosx_arm64", version = "3.11", url = "https://downloads.python.org/pypy/pypy3.11-v7.3.23-macos_arm64.tar.bz2", sha256 = "4747b3aceba4c1c6104cddc0fe5ea302101d32955f0957347b9ecc4fbd7aed05" },
-  { identifier = "gp311_242-macosx_x86_64", version = "3.11", url = "https://github.com/oracle/graalpython/releases/download/graal-24.2.2/graalpy-24.2.2-macos-amd64.tar.gz", sha256 = "2f4d5e7dbdf90e38778dfcb8ca3e1ec7eee257ef726b1937d5bc91b54cdddf9b" },
-  { identifier = "gp311_242-macosx_arm64", version = "3.11", url = "https://github.com/oracle/graalpython/releases/download/graal-24.2.2/graalpy-24.2.2-macos-aarch64.tar.gz", sha256 = "f4a2ae01bae0fa53ec0d19f86d73c6dcc2a162d245552030183b84bfdd8f7635" },
   { identifier = "gp312_250-macosx_x86_64", version = "3.12", url = "https://github.com/oracle/graalpython/releases/download/graal-25.0.1/graalpy-25.0.1-macos-amd64.tar.gz", sha256 = "10b0721d52397f0cc85f038900318da2203711cbcfae7899e3faed49d3dc6221" },
   { identifier = "gp312_250-macosx_arm64", version = "3.12", url = "https://github.com/oracle/graalpython/releases/download/graal-25.0.3/graalpy-25.0.3-macos-aarch64.tar.gz", sha256 = "387d9f5b376860842bea4d55aae5820974f3f3b68fc36c77ae863a061a888857" },
 ]
@@ -214,7 +210,6 @@ python_configurations = [
   { identifier = "pp39-win_amd64", version = "3.9", url = "https://downloads.python.org/pypy/pypy3.9-v7.3.16-win64.zip", sha256 = "06ec12a5e964dc0ad33e6f380185a4d295178dce6d6df512f508e7aee00a1323" },
   { identifier = "pp310-win_amd64", version = "3.10", url = "https://downloads.python.org/pypy/pypy3.10-v7.3.19-win64.zip", sha256 = "c0d07bba6c8fb4e5804f4a8b3f8ef07cc3d89f6ad1db42a45ffb9be60bbb7cc2" },
   { identifier = "pp311-win_amd64", version = "3.11", url = "https://downloads.python.org/pypy/pypy3.11-v7.3.23-win64.zip", sha256 = "948b8ea58dea5b9917210fe4afd242c788fbfaba1c3f1a25e696a404f703389a" },
-  { identifier = "gp311_242-win_amd64", version = "3.11", url = "https://github.com/oracle/graalpython/releases/download/graal-24.2.2/graalpy-24.2.2-windows-amd64.zip", sha256 = "9606134284d4d95b2f9d69c3087cd3e9e488f46355b419f5e66588a3281df6a3" },
   { identifier = "gp312_250-win_amd64", version = "3.12", url = "https://github.com/oracle/graalpython/releases/download/graal-25.0.3/graalpy-25.0.3-windows-amd64.zip", sha256 = "2ae5c42b93e08d9e106a017634a3442b272ccae6d08ace157244de0449e937d4" },
 ]
 
