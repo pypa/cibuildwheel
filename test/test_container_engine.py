@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from . import test_projects, utils
@@ -19,7 +21,6 @@ def test_podman(
 ) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
-
     if not request.config.getoption("--run-podman"):
         pytest.skip("needs --run-podman option to run")
 
@@ -52,7 +53,8 @@ def test_podman(
 def test_create_args(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
-
+    if os.environ.get("CIBW_CONTAINER_ENGINE", "docker") == "none":
+        pytest.skip("the test is only relevant for CIBW_CONTAINER_ENGINE != 'none'")
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
