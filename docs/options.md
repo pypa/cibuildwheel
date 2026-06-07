@@ -594,6 +594,12 @@ You must use this variable to pass variables to Linux builds, since they execute
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 Variables are evaluated in the order they appear. Any variable referenced before it is set will evaluate to an empty string.
 
+The environment seen by the build and test steps starts with the build
+environment. On Linux, this is the container environment, plus any variables
+passed through with [`environment-pass`](#environment-pass). On other platforms,
+the host environment is already available. Assignments in `environment` are
+evaluated after that base environment and replace any duplicate variable names.
+
 To specify more than one environment variable, separate the assignments by spaces.
 
 Platform-specific environment variables are also available:<br/>
