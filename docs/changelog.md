@@ -5,15 +5,29 @@ ref: changelog
 
 # Changelog
 
-### v4.0.0rc2
+### v4.0.0
 
-_5 June 2026_
+_7 June 2026_
 
+See @henryiii's [release post](https://iscinumpy.dev/post/cibuildwheel-4-0-0/) for more info on new features!
+
+- 🌟 Adds wheel auditing with `abi3audit` as a default after the repair step, with new [`audit-requires`](https://cibuildwheel.pypa.io/en/stable/options/#audit-requires) and [`audit-command`](https://cibuildwheel.pypa.io/en/stable/options/#audit-command) options (#2805)
+- 🌟 Adds `pyemscripten` platform tag support (PEP 783), updates Pyodide to 314.0.0a2, and adds a `pyodide-eol` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) flag for building end-of-life Pyodide versions (#2812, #2848)
+- 🌟 Sets up `delvewheel` as the default [`repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command) for Windows, so extension module DLLs are now bundled automatically. Skip by setting it to empty if not needed. (#2831)
+- ✨ Adds CPython 3.15 support, under the [`enable` option](https://cibuildwheel.pypa.io/en/stable/options/#enable) `cpython-prerelease`. This version of cibuildwheel uses 3.15.0b1. (#2833, #2850)
+
+    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.15 will be available in cibuildwheel without the flag._
 - ✨ Adds CPython 3.15 support for iOS and Android (#2857, #2858)
 - ✨ Adds Android improvements for building NumPy and related packages, including auditwheel support, pkg-config and Fortran configuration, and the [`xbuild-files`](https://cibuildwheel.pypa.io/en/stable/options/#xbuild-files) option (#2695)
 - ✨ Adds `CIBUILDWHEEL_BUILD_IDENTIFIER` environment variable set to the current build identifier (e.g. `cp311-manylinux_x86_64`) during per-build steps (#2872)
+- ✨ Adds `{project}` and `{package}` placeholders to [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) (#2827)
+- ⚠️ Drops support for Python 3.8 (#2686)
+- ⚠️ Removes the experimental CPython 3.13 free-threading builds and the `cpython-freethreading` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) option. CPython 3.14+ free-threading support remains available without the enable flag. (#2684)
+- ⚠️ Drops support for Cirrus CI, which is shutting down June 1, 2026 (#2817)
+- ⚠️ Drops GraalPy 3.11 (gp311) support, as agreed in #2741, and removes GraalPy 24-only workarounds (#2895)
 - 🔐 Adds SHA256 verification for direct downloads of Python interpreters, virtualenv, and python-build-standalone assets (#2873)
 - 🔐 Adds tarfile extraction filter for safe archive extraction (#2856)
+- 🐛 Fixes `UV_PYTHON` not being set for [`before-build`](https://cibuildwheel.pypa.io/en/stable/options/#before-build) on Linux when using `uv` as the [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) (#2830)
 - 🐛 Fixes detection of musl libc when downloading python-build-standalone, which previously always selected the gnu asset on musl hosts like Alpine (#2889)
 - 🐛 Fixes [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) expansion when `{project}` or `{package}` contains spaces or backslashes (#2886)
 - 🐛 Prevents deadlock when `linux32` fails and forwards platform args to the sanity check (#2880, #2888)
@@ -21,45 +35,30 @@ _5 June 2026_
 - 🐛 Removes potential partial cache-population in case of error (#2892)
 - 🐛 Raises a clear error when `ANDROID_API_LEVEL` is not an integer (#2891)
 - 🐛 Replaces assert with proper exception in python-build-standalone (#2859)
-- 🛠 Updates dependencies and container pins (#2893, #2882, #2874, #2868, #2862, #2884)
-- 🛠 Minor fixups across error messages, OCI container, and options (#2860)
-- 📚 Updates documentation for delvewheel as the default Windows [`repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command), including the build diagram, schema defaults, and legal note (#2877, #2853, #2891)
-- 📚 Adds intersphinx support for external documentation linking (#2871)
-- 📚 Removes outdated numpy info (#2855)
-- 💼 Improves Azure test reliability with retries and caching (#2890)
-- 💼 Fixes Windows GitLab CI test running (#2870)
-- 💼 Updates CI action pins (#2867)
-- 💼 Adds agent and copilot setup files (#2861)
-- 💼 Uses `if TYPE_CHECKING:` blocks (#2866, #2864)
-- 🧪 Adds unit tests for `OCIContainer._get_platform_args` (#2878)
-
-### v4.0.0rc1
-
-_14 May 2026_
-
-- 🌟 Adds wheel auditing with `abi3audit` as a default after the repair step, with new [`audit-requires`](https://cibuildwheel.pypa.io/en/stable/options/#audit-requires) and [`audit-command`](https://cibuildwheel.pypa.io/en/stable/options/#audit-command) options (#2805)
-- 🌟 Adds `pyemscripten` platform tag support (PEP 783), updates Pyodide to 314.0.0a1, and adds a `pyodide-eol` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) flag for building end-of-life Pyodide versions (#2812, #2848)
-- 🌟 Sets up `delvewheel` as the default [`repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command) for Windows, so extension module DLLs are now bundled automatically. Skip by setting it to empty if not needed. (#2831)
-- ✨ Adds CPython 3.15 support, under the [`enable` option](https://cibuildwheel.pypa.io/en/stable/options/#enable) `cpython-prerelease`. This version of cibuildwheel uses 3.15.0b1. (#2833, #2850)
-
-    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.14 will be available in cibuildwheel without the flag._ (#2390)
-- ✨ Adds `{project}` and `{package}` placeholders to [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) (#2827)
-- ⚠️ Drops support for Python 3.8 (#2686)
-- ⚠️ Removes the experimental CPython 3.13 free-threading builds and the `cpython-freethreading` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) option. CPython 3.14+ free-threading support remains available without the enable flag. (#2684)
-- ⚠️ Drops support for Cirrus CI, which is shutting down June 1, 2026 (#2817)
-- 🐛 Fixes `UV_PYTHON` not being set for [`before-build`](https://cibuildwheel.pypa.io/en/stable/options/#before-build) on Linux when using `uv` as the [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) (#2830)
+- 🐛 Uses ConfigurationError when `package_dir` is outside cwd instead of a generic Exception (#2898)
+- 🛠 Updates dependencies and container pins (#2893, #2882, #2874, #2868, #2862, #2884, #2845, #2837, #2818, #2810, #2838, #2813)
 - 🛠 Updates Android to Python 3.13.13 and 3.14.4 (#2821)
 - 🛠 Applies Pyodide-specific patches to the Emscripten toolchain installation (#2800)
-- 🛠 Updates dependencies and container pins (#2845, #2837, #2821, #2818, #2810, #2838, #2813)
 - 🛠 Uses `python -V -V` for Windows build diagnostics (#2832)
+- 🛠 Simplifies pinned container image lookup (#2897)
+- 🛠 Minor fixups across error messages, OCI container, and options (#2860)
+- 💼 Adds PEP 723 metadata for `bin/` scripts and drops the `bin` dependency group (#2819)
+- 💼 Improves Azure test reliability with retries and caching (#2890)
+- 💼 Fixes Windows GitLab CI test running (#2870)
+- 💼 Updates CI action pins and dev dependencies (#2902, #2867, #2851, #2843, #2826, #2823, #2820, #2807)
+- 💼 Adds agent and copilot setup files (#2861)
+- 💼 Uses `if TYPE_CHECKING:` blocks (#2866, #2864)
+- 🧪 Fixes Android tests using the `uv` frontend (#2809)
+- 🧪 Fixes the update-dependencies workflow to use `uv` to run `nox` (#2808)
+- 🧪 Adds unit tests for `OCIContainer._get_platform_args` (#2878)
+- 📚 Updates documentation for delvewheel as the default Windows [`repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command), including the build diagram, schema defaults, and legal note (#2877, #2853, #2891)
 - 📚 Documents platform-specific [`before-build`](https://cibuildwheel.pypa.io/en/stable/options/#before-build) configuration (#2834)
 - 📚 Updates the "How it works" diagram with details of Android, iOS, and Pyodide builds (#2816)
 - 📚 Adds Pyodide icon and regenerates working examples data for Android, iOS, and Pyodide (#2815, #2811)
+- 📚 Adds intersphinx support for external documentation linking (#2871)
+- 📚 Adds instructions for building CUDA wheels and fixes manylinux container references in FAQ (#2896, #2900)
 - 📚 Links back to source in docs (#2806)
-- 💼 Adds PEP 723 metadata for `bin/` scripts and drops the `bin` dependency group (#2819)
-- 💼 Updates CI action pins and dev dependencies (#2851, #2843, #2826, #2823, #2820, #2807)
-- 🧪 Fixes Android tests using the `uv` frontend (#2809)
-- 🧪 Fixes the update-dependencies workflow to use `uv` to run `nox` (#2808)
+- 📚 Removes outdated numpy info (#2855)
 
 
 ### v3.4.1
