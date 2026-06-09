@@ -91,6 +91,7 @@ def test_build_filter_pypy_all() -> None:
     assert build_selector("pp39-manylinux_x86_64")
 
 
+# Re-enable when we have Pyodide 3.15 prerelease builds to test against
 # def test_build_filter_pyodide_prerelease() -> None:
 #     build_selector = BuildSelector(
 #         build_config="*",
@@ -98,7 +99,6 @@ def test_build_filter_pypy_all() -> None:
 #         enable=frozenset([EnableGroup.PyodidePrerelease]),
 #     )
 #     assert build_selector("cp314-pyodide_wasm32")
-#     # For later
 #     assert build_selector("cp315-pyodide_wasm32")
 
 
