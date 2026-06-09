@@ -49,10 +49,10 @@ def test_abi3(tmp_path: Path) -> None:
         project_dir,
         add_env={
             # free_threaded, GraalPy, and PyPy do not have a Py_LIMITED_API equivalent, just build one of those
-            # pyodide uses cp313 (the stable version) which supports limited API / abi3
+            # pyodide uses cp314 (the latest stable version) which supports limited API / abi3
             # also limit the number of builds for test performance reasons
             "CIBW_BUILD": (
-                "cp313-*"
+                "cp314-*"
                 if utils.get_platform() == "pyodide"
                 else "cp39-* cp310-* pp310-* gp312_250-* cp312-* cp314t-*"
             ),
