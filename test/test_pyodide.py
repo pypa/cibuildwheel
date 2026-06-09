@@ -175,6 +175,6 @@ def test_pyodide_repair_wheel(tmp_path: Path) -> None:
 
     # check that the expected wheels are produced
     expected_wheels = [
-        "spam-0.1.0-cp313-cp313-pyemscripten_2025_0_wasm32.whl",
+        "spam-0.1.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
     ]
     assert set(actual_wheels) == set(expected_wheels)

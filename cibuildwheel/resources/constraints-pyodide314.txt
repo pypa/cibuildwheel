@@ -52,7 +52,7 @@ pydantic-core==2.46.4
     # via pydantic
 pygments==2.20.0
     # via rich
-pyodide-build==0.34.4
+pyodide-build==0.35.0
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.5.0
     # via
