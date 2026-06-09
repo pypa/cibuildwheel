@@ -224,7 +224,7 @@ Consider incorporating these into your package, for example, in `setup.py` using
 ### Building wheels with CUDA on Linux
 
 On Linux, you can build binary wheels with CUDA to take advantage of NVIDIA GPUs for hardware acceleration.
-The [manylinux_cuda](https://quay.io/organization/manylinux_cuda) project publishes manylinux containers that bundle the CUDA Toolkit, and cibuildwheel ships pinned aliases for them. Just like `manylinux_2_28`, you can pass an alias to the `manylinux-*-image` options and cibuildwheel will expand it to a specific, pinned image digest:
+The [manylinux_cuda](https://quay.io/organization/manylinux_cuda) project ([source](https://github.com/gpu-ci-demo/manylinux-cuda-container)) publishes manylinux containers that bundle the CUDA Toolkit, and cibuildwheel ships pinned aliases for them. Just like `manylinux_2_28`, you can pass an alias to the `manylinux-*-image` options and cibuildwheel will expand it to a specific, pinned image:
 
 ```yaml
 CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28_cuda13_1

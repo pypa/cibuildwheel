@@ -138,10 +138,11 @@ def test_passthrough(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 def test_cuda_pinned_images(arch: str, alias: str) -> None:
     pinned_images = _get_pinned_container_images()
 
-    # CUDA aliases exist for x86_64 and aarch64, and are pinned by digest
+    # CUDA aliases exist for x86_64 and aarch64, each in their own repository
     image = pinned_images[arch][alias]
-    assert image.startswith(f"quay.io/manylinux_cuda/{alias.replace('cuda', arch + '_cuda', 1)}@")
-    assert "@sha256:" in image
+    repository, _, tag = image.partition(":")
+    assert repository == f"quay.io/manylinux_cuda/{alias.replace('cuda', arch + '_cuda', 1)}"
+    assert tag
 
     # ... but not for architectures without CUDA images
     assert alias not in pinned_images["i686"]

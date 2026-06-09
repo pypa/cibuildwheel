@@ -35,11 +35,13 @@ class PyPAImage(Image):
 
 class CudaImage(Image):
     """
-    A CUDA manylinux image from the manylinux_cuda project.
+    A CUDA manylinux image from the manylinux_cuda project, built by
+    https://github.com/gpu-ci-demo/manylinux-cuda-container.
 
-    Each architecture has its own repository and the images are only published
-    with a ``latest`` tag, so (unlike the PyPA images) these are pinned by
-    digest. ``{arch}`` in the image name is substituted per platform.
+    Each architecture has its own repository (``{arch}`` in the image name is
+    substituted per platform), so (unlike the PyPA images) these are resolved
+    one repository at a time, but they carry the same dated tags and are pinned
+    to those just like the PyPA images.
     """
 
     def __init__(self, manylinux_version: str, cuda_version: str, platforms: list[str]):
@@ -101,7 +103,7 @@ images = [
     PyPAImage(
         "musllinux_1_2", ["x86_64", "i686", "aarch64", "ppc64le", "s390x", "armv7l", "riscv64"]
     ),
-    # CUDA manylinux images (x86_64 and aarch64 only, pinned by digest)
+    # CUDA manylinux images (x86_64 and aarch64 only, one repository per arch)
     *(
         CudaImage(manylinux_version, cuda_version, ["x86_64", "aarch64"])
         for manylinux_version in ("manylinux_2_28", "manylinux_2_34")
@@ -113,8 +115,8 @@ config = configparser.ConfigParser()
 
 for image in images:
     if "{arch}" in image.image_name:
-        # Per-architecture repositories pinned by digest (the 'latest' tag is
-        # the only published tag, so there is no dated tag to pin to).
+        # Per-architecture repositories: each arch has its own repo, so resolve
+        # the dated tag matching 'latest' for each one individually.
         for platform in image.platforms:
             arch = platform.removeprefix("pypy_")
             image_name = image.image_name.format(arch=arch)
@@ -123,10 +125,17 @@ for image in images:
                 f"https://quay.io/api/v1/repository/{repository_name}?includeTags=true"
             )
             response.raise_for_status()
-            digest = response.json()["tags"]["latest"]["manifest_digest"]
+            tags_dict = response.json()["tags"]
+            latest_tag = tags_dict.pop("latest")
+            # find the tag whose manifest matches 'latest'
+            tag_name = next(
+                name
+                for (name, info) in tags_dict.items()
+                if info["manifest_digest"] == latest_tag["manifest_digest"]
+            )
             if not config.has_section(platform):
                 config[platform] = {}
-            config[platform][image.manylinux_version] = f"{image_name}@{digest}"
+            config[platform][image.manylinux_version] = f"{image_name}:{tag_name}"
         continue
 
     # get the tag name whose digest matches 'latest'
