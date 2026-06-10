@@ -78,7 +78,7 @@ repos:
     additional_dependencies: [cogapp>=3.5]
 
 - repo: https://github.com/henryiii/flake8-lazy
-  rev: 6898c4b9b8817d021002b2beed6986621ad589ad  # frozen: v0.8.0
+  rev: 65b94e97b1091634368592d98072160842265fe4  # frozen: v0.8.2
   hooks:
   - id: flake8-lazy
     args: ["--apply=set"]

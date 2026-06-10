@@ -17,6 +17,7 @@ __lazy_modules__ = {
     "cibuildwheel.util.resources",
     "contextlib",
     "functools",
+    "io",
     "pathlib",
     "shutil",
     "tempfile",

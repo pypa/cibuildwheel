@@ -8,6 +8,7 @@ __lazy_modules__ = {
     "hashlib",
     "json",
     "platform",
+    "subprocess",
 }
 
 import fnmatch

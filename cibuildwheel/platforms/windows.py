@@ -12,7 +12,6 @@ __lazy_modules__ = {
     "cibuildwheel.util.packaging",
     "cibuildwheel.venv",
     "filelock",
-    "json",
     "pathlib",
     "platform",
     "shutil",
