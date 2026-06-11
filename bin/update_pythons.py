@@ -124,16 +124,18 @@ class GraalPyVersions:
         response.raise_for_status()
 
         releases = response.json()
-        gp_asset_re = re.compile(r"^(graalpy(\d+\.\d+)?-(\d+\.\d+\.\d+))-")
+        gp_asset_re = re.compile(
+            r"^(?P<prefix>graalpy(?P<cpython>\d+\.\d+)?-(?P<graalpy>\d+\.\d+\.\d+))-"
+        )
         cp_version_re = re.compile(r"Python (\d+\.\d+(?:\.\d+)?)")
         for release in releases:
             for asset in release["assets"]:
                 m = gp_asset_re.match(asset["name"])
                 if m:
-                    release["asset_prefix"] = m.group(1)
-                    release["graalpy_version"] = Version(m.group(3))
-                    if m.group(2):
-                        release["python_version"] = Version(m.group(2))
+                    release["asset_prefix"] = m.group("prefix")
+                    release["graalpy_version"] = Version(m.group("graalpy"))
+                    if m.group("cpython"):
+                        release["python_version"] = Version(m.group("cpython"))
                     break
             if "python_version" not in release and (
                 m := cp_version_re.search(release["body"] or "")
