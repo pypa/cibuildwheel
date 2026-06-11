@@ -328,7 +328,7 @@ def setup_python(
         assert (venv_path / "Scripts" / "pip.exe").exists()
         where_pip = call("where", "pip", env=env, capture_stdout=True).splitlines()[0].strip()
         print(where_pip)
-        if where_pip.strip() != str(venv_path / "Scripts" / "pip.exe"):
+        if where_pip != str(venv_path / "Scripts" / "pip.exe"):
             msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
             raise errors.FatalError(msg)
         call("pip", "--version", env=env)

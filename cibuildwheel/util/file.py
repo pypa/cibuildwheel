@@ -85,7 +85,8 @@ def download(url: str, dest: Path, *, sha256: str | None = None) -> None:
             time.sleep(3)
 
     if sha256:
-        computed = hashlib.sha256(dest.read_bytes()).hexdigest()
+        with dest.open("rb") as f:
+            computed = hashlib.file_digest(f, "sha256").hexdigest()
         if computed != sha256:
             dest.unlink(missing_ok=True)
             msg = f"SHA256 mismatch for {url}: expected {sha256!r}, got {computed!r}"
@@ -116,6 +117,8 @@ def extract_tar(tar_src: Path, dest: Path) -> None:
     See: https://docs.python.org/3/library/tarfile.html#tarfile.tar_filter for filter details
     """
     with tarfile.open(tar_src) as tar_:
+        # getattr shim needed while Python 3.11.0-3.11.3 are supported;
+        # once the minimum is 3.11.4+/3.12, replace with: tar_.extractall(dest, filter="tar")
         tar_.extraction_filter = getattr(tarfile, "tar_filter", (lambda member, _: member))
         tar_.extractall(dest)
 
