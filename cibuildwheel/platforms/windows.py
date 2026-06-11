@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import dataclasses
-import os
 import platform as platform_module
-import shutil
-import subprocess
 import textwrap
 from functools import cache
 from pathlib import Path
@@ -14,25 +11,23 @@ from filelock import FileLock
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
-from cibuildwheel.audit import run_audit
 from cibuildwheel.frontend import (
     BuildFrontendName,
     get_build_frontend_extra_flags,
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
+from cibuildwheel.platforms import runner
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
-    copy_test_sources,
     download,
     extract_zip,
-    move_file,
     remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap
-from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
+from cibuildwheel.util.packaging import get_pip_version
 from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
 
 TYPE_CHECKING = False
@@ -40,7 +35,7 @@ if TYPE_CHECKING:
     from collections.abc import MutableMapping, Sequence, Set
 
     from cibuildwheel.environment import ParsedEnvironment
-    from cibuildwheel.options import Options
+    from cibuildwheel.options import BuildOptions, Options
     from cibuildwheel.selector import BuildSelector
 
 
@@ -392,6 +387,190 @@ def setup_python(
     return base_python, env
 
 
+class WindowsBuilder(runner.HostBuilder):
+    def __init__(
+        self,
+        *,
+        config: PythonConfiguration,
+        build_options: BuildOptions,
+        tmp_dir: Path,
+        session_tmp_dir: Path,
+    ) -> None:
+        super().__init__(
+            identifier=config.identifier,
+            build_options=build_options,
+            tmp_dir=tmp_dir,
+            session_tmp_dir=session_tmp_dir,
+        )
+        self.config = config
+
+    def setup(self) -> None:
+        build_options = self.build_options
+        build_frontend = build_options.build_frontend
+
+        self.use_uv = build_frontend.name in {"build[uv]", "uv"}
+        self.uv_path = find_uv()
+
+        self.tmp_dir.mkdir()
+
+        constraints_path = build_options.dependency_constraints.get_for_python_version(
+            version=self.config.version, tmp_dir=self.tmp_dir
+        )
+
+        # install Python
+        self.base_python, env = setup_python(
+            self.tmp_dir / "build",
+            self.config,
+            constraints_path,
+            build_options.environment,
+            build_frontend.name,
+        )
+        env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = self.identifier
+        self.pip_version = None if self.use_uv else get_pip_version(env)
+        self.env = env
+
+    def build_wheel(self) -> Path:
+        build_options = self.build_options
+        build_frontend = build_options.build_frontend
+
+        self.built_wheel_dir.mkdir()
+
+        extra_flags = get_build_frontend_extra_flags(
+            build_frontend,
+            build_options.build_verbosity,
+            prepare_config_settings(
+                build_options.config_settings,
+                project=".",
+                package=build_options.package_dir,
+            ),
+        )
+
+        match build_frontend.name:
+            case "pip":
+                # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+                # see https://github.com/pypa/cibuildwheel/pull/369
+                call(
+                    "python",
+                    "-m",
+                    "pip",
+                    "wheel",
+                    build_options.package_dir.resolve(),
+                    f"--wheel-dir={self.built_wheel_dir}",
+                    "--no-deps",
+                    *extra_flags,
+                    env=self.env,
+                )
+            case "build" | "build[uv]":
+                if self.use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
+                    extra_flags.append("--installer=uv")
+
+                call(
+                    "python",
+                    "-m",
+                    "build",
+                    build_options.package_dir,
+                    "--wheel",
+                    f"--outdir={self.built_wheel_dir}",
+                    *extra_flags,
+                    env=self.env,
+                )
+            case "uv":
+                assert self.uv_path is not None
+                call(
+                    self.uv_path,
+                    "build",
+                    f"--python={self.base_python}",
+                    build_options.package_dir,
+                    "--wheel",
+                    f"--out-dir={self.built_wheel_dir}",
+                    *extra_flags,
+                    env=self.env,
+                )
+            case _:
+                assert_never(build_frontend)
+
+        return next(self.built_wheel_dir.glob("*.whl"))
+
+    def test_wheel(self, repaired_wheel: Path) -> None:
+        build_options = self.build_options
+        assert build_options.test_command is not None
+
+        if self.config.arch == "ARM64" != platform_module.machine():
+            log.warning(
+                unwrap(
+                    """
+                    While arm64 wheels can be built on other platforms, they cannot
+                    be tested. An arm64 runner is required. To silence this warning,
+                    set `CIBW_TEST_SKIP: "*-win_arm64"`.
+                    """
+                )
+            )
+            # skip this test
+            return
+
+        log.step("Testing wheel...")
+        # set up a virtual environment to install and test from, to make sure
+        # there are no dependencies that were pulled in at build time.
+        venv_dir = self.tmp_dir / "venv-test"
+        virtualenv_env = virtualenv(
+            self.config.version,
+            self.base_python,
+            venv_dir,
+            None,
+            use_uv=self.use_uv,
+            env=self.env,
+            pip_version=self.pip_version,
+        )
+
+        virtualenv_env = build_options.test_environment.as_dictionary(
+            prev_environment=virtualenv_env
+        )
+
+        # check that we are using the Python from the virtual environment
+        call("where", "python", env=virtualenv_env)
+
+        if build_options.before_test:
+            before_test_prepared = prepare_command(
+                build_options.before_test,
+                project=".",
+                package=build_options.package_dir,
+            )
+            shell(before_test_prepared, env=virtualenv_env)
+
+        pip: Sequence[Path | str]
+        if self.use_uv:
+            assert self.uv_path is not None
+            pip = [self.uv_path, "pip"]
+        else:
+            pip = ["pip"]
+
+        # install the wheel
+        call(
+            *pip,
+            "install",
+            str(repaired_wheel) + build_options.test_extras,
+            env=virtualenv_env,
+        )
+
+        # test the wheel
+        if build_options.test_requires:
+            call(*pip, "install", *build_options.test_requires, env=virtualenv_env)
+
+        # run the tests from a temp dir, with an absolute path in the command
+        # (this ensures that Python runs the tests against the installed wheel
+        # and not the repo code)
+        test_cwd = self.tmp_dir / "test_cwd"
+        runner.prepare_test_cwd(test_cwd, build_options.test_sources)
+
+        test_command_prepared = prepare_command(
+            build_options.test_command,
+            project=Path.cwd(),
+            package=build_options.package_dir.resolve(),
+            wheel=repaired_wheel,
+        )
+        shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
+
+
 def build(options: Options, tmp_path: Path) -> None:
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
@@ -400,262 +579,16 @@ def build(options: Options, tmp_path: Path) -> None:
     if not python_configurations:
         return
 
-    uv_path = find_uv()
-
-    try:
-        before_all_options_identifier = python_configurations[0].identifier
-        before_all_options = options.build_options(before_all_options_identifier)
-
-        if before_all_options.before_all:
-            log.step("Running before_all...")
-            env = before_all_options.environment.as_dictionary(prev_environment=os.environ)
-            before_all_prepared = prepare_command(
-                before_all_options.before_all, project=".", package=options.globals.package_dir
-            )
-            shell(before_all_prepared, env=env)
-
-        built_wheels: list[Path] = []
-
-        for config in python_configurations:
-            build_options = options.build_options(config.identifier)
-            build_frontend = build_options.build_frontend
-            use_uv = build_frontend.name in {"build[uv]", "uv"}
-            log.build_start(config.identifier)
-
-            identifier_tmp_dir = tmp_path / config.identifier
-            identifier_tmp_dir.mkdir()
-            built_wheel_dir = identifier_tmp_dir / "built_wheel"
-            repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
-
-            constraints_path = build_options.dependency_constraints.get_for_python_version(
-                version=config.version,
-                tmp_dir=identifier_tmp_dir,
-            )
-
-            # install Python
-            base_python, env = setup_python(
-                identifier_tmp_dir / "build",
-                config,
-                constraints_path,
-                build_options.environment,
-                build_frontend.name,
-            )
-            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
-            pip_version = None if use_uv else get_pip_version(env)
-
-            compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
-            if compatible_wheel:
-                log.step_end()
-                print(
-                    f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
+    with runner.fatal_on_called_process_error():
+        runner.run_before_all(options, python_configurations)
+        runner.run_builds(
+            [
+                WindowsBuilder(
+                    config=config,
+                    build_options=options.build_options(config.identifier),
+                    tmp_dir=tmp_path / config.identifier,
+                    session_tmp_dir=tmp_path,
                 )
-                repaired_wheel = compatible_wheel
-            else:
-                # run the before_build command
-                if build_options.before_build:
-                    log.step("Running before_build...")
-                    before_build_prepared = prepare_command(
-                        build_options.before_build,
-                        project=".",
-                        package=options.globals.package_dir,
-                    )
-                    shell(before_build_prepared, env=env)
-
-                log.step("Building wheel...")
-                built_wheel_dir.mkdir()
-
-                extra_flags = get_build_frontend_extra_flags(
-                    build_frontend,
-                    build_options.build_verbosity,
-                    prepare_config_settings(
-                        build_options.config_settings,
-                        project=".",
-                        package=options.globals.package_dir,
-                    ),
-                )
-
-                match build_frontend.name:
-                    case "pip":
-                        # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-                        # see https://github.com/pypa/cibuildwheel/pull/369
-                        call(
-                            "python",
-                            "-m",
-                            "pip",
-                            "wheel",
-                            options.globals.package_dir.resolve(),
-                            f"--wheel-dir={built_wheel_dir}",
-                            "--no-deps",
-                            *extra_flags,
-                            env=env,
-                        )
-                    case "build" | "build[uv]":
-                        if (
-                            use_uv
-                            and "--no-isolation" not in extra_flags
-                            and "-n" not in extra_flags
-                        ):
-                            extra_flags.append("--installer=uv")
-
-                        call(
-                            "python",
-                            "-m",
-                            "build",
-                            build_options.package_dir,
-                            "--wheel",
-                            f"--outdir={built_wheel_dir}",
-                            *extra_flags,
-                            env=env,
-                        )
-                    case "uv":
-                        assert uv_path is not None
-                        call(
-                            uv_path,
-                            "build",
-                            f"--python={base_python}",
-                            build_options.package_dir,
-                            "--wheel",
-                            f"--out-dir={built_wheel_dir}",
-                            *extra_flags,
-                            env=env,
-                        )
-                    case _:
-                        assert_never(build_frontend)
-
-                built_wheel = next(built_wheel_dir.glob("*.whl"))
-
-                # repair the wheel
-                repaired_wheel_dir.mkdir()
-
-                if built_wheel.name.endswith("none-any.whl"):
-                    raise errors.NonPlatformWheelError()
-
-                if build_options.repair_command:
-                    log.step("Repairing wheel...")
-                    repair_command_prepared = prepare_command(
-                        build_options.repair_command,
-                        wheel=built_wheel,
-                        dest_dir=repaired_wheel_dir,
-                        package=build_options.package_dir,
-                        project=".",
-                    )
-                    shell(repair_command_prepared, env=env)
-                else:
-                    shutil.move(str(built_wheel), repaired_wheel_dir)
-
-                try:
-                    repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
-                except StopIteration:
-                    raise errors.RepairStepProducedNoWheelError() from None
-
-                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
-                    raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
-
-                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
-
-            test_selected = options.globals.test_selector(config.identifier)
-            if test_selected and config.arch == "ARM64" != platform_module.machine():
-                log.warning(
-                    unwrap(
-                        """
-                            While arm64 wheels can be built on other platforms, they cannot
-                            be tested. An arm64 runner is required. To silence this warning,
-                            set `CIBW_TEST_SKIP: "*-win_arm64"`.
-                            """
-                    )
-                )
-                # skip this test
-            elif test_selected and build_options.test_command:
-                log.step("Testing wheel...")
-                # set up a virtual environment to install and test from, to make sure
-                # there are no dependencies that were pulled in at build time.
-                venv_dir = identifier_tmp_dir / "venv-test"
-                virtualenv_env = virtualenv(
-                    config.version,
-                    base_python,
-                    venv_dir,
-                    None,
-                    use_uv=use_uv,
-                    env=env,
-                    pip_version=pip_version,
-                )
-
-                virtualenv_env = build_options.test_environment.as_dictionary(
-                    prev_environment=virtualenv_env
-                )
-
-                # check that we are using the Python from the virtual environment
-                call("where", "python", env=virtualenv_env)
-
-                if build_options.before_test:
-                    before_test_prepared = prepare_command(
-                        build_options.before_test,
-                        project=".",
-                        package=build_options.package_dir,
-                    )
-                    shell(before_test_prepared, env=virtualenv_env)
-
-                pip: Sequence[Path | str]
-                if use_uv:
-                    assert uv_path is not None
-                    pip = [uv_path, "pip"]
-                else:
-                    pip = ["pip"]
-
-                # install the wheel
-                call(
-                    *pip,
-                    "install",
-                    str(repaired_wheel) + build_options.test_extras,
-                    env=virtualenv_env,
-                )
-
-                # test the wheel
-                if build_options.test_requires:
-                    call(*pip, "install", *build_options.test_requires, env=virtualenv_env)
-
-                # run the tests from a temp dir, with an absolute path in the command
-                # (this ensures that Python runs the tests against the installed wheel
-                # and not the repo code)
-                test_cwd = identifier_tmp_dir / "test_cwd"
-                test_cwd.mkdir()
-
-                if build_options.test_sources:
-                    copy_test_sources(
-                        build_options.test_sources,
-                        Path.cwd(),
-                        test_cwd,
-                    )
-                else:
-                    # Use the test_fail.py file to raise a nice error if the user
-                    # tries to run tests in the cwd
-                    (test_cwd / "test_fail.py").write_text(resources.TEST_FAIL_CWD_FILE.read_text())
-
-                test_command_prepared = prepare_command(
-                    build_options.test_command,
-                    project=Path.cwd(),
-                    package=options.globals.package_dir.resolve(),
-                    wheel=repaired_wheel,
-                )
-                shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
-
-            # we're all done here; move it to output (remove if already exists)
-            output_wheel = None
-            if compatible_wheel is None:
-                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
-                moved_wheel = move_file(repaired_wheel, output_wheel)
-                if moved_wheel != output_wheel.resolve():
-                    log.warning(
-                        f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
-                    )
-                built_wheels.append(output_wheel)
-
-            # clean up
-            # (we ignore errors because occasionally Windows fails to unlink a file and we
-            # don't want to abort a build because of that)
-            shutil.rmtree(identifier_tmp_dir, ignore_errors=True)
-
-            log.build_end(output_wheel)
-    except subprocess.CalledProcessError as error:
-        msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
-        raise errors.FatalError(msg) from error
+                for config in python_configurations
+            ]
+        )
