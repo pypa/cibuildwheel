@@ -934,9 +934,11 @@ class Options:
             )
             audit_command = audit_command_str.split(" && ") if audit_command_str else []
 
-            audit_requires = self.reader.get(
-                "audit-requires", option_format=ListFormat(sep=" ")
-            ).split()
+            audit_requires = shlex.split(
+                self.reader.get(
+                    "audit-requires", option_format=ListFormat(sep=" ", quote=shlex.quote)
+                )
+            )
 
             return BuildOptions(
                 globals=self.globals,
