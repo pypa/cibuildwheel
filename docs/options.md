@@ -734,6 +734,17 @@ The placeholder `{package}` can be used here; it will be replaced by the path to
 
 On Windows and macOS, the version of Python available inside `before-all` is whatever is available on the host machine. On Linux, a modern Python version is available on PATH.
 
+!!! note "Shell selection"
+
+    Shell command options such as `before-all`, `before-build`,
+    `repair-wheel-command`, and `before-test` are executed by a platform shell.
+    Linux builds run inside the build container and invoke the container's `sh -c`.
+    On macOS and Windows, cibuildwheel calls Python's
+    `subprocess.run(..., shell=True)`, which normally means `/bin/sh` on macOS
+    and `cmd.exe` on Windows. If you need a specific interpreter, invoke it
+    explicitly, for example `python scripts/prepare.py` or
+    `bash scripts/prepare.sh`.
+
 This option has special behavior in the overrides section in `pyproject.toml`.
 On linux, overriding it triggers a new container launch. It cannot be overridden
 on macOS and Windows.
