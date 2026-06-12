@@ -410,10 +410,14 @@ def setup_android_env(
     #   * a key=value string, without quotes
     for i, token in enumerate(shlex.split(env_output)):
         if i % 2 == 0:
-            assert token == "export", token
+            if token != "export":
+                msg = f"Unexpected output from android.py env: expected 'export', got {token!r}"
+                raise errors.FatalError(msg)
         else:
             key, sep, value = token.partition("=")
-            assert sep == "=", token
+            if sep != "=":
+                msg = f"Unexpected output from android.py env: expected 'key=value', got {token!r}"
+                raise errors.FatalError(msg)
             android_env[key] = value
 
     # localized_vars cleared the CFLAGS and CXXFLAGS in the sysconfigdata, but most

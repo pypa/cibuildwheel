@@ -451,7 +451,10 @@ def build(options: Options, tmp_path: Path) -> None:
                     *extra_flags,
                     env=env,
                 )
-                built_wheel = next(built_wheel_dir.glob("*.whl"))
+                try:
+                    built_wheel = next(built_wheel_dir.glob("*.whl"))
+                except StopIteration:
+                    raise errors.BuildProducedNoWheelError() from None
 
                 if built_wheel.name.endswith("none-any.whl"):
                     raise errors.NonPlatformWheelError()
@@ -471,7 +474,10 @@ def build(options: Options, tmp_path: Path) -> None:
                 else:
                     shutil.move(str(built_wheel), repaired_wheel_dir)
 
-                repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+                try:
+                    repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+                except StopIteration:
+                    raise errors.RepairStepProducedNoWheelError() from None
 
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)

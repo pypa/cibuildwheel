@@ -95,6 +95,14 @@ def all_python_configurations() -> list[PythonConfiguration]:
         matching = [
             config for config in macos_python_configs if config["identifier"] == macos_identifier
         ]
+        if not matching:
+            msg = (
+                f"Internal error: no macOS configuration found matching "
+                f"{macos_identifier!r}, needed to build the iOS configuration "
+                f"{config_dict['identifier']!r}. The bundled build-platforms.toml "
+                f"resources are inconsistent."
+            )
+            raise errors.FatalError(msg)
         return matching[0]
 
     # Load the platform configuration
@@ -560,7 +568,10 @@ def build(options: Options, tmp_path: Path) -> None:
                     case _:
                         assert_never(build_frontend)
 
-                built_wheel = next(built_wheel_dir.glob("*.whl"))
+                try:
+                    built_wheel = next(built_wheel_dir.glob("*.whl"))
+                except StopIteration:
+                    raise errors.BuildProducedNoWheelError() from None
 
                 if built_wheel.name.endswith("none-any.whl"):
                     raise errors.NonPlatformWheelError()
