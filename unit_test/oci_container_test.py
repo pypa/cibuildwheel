@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import json
 import os
@@ -7,7 +9,6 @@ import subprocess
 import sys
 import textwrap
 import time
-from collections.abc import Iterator
 from contextlib import nullcontext
 from pathlib import Path, PurePath, PurePosixPath
 
@@ -24,6 +25,10 @@ from cibuildwheel.oci_container import (
     OCIPlatform,
     _check_engine_version,
 )
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 # Test utilities
 
@@ -541,6 +546,7 @@ def test_disable_host_mount(
                 container.call(["cat", host_mount_path], capture_output=True)
 
 
+@pytest.mark.flaky(reruns=2, reruns_delay=5)
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_local_image(
     container_engine: OCIContainerEngineConfig, platform: OCIPlatform, tmp_path: Path
@@ -550,9 +556,12 @@ def test_local_image(
         platform,
     }:
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
-    if container_engine.name == "podman" and platform == OCIPlatform.ARMV7:
-        # both GHA & local macOS arm64 podman desktop are failing
-        pytest.xfail("podman fails with armv7l images")
+    if container_engine.name == "podman":
+        if platform == OCIPlatform.ARMV7:
+            # both GHA & local macOS arm64 podman desktop are failing
+            pytest.xfail("podman fails with armv7l images")
+        elif platform == OCIPlatform.i386 and sys.platform.startswith("darwin"):
+            pytest.xfail("podman fails with i386 images on macOS")
 
     remote_image = "debian:trixie-slim"
     platform_name = platform.value.replace("/", "_")
@@ -563,15 +572,182 @@ def test_local_image(
         [container_engine.name, "pull", f"--platform={platform.value}", remote_image],
         check=True,
     )
+    container = OCIContainer(engine=container_engine, image=local_image, oci_platform=platform)
+    # before image is built & available, we want to pull it
+    subprocess.run([container_engine.name, "rmi", local_image], check=False)
+    assert container._get_platform_args() == (f"--platform={platform.value}", "--pull=always")
     subprocess.run(
         [container_engine.name, "build", f"--platform={platform.value}", "-t", local_image, "."],
         check=True,
         cwd=tmp_path,
     )
-    with OCIContainer(engine=container_engine, image=local_image, oci_platform=platform):
+    # after image is built & available, we never want to pull it
+    expected_platform_args = f"--platform={platform.value}", "--pull=never"
+    assert container._get_platform_args() == expected_platform_args
+    with container:
+        assert container._get_platform_args() == expected_platform_args
+
+
+@pytest.mark.flaky(reruns=2, reruns_delay=5)
+def test_enter_error(container_engine: OCIContainerEngineConfig, tmp_path: Path) -> None:
+    remote_image = "debian:trixie-slim"
+    platform = DEFAULT_OCI_PLATFORM
+    local_image = f"cibw_{container_engine.name}_enter:latest"
+    dockerfile = tmp_path / "Dockerfile"
+    dockerfile.write_text(f"FROM {remote_image}\nRUN ln -sf false /bin/true")
+    subprocess.run(
+        [container_engine.name, "pull", f"--platform={platform.value}", remote_image],
+        check=True,
+    )
+    subprocess.run(
+        [container_engine.name, "build", f"--platform={platform.value}", "-t", local_image, "."],
+        check=True,
+        cwd=tmp_path,
+    )
+    container = OCIContainer(engine=container_engine, image=local_image, oci_platform=platform)
+    with pytest.raises(subprocess.CalledProcessError, match="/bin/true"), container:
+        pass
+    assert container.name is None
+    assert container.process is None
+
+
+@pytest.mark.parametrize("ci", [True, False])
+def test_enter_error_cleanup_failure(
+    ci: bool, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    provider = cibuildwheel.ci.CIProvider.other if ci else None
+    monkeypatch.setattr(cibuildwheel.oci_container, "detect_ci_provider", lambda: provider)
+    result: subprocess.CompletedProcess[bytes] = subprocess.CompletedProcess(
+        "", returncode=1, stdout=None, stderr=None
+    )
+    monkeypatch.setattr(subprocess, "run", lambda *args, **kwargs: result)
+    engine = OCIContainerEngineConfig("docker")
+    container = OCIContainer(engine=engine, image="foo", oci_platform=OCIPlatform.AMD64)
+    container.name = "bar"
+    container._remove_container()
+    out, err = capsys.readouterr()
+    assert out == ""
+    if ci:
+        assert err == ""
+    else:
+        assert "warning" in err
+        assert "Failed to remove 'bar' container" in err
+
+
+class _FakeStream:
+    def __init__(self, *, write_error: Exception | None = None) -> None:
+        self._write_error = write_error
+        self.closed = False
+
+    def write(self, data: bytes) -> int:
+        if self._write_error is not None:
+            raise self._write_error
+        return len(data)
+
+    def flush(self) -> None:
         pass
 
+    def close(self) -> None:
+        self.closed = True
 
+
+class _FakeProcess:
+    def __init__(self, *, wait_error: Exception | None = None, alive: bool = True) -> None:
+        self._wait_error = wait_error
+        self._alive = alive
+        self.killed = False
+
+    def wait(self, timeout: float | None = None) -> int:
+        if self._wait_error is not None and timeout is not None:
+            raise self._wait_error
+        return 0
+
+    def poll(self) -> int | None:
+        return None if self._alive else 0
+
+    def kill(self) -> None:
+        self.killed = True
+        self._alive = False
+
+
+def _container_ready_for_exit(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    process: _FakeProcess,
+    bash_stdin: _FakeStream,
+    bash_stdout: _FakeStream,
+) -> tuple[OCIContainer, list[bool]]:
+    """Build a container with the post-__enter__ state faked, ready for __exit__."""
+    monkeypatch.setattr(cibuildwheel.oci_container, "detect_ci_provider", lambda: None)
+    container = OCIContainer(
+        engine=OCIContainerEngineConfig("docker"), image="foo", oci_platform=OCIPlatform.AMD64
+    )
+    container.name = "bar"
+    removed: list[bool] = []
+    monkeypatch.setattr(container, "_remove_container", lambda: removed.append(True))
+    monkeypatch.setattr(container, "process", process)
+    # bash_stdin/bash_stdout are only set during __enter__, so raising=False
+    monkeypatch.setattr(container, "bash_stdin", bash_stdin, raising=False)
+    monkeypatch.setattr(container, "bash_stdout", bash_stdout, raising=False)
+    return container, removed
+
+
+def test_exit_clean_shutdown_removes_container(monkeypatch: pytest.MonkeyPatch) -> None:
+    process = _FakeProcess(alive=True)
+    bash_stdin = _FakeStream()
+    bash_stdout = _FakeStream()
+    container, removed = _container_ready_for_exit(
+        monkeypatch, process=process, bash_stdin=bash_stdin, bash_stdout=bash_stdout
+    )
+
+    container.__exit__(None, None, None)
+
+    assert removed == [True]
+    assert not process.killed
+    assert container.process is None
+    assert bash_stdin.closed
+    assert bash_stdout.closed
+
+
+def test_exit_removes_container_when_bash_already_dead(monkeypatch: pytest.MonkeyPatch) -> None:
+    # bash has already exited, so writing "exit 0" raises BrokenPipeError. The
+    # container must still be removed rather than leaked.
+    process = _FakeProcess(alive=False)
+    bash_stdin = _FakeStream(write_error=BrokenPipeError())
+    bash_stdout = _FakeStream()
+    container, removed = _container_ready_for_exit(
+        monkeypatch, process=process, bash_stdin=bash_stdin, bash_stdout=bash_stdout
+    )
+
+    container.__exit__(None, None, None)
+
+    assert removed == [True]
+    assert container.process is None
+    assert bash_stdin.closed
+    assert bash_stdout.closed
+    assert not process.killed  # already dead, nothing to kill
+
+
+def test_exit_kills_process_on_shutdown_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    # bash refuses to exit, so process.wait(timeout=30) raises TimeoutExpired. The
+    # process must be killed and the container removed rather than leaked.
+    process = _FakeProcess(wait_error=subprocess.TimeoutExpired(cmd="bash", timeout=30))
+    bash_stdin = _FakeStream()
+    bash_stdout = _FakeStream()
+    container, removed = _container_ready_for_exit(
+        monkeypatch, process=process, bash_stdin=bash_stdin, bash_stdout=bash_stdout
+    )
+
+    container.__exit__(None, None, None)
+
+    assert process.killed
+    assert removed == [True]
+    assert container.process is None
+    assert bash_stdin.closed
+    assert bash_stdout.closed
+
+
+@pytest.mark.flaky(reruns=2, reruns_delay=5)
 @pytest.mark.parametrize("platform", list(OCIPlatform))
 def test_multiarch_image(container_engine: OCIContainerEngineConfig, platform: OCIPlatform) -> None:
     if detect_ci_provider() == CIProvider.travis_ci and DEFAULT_OCI_PLATFORM not in {
@@ -579,9 +755,13 @@ def test_multiarch_image(container_engine: OCIContainerEngineConfig, platform: O
         platform,
     }:
         pytest.skip("Skipping test because docker on this platform does not support QEMU")
-    if container_engine.name == "podman" and platform == OCIPlatform.ARMV7:
-        # both GHA & local macOS arm64 podman desktop are failing
-        pytest.xfail("podman fails with armv7l images")
+    if container_engine.name == "podman":
+        if platform == OCIPlatform.ARMV7:
+            # both GHA & local macOS arm64 podman desktop are failing
+            pytest.xfail("podman fails with armv7l images")
+        elif platform == OCIPlatform.i386 and sys.platform.startswith("darwin"):
+            pytest.xfail("podman fails with i386 images on macOS")
+
     with OCIContainer(
         engine=container_engine, image="debian:trixie-slim", oci_platform=platform
     ) as container:
@@ -607,6 +787,14 @@ def test_multiarch_image(container_engine: OCIContainerEngineConfig, platform: O
             OCIPlatform.S390X: "s390x",
         }
         assert output_map_dpkg[platform] == output.strip()
+        # There's no way to check reliably the presence of a specific platform image in the local
+        # store when the image storage backend supports multi-platform images (such as containerd).
+        # When platform != DEFAULT_OCI_PLATFORM and the image storage backend supports
+        # multi-platform images, _get_platform_args will return "--pull=always", at least when the
+        # DEFAULT_OCI_PLATFORM image is present.
+        if platform == DEFAULT_OCI_PLATFORM:
+            expected_platform_args = f"--platform={platform.value}", "--pull=never"
+            assert container._get_platform_args() == expected_platform_args
 
 
 @pytest.mark.parametrize(

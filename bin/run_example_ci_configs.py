@@ -3,6 +3,7 @@
 # /// script
 # dependencies = [
 #   "click",
+#   "jinja2",
 # ]
 # ///
 
@@ -39,13 +40,16 @@ def generate_project(path: Path, build_backend: BuildBackend) -> None:
     sys.path.insert(0, "")
     match build_backend:
         case "meson":
-            from test.test_projects.meson import new_meson_project as new_project  # noqa: PLC0415
+            from test.test_projects.meson import new_meson_project  # noqa: PLC0415
+
+            project = new_meson_project()
         case "setuptools":
-            from test.test_projects.setuptools import new_c_project as new_project  # noqa: PLC0415
+            from test.test_projects.setuptools import new_c_project  # noqa: PLC0415
+
+            project = new_c_project()
         case _:
             typing.assert_never(build_backend)
 
-    project = new_project()
     project.generate(path)
 
 

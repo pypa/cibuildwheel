@@ -1,4 +1,5 @@
-import contextlib
+from __future__ import annotations
+
 import subprocess
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -7,6 +8,10 @@ import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.audit import needs_audit, run_audit
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    import contextlib
 
 
 def mock_virtualenv() -> contextlib.AbstractContextManager[Mock]:

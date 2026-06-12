@@ -1,14 +1,19 @@
+from __future__ import annotations
+
 import json
 import re
 import subprocess
 import textwrap
-from pathlib import Path
 
 import pytest
 
 from cibuildwheel.util import resources
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 VERSION_REGEX = r"([\w-]+)==([^;\s]+)"
 
@@ -82,13 +87,13 @@ def get_versions_from_constraint_file(constraint_file: Path) -> dict[str, str]:
     return result
 
 
-@pytest.mark.parametrize("python_version", ["3.9", "3.13"])
+@pytest.mark.parametrize("python_version", ["3.9", "3.14"])
 def test_pinned_versions(
     tmp_path: Path, python_version: str, build_frontend_env_nouv: dict[str, str]
 ) -> None:
     if utils.get_platform() == "linux":
         pytest.skip("linux doesn't pin individual tool versions, it pins manylinux images instead")
-    if python_version != "3.13" and utils.get_platform() == "pyodide":
+    if python_version != "3.14" and utils.get_platform() == "pyodide":
         pytest.skip(f"pyodide does not support Python {python_version}")
 
     project_dir = tmp_path / "project"
@@ -174,19 +179,6 @@ def test_dependency_constraints(
         msg = f"Unknown method: {method}"
         raise ValueError(msg)
 
-    skip = ""
-
-    if (
-        utils.get_platform() == "windows"
-        and method == "file"
-        and build_frontend_env_nouv["CIBW_BUILD_FRONTEND"] == "build"
-    ):
-        # GraalPy 24 fails to discover its standard library when a venv is created
-        # from a virtualenv seeded executable. See
-        # https://github.com/oracle/graalpython/issues/491 and remove this once
-        # GraalPy 24 is dropped
-        skip = "gp311*"
-
     # cross-platform Python script for dependency constraint checks
     before_build_script = project_dir / "check_versions.py"
     before_build_script.write_text(CHECK_VERSIONS_SCRIPT)
@@ -195,7 +187,6 @@ def test_dependency_constraints(
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
         add_env={
-            "CIBW_SKIP": skip,
             "CIBW_DEPENDENCY_VERSIONS": dependency_version_option,
             "CIBW_BEFORE_BUILD": f"python {before_build_script.name}",
             "EXPECTED_VERSIONS": json.dumps(tool_versions),
@@ -206,10 +197,5 @@ def test_dependency_constraints(
 
     # also check that we got the right wheels
     expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
-
-    if skip == "gp*":
-        # See reference to https://github.com/oracle/graalpython/issues/491
-        # above
-        expected_wheels = [w for w in expected_wheels if "graalpy311" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)

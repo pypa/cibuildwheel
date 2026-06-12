@@ -1,12 +1,13 @@
+from __future__ import annotations
+
 import contextlib
 import functools
 import os
 import shutil
 import sys
 import tomllib
-from collections.abc import Sequence
 from pathlib import Path
-from typing import Final, cast
+from typing import cast
 
 from filelock import FileLock
 from packaging.markers import default_environment
@@ -15,7 +16,12 @@ from packaging.version import Version
 
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call
-from cibuildwheel.util.file import CIBW_CACHE_PATH, download
+from cibuildwheel.util.file import CIBW_CACHE_PATH, download, remove_on_error
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+    from typing import Final
 
 _IS_WIN: Final[bool] = sys.platform.startswith("win")
 
@@ -47,10 +53,12 @@ def _ensure_virtualenv(version: str) -> tuple[Path, Version]:
     configuration = loaded_file.get(key, loaded_file["default"])
     version = str(configuration["version"])
     url = str(configuration["url"])
+    sha256 = str(configuration["sha256"])
     path = CIBW_CACHE_PATH / f"virtualenv-{version}.pyz"
     with FileLock(str(path) + ".lock"):
         if not path.exists():
-            download(url, path)
+            with remove_on_error(path):
+                download(url, path, sha256=sha256)
     return (path, Version(version))
 
 
@@ -77,7 +85,7 @@ def _parse_pip_constraint_for_virtualenv(
     If it can't get an exact version, the real constraint will be handled by the
     {macos|windows}.setup_python function.
     If marker_env is provided, marker-bearing constraints are evaluated against it;
-    otherwise, marker-bearing constraints are skipped.
+    otherwise, they are evaluated against the host's default environment.
     """
     env: dict[str, str] = (
         marker_env if marker_env is not None else cast("dict[str, str]", default_environment())

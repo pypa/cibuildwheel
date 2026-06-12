@@ -1,5 +1,6 @@
 ---
 title: Working examples
+ref: working-examples
 ---
 
 <!-- START bin/projects.py -->
@@ -81,8 +82,8 @@ title: Working examples
 | [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
 | [pybind11 python_example][]       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | Example pybind11 module built with a Python-based build system |
 | [python-snappy][]                 | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for the snappy google library |
-| [abess][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A fast best-subset selection library. It uses cibuildwheel to build a large project with C++ extensions. |
 | [Confluent client for Kafka][]    | ![travisci icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | setup in `tools/wheels/build-wheels.bat` |
+| [abess][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A fast best-subset selection library. It uses cibuildwheel to build a large project with C++ extensions. |
 | [jq.py][]                         | ![travisci icon][] | ![apple icon][] ![linux icon][] | Python bindings for jq |
 | [cyvcf2][]                        | ![github icon][] | ![apple icon][] ![linux icon][] | cython + htslib == fast VCF and BCF processing |
 | [matrixprofile][]                 | ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python 3 library making time series data mining tasks, utilizing matrix profile algorithms, accessible to everyone. |
@@ -109,8 +110,8 @@ title: Working examples
 | [cf-units][]                      | ![github icon][] | ![apple icon][] ![linux icon][] | Units of measure as required by the Climate and Forecast (CF) Metadata Conventions |
 | [etebase-py][]                    | ![travisci icon][] | ![linux icon][] | Python bindings to a Rust library using `setuptools-rust`, and `sccache` for improved speed. |
 | [SiPM][]                          | ![github icon][] | ![apple icon][] ![linux icon][] | High performance library for SiPM detectors simulation using C++17, OpenMP and AVX2 intrinsics. |
-| [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
 | [aalink][]                        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Async Python interface for Ableton Link. |
+| [numpythia][]                     | ![github icon][] | ![apple icon][] ![linux icon][] | The interface between PYTHIA and NumPy |
 | [pyjet][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | The interface between FastJet and NumPy |
 | [ril][]                           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A python binding to Rust Imaging library using maturin and Pyo3, utilizes Github Action cache to improve speed. Builds abi3 wheels. |
 | [GSD][]                           | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Cython and NumPy project with 64-bit wheels. |
@@ -192,8 +193,8 @@ title: Working examples
 [python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
 [pybind11 python_example]: https://github.com/pybind/python_example
 [python-snappy]: https://github.com/intake/python-snappy
-[abess]: https://github.com/abess-team/abess
 [Confluent client for Kafka]: https://github.com/confluentinc/confluent-kafka-python
+[abess]: https://github.com/abess-team/abess
 [jq.py]: https://github.com/mwilliamson/jq.py
 [cyvcf2]: https://github.com/brentp/cyvcf2
 [matrixprofile]: https://github.com/matrix-profile-foundation/matrixprofile
@@ -220,8 +221,8 @@ title: Working examples
 [cf-units]: https://github.com/SciTools/cf-units
 [etebase-py]: https://github.com/etesync/etebase-py
 [SiPM]: https://github.com/EdoPro98/SimSiPM
-[numpythia]: https://github.com/scikit-hep/numpythia
 [aalink]: https://github.com/artfwo/aalink
+[numpythia]: https://github.com/scikit-hep/numpythia
 [pyjet]: https://github.com/scikit-hep/pyjet
 [ril]: https://github.com/Cryptex-github/ril-py
 [GSD]: https://github.com/glotzerlab/gsd

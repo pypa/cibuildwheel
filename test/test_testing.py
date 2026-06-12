@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import inspect
 import subprocess
 import textwrap
-from pathlib import Path
 
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 project_with_a_test = test_projects.new_c_project(
     setup_cfg_add=textwrap.dedent(

@@ -1,5 +1,6 @@
 ---
 title: 'Getting started'
+ref: setup
 ---
 
 # Getting started

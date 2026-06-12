@@ -1,11 +1,11 @@
+from __future__ import annotations
+
 import dataclasses
-import json
 import os
 import platform as platform_module
 import shutil
 import subprocess
 import textwrap
-from collections.abc import MutableMapping, Sequence, Set
 from functools import cache
 from pathlib import Path
 from typing import assert_never
@@ -15,15 +15,12 @@ from filelock import FileLock
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
-from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import (
     BuildFrontendName,
     get_build_frontend_extra_flags,
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
-from cibuildwheel.options import Options
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import (
@@ -32,10 +29,19 @@ from cibuildwheel.util.file import (
     download,
     extract_zip,
     move_file,
+    remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
 from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import MutableMapping, Sequence, Set
+
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 
 def get_nuget_args(
@@ -67,6 +73,7 @@ class PythonConfiguration:
     version: str
     identifier: str
     url: str | None = None
+    sha256: str = ""
 
     @property
     def arch(self) -> str:
@@ -105,7 +112,8 @@ def _ensure_nuget() -> Path:
     nuget = CIBW_CACHE_PATH / "nuget.exe"
     with FileLock(str(nuget) + ".lock"):
         if not nuget.exists():
-            download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", nuget)
+            with remove_on_error(nuget):
+                download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", nuget)
     return nuget
 
 
@@ -121,11 +129,12 @@ def install_cpython(configuration: PythonConfiguration, arch: str | None = None)
     with FileLock(str(base_output_dir) + f"-{version}{free_threaded_str}-{arch}.lock"):
         if not installation_path.exists():
             nuget = _ensure_nuget()
-            call(nuget, "install", *nuget_args)
+            with remove_on_error(installation_path.parent):
+                call(nuget, "install", *nuget_args)
     return installation_path / "python.exe"
 
 
-def install_pypy(tmp: Path, arch: str, url: str) -> Path:
+def install_pypy(tmp: Path, arch: str, url: str, sha256: str) -> Path:
     assert arch == "64"
     assert "win64" in url
     # Inside the PyPy zip file is a directory with the same name
@@ -136,13 +145,14 @@ def install_pypy(tmp: Path, arch: str, url: str) -> Path:
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             pypy_zip = tmp / zip_filename
-            download(url, pypy_zip)
-            # Extract to the parent directory because the zip file still contains a directory
-            extract_zip(pypy_zip, installation_path.parent)
+            download(url, pypy_zip, sha256=sha256)
+            with remove_on_error(installation_path):
+                # Extract to the parent directory because the zip file still contains a directory
+                extract_zip(pypy_zip, installation_path.parent)
     return installation_path / "python.exe"
 
 
-def install_graalpy(tmp: Path, url: str) -> Path:
+def install_graalpy(tmp: Path, url: str, sha256: str) -> Path:
     zip_filename = url.rsplit("/", 1)[-1]
     extension = ".zip"
     assert zip_filename.endswith(extension)
@@ -150,9 +160,10 @@ def install_graalpy(tmp: Path, url: str) -> Path:
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             graalpy_zip = tmp / zip_filename
-            download(url, graalpy_zip)
-            # Extract to the parent directory because the zip file still contains a directory
-            extract_zip(graalpy_zip, installation_path.parent)
+            download(url, graalpy_zip, sha256=sha256)
+            with remove_on_error(installation_path):
+                # Extract to the parent directory because the zip file still contains a directory
+                extract_zip(graalpy_zip, installation_path.parent)
     return installation_path / "bin" / "graalpy.exe"
 
 
@@ -266,9 +277,14 @@ def setup_python(
             base_python = install_cpython(python_configuration, arch=native_arch)
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
-        base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
+        assert python_configuration.sha256
+        base_python = install_pypy(
+            tmp, python_configuration.arch, python_configuration.url, python_configuration.sha256
+        )
     elif implementation_id.startswith("gp"):
-        base_python = install_graalpy(tmp, python_configuration.url or "")
+        assert python_configuration.url is not None
+        assert python_configuration.sha256
+        base_python = install_graalpy(tmp, python_configuration.url, python_configuration.sha256)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
@@ -373,42 +389,6 @@ def setup_python(
         setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
         setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
 
-    if implementation_id.startswith("gp311"):
-        # GraalPy 24 fails to discover compilers, setup the relevant environment
-        # variables. Adapted from
-        # https://github.com/microsoft/vswhere/wiki/Start-Developer-Command-Prompt
-        # Remove when GraalPy 24.x is dropped.
-        vcpath = call(
-            Path(os.environ["PROGRAMFILES(X86)"])
-            / "Microsoft Visual Studio"
-            / "Installer"
-            / "vswhere.exe",
-            "-products",
-            "*",
-            "-latest",
-            "-property",
-            "installationPath",
-            capture_stdout=True,
-        ).strip()
-        log.notice(f"Discovering Visual Studio for GraalPy at {vcpath}")
-        vcvars_file = tmp / "vcvars.json"
-        call(
-            f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
-            "-no_logo",
-            "-arch=amd64",
-            "-host_arch=amd64",
-            "&&",
-            "python",
-            "-c",
-            # this command needs to be one line for Windows reasons
-            "import sys, json, pathlib, os; pathlib.Path(sys.argv[1]).write_text(json.dumps(dict(os.environ)))",
-            vcvars_file,
-            env=env,
-        )
-        with open(vcvars_file, encoding="utf-8") as f:
-            vcvars = json.load(f)
-        env.update(vcvars)
-
     return base_python, env
 
 
@@ -460,6 +440,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.environment,
                 build_frontend.name,
             )
+            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
             pip_version = None if use_uv else get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
@@ -492,22 +473,6 @@ def build(options: Options, tmp_path: Path) -> None:
                         package=options.globals.package_dir,
                     ),
                 )
-
-                if (
-                    config.identifier.startswith("gp311")
-                    and build_frontend.name == "build"
-                    and "--no-isolation" not in extra_flags
-                    and "-n" not in extra_flags
-                ):
-                    # GraalPy 24 fails to discover its standard library when a venv is created
-                    # from a virtualenv seeded executable. See
-                    # https://github.com/oracle/graalpython/issues/491 and remove this once
-                    # GraalPy 24 is dropped.
-                    log.notice(
-                        "Disabling build isolation to workaround GraalPy bug. If the build fails, consider using pip or build[uv] as build frontend."
-                    )
-                    shell("graalpy -m pip install setuptools wheel", env=env)
-                    extra_flags = [*extra_flags, "-n"]
 
                 match build_frontend.name:
                     case "pip":

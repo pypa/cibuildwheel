@@ -1,3 +1,8 @@
+---
+title: Options
+ref: options
+---
+
 # Options
 
 <div class="options-toc"></div>
@@ -64,7 +69,6 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 | PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
 | PyPy3.10 v7.3 | pp310-macosx_x86_64<br/>pp310-macosx_arm64                             | pp310-win_amd64                                     | pp310-manylinux_x86_64<br/>pp310-manylinux_i686                                                     | pp310-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
 | PyPy3.11 v7.3 | pp311-macosx_x86_64<br/>pp311-macosx_arm64                             | pp311-win_amd64                                     | pp311-manylinux_x86_64<br/>pp311-manylinux_i686                                                     | pp311-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
-| GraalPy 3.11 v24.2 | gp311_242-macosx_x86_64<br/>gp311_242-macosx_arm64                             | gp311_242-win_amd64                                     | gp311_242-manylinux_x86_64                                                                              | gp311_242-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                                                                   |                      |
 | GraalPy 3.12 v25.0 | gp312_250-macosx_x86_64<br/>gp312_250-macosx_arm64                             | gp312_250-win_amd64                                     | gp312_250-manylinux_x86_64                                                                              | gp312_250-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                                                                   |                      |
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to cibuildwheel.
@@ -589,6 +593,12 @@ You must use this variable to pass variables to Linux builds, since they execute
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
 Variables are evaluated in the order they appear. Any variable referenced before it is set will evaluate to an empty string.
 
+The environment seen by the build and test steps starts with the build
+environment. On Linux, this is the container environment, plus any variables
+passed through with [`environment-pass`](#environment-pass). On other platforms,
+the host environment is already available. Assignments in `environment` are
+evaluated after that base environment and replace any duplicate variable names.
+
 To specify more than one environment variable, separate the assignments by spaces.
 
 Platform-specific environment variables are also available:<br/>
@@ -668,6 +678,9 @@ Platform-specific environment variables are also available:<br/>
 
 !!! note
     cibuildwheel always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#optional-extensions).
+
+!!! note
+    For each per-build step (`before_build`, the build itself, `repair_command`, `before_test`, `test_command`), cibuildwheel also sets `CIBUILDWHEEL_BUILD_IDENTIFIER` to the current build identifier (e.g. `cp311-manylinux_x86_64`). This can be used in scripts to distinguish different builds.
 
 !!! note
     To do its work, cibuildwheel sets the variables `VIRTUALENV_PIP`, `DIST_EXTRA_CONFIG`, `SETUPTOOLS_EXT_SUFFIX`, `PIP_DISABLE_PIP_VERSION_CHECK`, `PIP_ROOT_USER_ACTION`, and it extends the variables `PATH` and `PIP_CONSTRAINT`. Your assignments to these options might be replaced or extended.
@@ -916,15 +929,44 @@ Platform-specific environment variables are also available on platforms that use
     ```
 
 
+### `xbuild-files` {: #xbuild-files env-var toml}
+> Platform-specific files in the build environment
+
+When cross-compiling a package for Android, any dependencies in its [`build-system.requires`](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) are installed for the build platform. However, some dependencies contain platform-specific files such as headers and static libraries, which must correspond to the target platform.
+
+This option maps a [normalized](https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization) package name to a list of paths within that package. If the package is present in the build environment, then a matching version will be downloaded for the target platform, and used to overwrite the given paths within the build environment.
+
+The default value of this option includes [paths from popular packages](configuration.md#configuration-file).
+
+Platform-specific environment variables are also available:<br/>
+ `CIBW_XBUILD_FILES_ANDROID`
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.xbuild-files]
+    package1 = ["some/header.h", "some/library.a"]
+    package2 = ["other/header.h"]
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_XBUILD_FILES: "package1: some/header.h some/library.a; package2: other/header.h"
+    ```
+
+
 ### `repair-wheel-command` {: #repair-wheel-command env-var toml}
 > Execute a shell command to repair each built wheel
 
 Default:
 
 - on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
+- on Windows: `'delvewheel repair -w {dest_dir} -v {wheel}'`
 - on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
-- on Android: There is no default command, but cibuildwheel will add `libc++` to the
-  wheel if anything links against it. Setting a command will replace this behavior.
+- on Android: `'auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}'`
 - on Pyodide: You can use `pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}` command to repair the wheel.
   Unlike other platforms, this command is not set by default as you need to explicitly
   specify the library directory. You might not want to use the libraries in the system
@@ -934,11 +976,15 @@ Default:
 A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
 The command is run on each built wheel (except for pure Python ones) before testing it.
 
+!!! note
+    Since cibuildwheel 4.0, `delvewheel` is the default `repair-wheel-command` on Windows, so extension-module DLLs are bundled automatically. If a wheel has a platform tag but contains no extension module (for example, a package that sets a platform tag but ships a pre-built DLL itself), `delvewheel` may error. In that case, set `repair-wheel-command = ""` to skip the repair step.
+
 The following placeholders must be used inside the command and will be replaced by cibuildwheel:
 
 - `{wheel}` for the absolute path to the built wheel
 - `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
 - `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
+- `{ldpaths}` (Android only) colon-separated list of directories to search for external libraries, set by cibuildwheel to include any necessary locations in the NDK. You can add more directories by appending them with a colon separator after the placeholder, or by setting the `AUDITWHEEL_LD_LIBRARY_PATH` environment variable.
 
 You can use the `{package}` or `{project}` placeholders in your `repair-wheel-command` to refer to the package being built or the project root, respectively.
 
@@ -947,24 +993,14 @@ The command is run in a shell, so you can run multiple commands like `cmd1 && cm
 Platform-specific environment variables are also available:<br/>
 `CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_ANDROID` | `CIBW_REPAIR_WHEEL_COMMAND_IOS` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
 
-!!! tip
-    cibuildwheel doesn't yet ship a default repair command for Windows.
-
-    **If that's an issue for you, check out [delvewheel]** - a new package that aims to do the same as auditwheel or delocate for Windows.
-
-    Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
-
-    [Delvewheel]: https://github.com/adang1345/delvewheel
-
 #### Examples
 
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Use delvewheel on windows
+    # Don't repair Windows wheels
     [tool.cibuildwheel.windows]
-    before-build = "pip install delvewheel"
-    repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
+    repair-wheel-command = ""
 
     # Don't repair macOS wheels
     [tool.cibuildwheel.macos]
@@ -992,9 +1028,8 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Use delvewheel on windows
-    CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+    # Don't repair Windows wheels
+    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
 
     # Don't repair macOS wheels
     CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""

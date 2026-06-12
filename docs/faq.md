@@ -1,5 +1,6 @@
 ---
 title: Tips and tricks
+ref: faq
 ---
 
 # Tips and tricks
@@ -112,7 +113,7 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: pypa/cibuildwheel@v4.0.0rc1
+uses: pypa/cibuildwheel@v4.0.0
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
@@ -137,7 +138,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==4.0.0rc1
+cibuildwheel==4.0.0
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
@@ -220,6 +221,60 @@ Your build might need some compiler flags to be set through environment variable
 Consider incorporating these into your package, for example, in `setup.py` using [`extra_compile_args` or
 `extra_link_args`](https://setuptools.pypa.io/en/latest/userguide/ext_modules.html#setuptools.Extension).
 
+### Building wheels with CUDA on Linux
+
+On Linux, you can build binary wheels with CUDA to take advantage of NVIDIA GPUs for hardware acceleration.
+Specify the custom Docker containers with CUDA Toolkit as follows:
+
+```yaml
+CIBW_MANYLINUX_X86_64_IMAGE: >-
+  quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda13_1:latest
+CIBW_MANYLINUX_AARCH64_IMAGE: >-
+  quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda13_1:latest
+```
+Currently, we support the following CUDA manylinux containers:
+
+* `quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_x86_64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_aarch64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_x86_64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_aarch64_cuda13_1:latest`
+
+A typical GitHub Actions workflow will look like this:
+
+```yaml
+jobs:
+  build-wheels:
+    name: Build wheels
+    runs-on: ${{ matrix.target.runner }}
+    strategy:
+      matrix:
+        manylinux-base: [manylinux_2_28, manylinux_2_34]
+        cuda-version: [12_9, 13_1]
+        target:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3
+        env:
+          CIBW_MANYLINUX_X86_64_IMAGE: >-
+            quay.io/manylinux_cuda/${{ matrix.manylinux-base }}_x86_64_cuda${{ matrix.cuda-version }}:latest
+          CIBW_MANYLINUX_AARCH64_IMAGE: >-
+            quay.io/manylinux_cuda/${{ matrix.manylinux-base }}_aarch64_cuda${{ matrix.cuda-version }}:latest
+          CIBW_BUILD: cp312-manylinux_${{ matrix.target.arch }}
+```
+
+
 ## Troubleshooting
 
 If your wheel didn't compile, you might have a mistake in your config.
@@ -234,7 +289,7 @@ Sometimes a build will fail due to a missing dependency.
 
 **If you need a build tool** (e.g. cmake, automake, ninja), you can install it through a package manager like apt/yum, brew or choco, using the [`before-all`](options.md#before-all) option.
 
-**If your build is linking into a native library dependency**, you can build/install that in [`before-all`](options.md#before-all). However, on Linux, Mac (and Windows if you're using [delvewheel]), the library that you install will be bundled into the wheel in the [repair step]. So take care to ensure that
+**If your build is linking into a native library dependency**, you can build/install that in [`before-all`](options.md#before-all). However, on Linux, Mac, and Windows (which uses [delvewheel] by default since cibuildwheel 4.0), the library that you install will be bundled into the wheel in the [repair step]. So take care to ensure that
 
 - the bundled library doesn't accidentally increase the minimum system requirements (such as the minimum macOS version)
 - the bundled library matches the architecture of the wheel you're building when cross-compiling
@@ -302,7 +357,7 @@ Solutions to this vary, but the simplest is to use pipx:
 # most runners have pipx preinstalled, but in case you don't
 python3 -m pip install pipx
 
-pipx run cibuildwheel==4.0.0rc1 --output-dir wheelhouse
+pipx run cibuildwheel==4.0.0 --output-dir wheelhouse
 pipx run twine upload wheelhouse/*.whl
 ```
 

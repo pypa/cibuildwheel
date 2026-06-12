@@ -1,5 +1,6 @@
+from __future__ import annotations
+
 import tomllib
-from pathlib import Path
 from textwrap import dedent
 
 import pytest
@@ -9,6 +10,10 @@ from cibuildwheel.projectfiles import (
     resolve_dependency_groups,
     setup_py_python_requires,
 )
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 def test_read_setup_py_simple(tmp_path: Path) -> None:

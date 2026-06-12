@@ -24,17 +24,16 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 
 |                          | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64  | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | manylinux<br/>musllinux armv7l | Android | iOS | Pyodide        |
 | ------------------------ | ----------- | ------------------- | ------------- | ------------- | -------------- | ------------------------------ | ---------------------------- | ------------------------------- | ------------------------------- | ----------------------------- | ------------------------------ | ------- | --- | -------------- |
-| CPython 3.9              | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | N/A            |
-| CPython 3.10             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | N/A            |
-| CPython 3.11             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | N/A            |
-| CPython 3.12             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | ✅<sup>3</sup> |
-| CPython 3.13             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | ✅  | ✅             |
-| CPython 3.14             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | ✅  | ✅<sup>4</sup> |
-| CPython 3.15<sup>6</sup> | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | N/A | N/A            |
+| CPython 3.9              | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | N/A            |
+| CPython 3.10             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | N/A            |
+| CPython 3.11             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | N/A            |
+| CPython 3.12             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | N/A     | N/A | ✅<sup>3</sup> |
+| CPython 3.13             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | ✅  | ✅             |
+| CPython 3.14             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | ✅  | ✅<sup>4</sup> |
+| CPython 3.15<sup>6</sup> | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>5</sup>                 | ✅      | ✅  | N/A            |
 | PyPy 3.9 v7.3            | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
 | PyPy 3.10 v7.3           | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
 | PyPy 3.11 v7.3           | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
-| GraalPy 3.11 v24.2       | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | N/A                          | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
 | GraalPy 3.12 v25.0       | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | N/A                          | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
 
 <sup>**1** PyPy & GraalPy are only supported for manylinux wheels.</sup><br>
@@ -100,7 +99,7 @@ jobs:
       - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==4.0.0rc1
+        run: python -m pip install cibuildwheel==4.0.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -152,6 +151,7 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 |  | [`before-all`](https://cibuildwheel.pypa.io/en/stable/options/#before-all) | Execute a shell command on the build system before any wheels are built. |
 |  | [`before-build`](https://cibuildwheel.pypa.io/en/stable/options/#before-build) | Execute a shell command preparing each wheel's build |
 |  | [`xbuild-tools`](https://cibuildwheel.pypa.io/en/stable/options/#xbuild-tools) | Binaries on the path that should be included in an isolated cross-build environment. |
+|  | [`xbuild-files`](https://cibuildwheel.pypa.io/en/stable/options/#xbuild-files) | Platform-specific files in the build environment |
 |  | [`repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command) | Execute a shell command to repair each built wheel |
 |  | [`manylinux-*-image`<br>`musllinux-*-image`](https://cibuildwheel.pypa.io/en/stable/options/#linux-image) | Specify manylinux / musllinux container images |
 |  | [`container-engine`](https://cibuildwheel.pypa.io/en/stable/options/#container-engine) | Specify the container engine to use when building Linux wheels |
@@ -173,7 +173,7 @@ The following diagram summarises the steps that cibuildwheel takes on each platf
 |  | [`build-verbosity`](https://cibuildwheel.pypa.io/en/stable/options/#build-verbosity) | Increase/decrease the output of the build |
 
 
-<!--[[[end]]] (sum: b7YIjCyCkf) -->
+<!--[[[end]]] (sum: Of/28Z7Nut) -->
 
 These options can be specified in a pyproject.toml file, or as environment variables, see [configuration docs](https://cibuildwheel.pypa.io/en/latest/configuration/).
 
@@ -240,33 +240,61 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
-### v4.0.0rc1
+### v4.0.0
 
-_14 May 2026_
+_7 June 2026_
+
+See @henryiii's [release post](https://iscinumpy.dev/post/cibuildwheel-4-0-0/) for more info on new features!
 
 - 🌟 Adds wheel auditing with `abi3audit` as a default after the repair step, with new [`audit-requires`](https://cibuildwheel.pypa.io/en/stable/options/#audit-requires) and [`audit-command`](https://cibuildwheel.pypa.io/en/stable/options/#audit-command) options (#2805)
-- 🌟 Adds `pyemscripten` platform tag support (PEP 783), updates Pyodide to 314.0.0a1, and adds a `pyodide-eol` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) flag for building end-of-life Pyodide versions (#2812, #2848)
+- 🌟 Adds `pyemscripten` platform tag support (PEP 783), updates Pyodide to 314.0.0a2, and adds a `pyodide-eol` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) flag for building end-of-life Pyodide versions (#2812, #2848)
 - 🌟 Sets up `delvewheel` as the default [`repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command) for Windows, so extension module DLLs are now bundled automatically. Skip by setting it to empty if not needed. (#2831)
-- ✨ Adds CPython 3.15 support, under the [`enable` option](https://cibuildwheel.pypa.io/en/stable/options/#enable) `cpython-prerelease`. This version of cibuildwheel uses 3.15.0b1. (#2833, #2850)
+- ✨ Adds CPython 3.15 support, under the [`enable` option](https://cibuildwheel.pypa.io/en/stable/options/#enable) `cpython-prerelease`. This version of cibuildwheel uses 3.15.0b2. (#2833, #2850)
 
-    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.14 will be available in cibuildwheel without the flag._ (#2390)
+    _While CPython is in beta, the ABI can change, so your wheels might not be compatible with the final release. For this reason, we don't recommend distributing wheels until RC1, at which point 3.15 will be available in cibuildwheel without the flag._
+
+- ✨ Adds CPython 3.15 support for iOS and Android (#2857, #2858)
+- ✨ Adds Android improvements for building NumPy and related packages, including auditwheel support, pkg-config and Fortran configuration, and the [`xbuild-files`](https://cibuildwheel.pypa.io/en/stable/options/#xbuild-files) option (#2695)
+- ✨ Adds `CIBUILDWHEEL_BUILD_IDENTIFIER` environment variable set to the current build identifier (e.g. `cp311-manylinux_x86_64`) during per-build steps (#2872)
 - ✨ Adds `{project}` and `{package}` placeholders to [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) (#2827)
 - ⚠️ Drops support for Python 3.8 (#2686)
 - ⚠️ Removes the experimental CPython 3.13 free-threading builds and the `cpython-freethreading` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) option. CPython 3.14+ free-threading support remains available without the enable flag. (#2684)
 - ⚠️ Drops support for Cirrus CI, which is shutting down June 1, 2026 (#2817)
+- ⚠️ Drops GraalPy 3.11 (gp311) support, as agreed in #2741, and removes GraalPy 24-only workarounds (#2895)
+- 🔐 Adds SHA256 verification for direct downloads of Python interpreters, virtualenv, and python-build-standalone assets (#2873)
+- 🔐 Adds tarfile extraction filter for safe archive extraction (#2856)
 - 🐛 Fixes `UV_PYTHON` not being set for [`before-build`](https://cibuildwheel.pypa.io/en/stable/options/#before-build) on Linux when using `uv` as the [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) (#2830)
+- 🐛 Fixes detection of musl libc when downloading python-build-standalone, which previously always selected the gnu asset on musl hosts like Alpine (#2889)
+- 🐛 Fixes [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) expansion when `{project}` or `{package}` contains spaces or backslashes (#2886)
+- 🐛 Prevents deadlock when `linux32` fails and forwards platform args to the sanity check (#2880, #2888)
+- 🐛 Fixes container resource leaks on start failure and during teardown (#2879, #2887)
+- 🐛 Removes potential partial cache-population in case of error (#2892)
+- 🐛 Raises a clear error when `ANDROID_API_LEVEL` is not an integer (#2891)
+- 🐛 Replaces assert with proper exception in python-build-standalone (#2859)
+- 🐛 Uses ConfigurationError when `package_dir` is outside cwd instead of a generic Exception (#2898)
+- 🛠 Updates dependencies and container pins (#2893, #2882, #2874, #2868, #2862, #2884, #2845, #2837, #2818, #2810, #2838, #2813)
 - 🛠 Updates Android to Python 3.13.13 and 3.14.4 (#2821)
 - 🛠 Applies Pyodide-specific patches to the Emscripten toolchain installation (#2800)
-- 🛠 Updates dependencies and container pins (#2845, #2837, #2821, #2818, #2810, #2838, #2813)
 - 🛠 Uses `python -V -V` for Windows build diagnostics (#2832)
+- 🛠 Simplifies pinned container image lookup (#2897)
+- 🛠 Minor fixups across error messages, OCI container, and options (#2860)
+- 💼 Adds PEP 723 metadata for `bin/` scripts and drops the `bin` dependency group (#2819)
+- 💼 Improves Azure test reliability with retries and caching (#2890)
+- 💼 Fixes Windows GitLab CI test running (#2870)
+- 💼 Updates CI action pins and dev dependencies (#2902, #2867, #2851, #2843, #2826, #2823, #2820, #2807)
+- 💼 Adds agent and copilot setup files (#2861)
+- 💼 Uses `if TYPE_CHECKING:` blocks (#2866, #2864)
+- 🧪 Fixes Android tests using the `uv` frontend (#2809)
+- 🧪 Fixes the update-dependencies workflow to use `uv` to run `nox` (#2808)
+- 🧪 Adds unit tests for `OCIContainer._get_platform_args` (#2878)
+- 📚 Updates documentation for delvewheel as the default Windows [`repair-wheel-command`](https://cibuildwheel.pypa.io/en/stable/options/#repair-wheel-command), including the build diagram, schema defaults, and legal note (#2877, #2853, #2891)
 - 📚 Documents platform-specific [`before-build`](https://cibuildwheel.pypa.io/en/stable/options/#before-build) configuration (#2834)
 - 📚 Updates the "How it works" diagram with details of Android, iOS, and Pyodide builds (#2816)
 - 📚 Adds Pyodide icon and regenerates working examples data for Android, iOS, and Pyodide (#2815, #2811)
+- 📚 Adds intersphinx support for external documentation linking (#2871)
+- 📚 Adds instructions for building CUDA wheels and fixes manylinux container references in FAQ (#2896, #2900)
 - 📚 Links back to source in docs (#2806)
-- 💼 Adds PEP 723 metadata for `bin/` scripts and drops the `bin` dependency group (#2819)
-- 💼 Updates CI action pins and dev dependencies (#2851, #2843, #2826, #2823, #2820, #2807)
-- 🧪 Fixes Android tests using the `uv` frontend (#2809)
-- 🧪 Fixes the update-dependencies workflow to use `uv` to run `nox` (#2808)
+- 📚 Removes outdated numpy info (#2855)
 
 
 ### v3.4.1
@@ -311,7 +339,7 @@ _12 November 2025_
 - 🛠 Improve the handling of `test-command` on Android, enabling more options to be passed (#2590)
 - 📚 Docs improvements (#2618)
 
-<!-- [[[end]]] (sum: ZD0EjcyC0B) -->
+<!-- [[[end]]] (sum: D4aAeqwKSW) -->
 
 ---
 

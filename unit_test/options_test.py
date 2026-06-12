@@ -1,8 +1,9 @@
+from __future__ import annotations
+
 import os
 import platform as platform_module
 import textwrap
 import unittest.mock
-from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
@@ -12,7 +13,9 @@ from cibuildwheel import errors
 from cibuildwheel.bashlex_eval import local_environment_executor
 from cibuildwheel.frontend import (
     BuildFrontendConfig,
+    _split_config_settings,
     get_build_frontend_extra_flags,
+    parse_config_settings,
     prepare_config_settings,
 )
 from cibuildwheel.logger import Logger
@@ -24,6 +27,10 @@ from cibuildwheel.options import (
 from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -604,6 +611,29 @@ def test_prepare_config_settings(config_settings: str, expected: str) -> None:
 
 
 @pytest.mark.parametrize(
+    ("project", "package"),
+    [
+        (R"C:\Users\John Doe\project", R"C:\Users\John Doe\project\pkg"),
+        ("/home/me/my project", "/home/me/my project/pkg"),
+    ],
+)
+def test_prepare_config_settings_special_chars(project: str, package: str) -> None:
+    # Paths with spaces or backslashes must survive the round-trip through the
+    # downstream shlex.split intact (regression test for the {package}/{project}
+    # substitution being mangled by re-parsing).
+    config_settings = "setup-args=--cross-file={package}/cross.ini other-setting={project}"
+    prepared = prepare_config_settings(config_settings, project=project, package=package)
+    assert _split_config_settings(prepared) == [
+        f"-Csetup-args=--cross-file={package}/cross.ini",
+        f"-Cother-setting={project}",
+    ]
+    assert parse_config_settings(prepared) == {
+        "setup-args": f"--cross-file={package}/cross.ini",
+        "other-setting": project,
+    }
+
+
+@pytest.mark.parametrize(
     ("definition", "expected_args"),
     [
         ("", ()),
@@ -662,3 +692,51 @@ def test_xbuild_tools_handling(tmp_path: Path, definition: str, expected: list[s
 
     local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
     assert local.xbuild_tools == expected
+
+
+DEFAULT_XBUILD_FILES = {
+    "numpy": [
+        "numpy/_core/include/numpy/_numpyconfig.h",
+        "numpy/_core/include/numpy/numpyconfig.h",
+        "numpy/_core/lib/libnpymath.a",
+        "numpy/random/lib/libnpyrandom.a",
+    ]
+}
+
+
+@pytest.mark.parametrize(
+    ("definition", "expected"),
+    [
+        ("", DEFAULT_XBUILD_FILES),
+        ('xbuild-files = ""', {}),
+        ('xbuild-files = "package1: file1"', {"package1": ["file1"]}),
+        (
+            "xbuild-files = \"package1: 'file1 with space'; package2: file2a file2b\"",
+            {"package1": ["file1 with space"], "package2": ["file2a", "file2b"]},
+        ),
+    ],
+)
+def test_xbuild_files(tmp_path: Path, definition: str, expected: dict[str, list[str]]) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {definition}
+            """
+        )
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+    assert options.build_options(None).xbuild_files == expected
+
+    pyproject_toml.write_text(
+        "[tool.cibuildwheel.xbuild-files]\n"
+        + "\n".join(f"{package} = {files}" for package, files in expected.items())
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+    assert options.build_options(None).xbuild_files == expected

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import os
 import platform
@@ -6,31 +8,42 @@ import shutil
 import subprocess
 import sys
 import textwrap
-from collections.abc import Sequence, Set
 from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
+from packaging.version import Version
 
 from cibuildwheel import errors
-from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
-from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import (
     BuildFrontendName,
     get_build_frontend_extra_flags,
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
-from cibuildwheel.options import Options
 from cibuildwheel.platforms.macos import install_cpython as install_build_cpython
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell, split_command
-from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
+from cibuildwheel.util.file import (
+    CIBW_CACHE_PATH,
+    copy_test_sources,
+    download,
+    move_file,
+    remove_on_error,
+)
 from cibuildwheel.util.helpers import prepare_command, unwrap_preserving_paragraphs
 from cibuildwheel.util.packaging import find_compatible_wheel
 from cibuildwheel.venv import constraint_flags, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence, Set
+
+    from cibuildwheel.architecture import Architecture
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -39,6 +52,8 @@ class PythonConfiguration:
     identifier: str
     url: str
     build_url: str
+    build_sha256: str
+    sha256: str
 
     @property
     def sdk(self) -> str:
@@ -71,7 +86,7 @@ def all_python_configurations() -> list[PythonConfiguration]:
     # configuration.
     macos_python_configs = resources.read_python_configs("macos")
 
-    def build_url(config_dict: dict[str, str]) -> str:
+    def build_python_config(config_dict: dict[str, str]) -> dict[str, str]:
         # The iOS identifier will be something like cp313-ios_arm64_iphoneos.
         # Drop the iphoneos suffix, then replace ios with macosx to yield
         # cp313-macosx_arm64, which will be a macOS build identifier.
@@ -80,18 +95,22 @@ def all_python_configurations() -> list[PythonConfiguration]:
         matching = [
             config for config in macos_python_configs if config["identifier"] == macos_identifier
         ]
-        return matching[0]["url"]
+        return matching[0]
 
     # Load the platform configuration
     full_python_configs = resources.read_python_configs("ios")
     # Build the configurations, annotating with macOS URL details.
-    return [
-        PythonConfiguration(
-            **item,
-            build_url=build_url(item),
+    python_configurations = []
+    for item in full_python_configs:
+        build_config = build_python_config(item)
+        python_configurations.append(
+            PythonConfiguration(
+                **item,
+                build_url=build_config["url"],
+                build_sha256=build_config["sha256"],
+            )
         )
-        for item in full_python_configs
-    ]
+    return python_configurations
 
 
 def get_python_configurations(
@@ -126,9 +145,10 @@ def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threadin
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             downloaded_tar_gz = tmp / ios_python_tar_gz
-            download(config.url, downloaded_tar_gz)
-            installation_path.mkdir(parents=True, exist_ok=True)
-            call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
+            download(config.url, downloaded_tar_gz, sha256=config.sha256)
+            with remove_on_error(installation_path):
+                installation_path.mkdir(parents=True)
+                call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
             downloaded_tar_gz.unlink()
 
     return installation_path
@@ -183,18 +203,37 @@ def cross_virtualenv(
     )
 
     # Convert the macOS virtual environment into an iOS virtual environment
-    # using the cross-platform conversion script in the iOS distribution.
+    # using make_cross_venv.py.
 
     # target_python is the path to the Python binary;
     # determine the root of the XCframework slice that is being used.
     slice_path = target_python.parent.parent
-    call(
-        "python",
-        str(slice_path / f"platform-config/{multiarch}/make_cross_venv.py"),
-        str(venv_path),
-        env=env,
-        cwd=venv_path,
-    )
+    if Version(py_version) >= Version("3.15"):
+        # python.org 3.15+ distributions: sysconfig data lives in the
+        # stdlib directory (lib-<arch>/python<version>); cross-venv scripts
+        # come from cibuildwheel resources.
+        arch = multiarch.split("-", maxsplit=1)[0]
+        stdlib_path = slice_path / f"lib-{arch}" / f"python{py_version}"
+        call(
+            "python",
+            str(resources.IOS_SUPPORT_FILES / "make_cross_venv.py"),
+            str(venv_path),
+            str(stdlib_path),
+            str(resources.IOS_SUPPORT_FILES),
+            env=env,
+            cwd=venv_path,
+        )
+    else:
+        # BeeWare distributions: platform-config already contains both
+        # sysconfig data and the make_cross_venv.py script.
+        platform_config_path = slice_path / f"platform-config/{multiarch}"
+        call(
+            "python",
+            str(platform_config_path / "make_cross_venv.py"),
+            str(venv_path),
+            env=env,
+            cwd=venv_path,
+        )
 
     # When running on macOS, it's easy for the build environment to leak into
     # the target environment, especially when building for ARM64 (because the
@@ -293,6 +332,7 @@ def setup_python(
             python_configuration.version,
             python_configuration.build_url,
             free_threading,
+            python_configuration.build_sha256,
         )
     else:
         msg = f"Unknown Python implementation: {implementation_id}"
@@ -312,8 +352,8 @@ def setup_python(
         / f"python{python_configuration.version}"
     )
 
-    assert target_python.exists(), (
-        f"{target_python.name} not found, has {list(target_install_path.iterdir())}"
+    assert target_python.parent.exists(), (
+        f"{target_python.parent} not found, has {list(target_install_path.iterdir())}"
     )
 
     log.step("Creating cross build environment...")
@@ -456,6 +496,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_frontend=build_frontend.name,
                 xbuild_tools=build_options.xbuild_tools,
             )
+            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:

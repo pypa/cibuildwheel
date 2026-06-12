@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import functools
 import json
@@ -7,7 +9,6 @@ import subprocess
 import sys
 import tomllib
 import typing
-from collections.abc import Set
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Final, TypedDict
@@ -17,11 +18,8 @@ from filelock import FileLock
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
-from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config_settings
 from cibuildwheel.logger import log
-from cibuildwheel.options import Options
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import (
@@ -31,6 +29,7 @@ from cibuildwheel.util.file import (
     extract_tar,
     extract_zip,
     move_file,
+    remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
@@ -39,6 +38,14 @@ from cibuildwheel.util.python_build_standalone import (
     create_python_build_standalone_environment,
 )
 from cibuildwheel.venv import constraint_flags, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Set
+
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 IS_WIN: Final[bool] = sys.platform.startswith("win")
 
@@ -49,6 +56,7 @@ class PythonConfiguration:
     identifier: str
     default_pyodide_version: str
     node_version: str
+    sha256: str = ""
 
 
 class PyodideXBuildEnvInfoVersionRange(TypedDict):
@@ -85,10 +93,11 @@ def ensure_node(major_version: str) -> Path:
             with TemporaryDirectory() as tmp_path:
                 archive = Path(tmp_path) / f"{name}.{ext}"
                 download(url, archive)
-                if ext == "zip":
-                    extract_zip(archive, path.parent)
-                else:
-                    extract_tar(archive, path.parent)
+                with remove_on_error(path):
+                    if ext == "zip":
+                        extract_zip(archive, path.parent)
+                    else:
+                        extract_tar(archive, path.parent)
     assert path.exists()
     if not IS_WIN:
         return path / "bin"
@@ -103,18 +112,19 @@ def install_emscripten(env: dict[str, str], version: str, xbuildenv_cache_path: 
     with FileLock(CIBW_CACHE_PATH / "emscripten.lock"):
         if emscripten_dir.exists():
             return emscripten_dir
-        call(
-            "pyodide",
-            "xbuildenv",
-            "install-emscripten",
-            "--force",
-            "--version",
-            version,
-            "--path",
-            str(xbuildenv_cache_path),
-            env=env,
-            cwd=CIBW_CACHE_PATH,
-        )
+        with remove_on_error(emscripten_dir):
+            call(
+                "pyodide",
+                "xbuildenv",
+                "install-emscripten",
+                "--force",
+                "--version",
+                version,
+                "--path",
+                str(xbuildenv_cache_path),
+                env=env,
+                cwd=CIBW_CACHE_PATH,
+            )
     assert emscripten_dir.exists()
     return emscripten_dir
 
@@ -201,17 +211,18 @@ def install_xbuildenv(env: dict[str, str], xbuildenv_cache_path: Path, pyodide_v
         env.pop("PYODIDE_ROOT", None)
 
         # Install the xbuildenv
-        call(
-            "pyodide",
-            "xbuildenv",
-            "install",
-            "--path",
-            str(xbuildenv_cache_path),
-            pyodide_version,
-            env=env,
-            cwd=CIBW_CACHE_PATH,
-        )
-        assert pyodide_root.exists()
+        with remove_on_error(xbuildenv_cache_path / pyodide_version):
+            call(
+                "pyodide",
+                "xbuildenv",
+                "install",
+                "--path",
+                str(xbuildenv_cache_path),
+                pyodide_version,
+                env=env,
+                cwd=CIBW_CACHE_PATH,
+            )
+            assert pyodide_root.exists()
 
     return str(pyodide_root)
 
@@ -385,6 +396,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 environment=build_options.environment,
                 user_pyodide_version=build_options.pyodide_version,
             )
+            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
             pip_version = get_pip_version(env)
             # The Pyodide command line runner mounts all directories in the host
             # filesystem into the Pyodide file system, except for the custom

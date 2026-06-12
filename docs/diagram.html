@@ -179,19 +179,30 @@
           },
         },
         {
-          label: 'Repair wheel',
+          label: 'Repair using auditwheel',
           href: 'options/#repair-wheel-command',
           platforms: ['android'],
           style: 'block',
           tooltip: {
             title: 'CIBW_REPAIR_WHEEL_COMMAND',
             tag: 'Customisable step',
-            description: 'By default, bundles libc++ into the wheel if any shared library links against it, using patchelf. Can be overridden with a custom repair command.'
+            description: 'Bundle shared libraries by running auditwheel on each built wheel.'
+          },
+        },
+        {
+          label: 'Repair using delvewheel',
+          href: 'options/#repair-wheel-command',
+          platforms: ['windows'],
+          style: 'block',
+          tooltip: {
+            title: 'CIBW_REPAIR_WHEEL_COMMAND',
+            tag: 'Customisable step',
+            description: 'Bundle shared libraries by running delvewheel on each built wheel.'
           },
         },
         {
           href: 'options/#repair-wheel-command',
-          platforms: ['windows', 'ios', 'pyodide'],
+          platforms: ['ios', 'pyodide'],
           style: 'dot',
           tooltip: {
             title: 'CIBW_REPAIR_WHEEL_COMMAND',

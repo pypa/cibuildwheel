@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "4.0.0rc1"
+version = "4.0.0"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -45,11 +45,7 @@ dependencies = [
     "filelock",
     "humanize",
     "packaging>=20.9",
-    # patchelf is used for Android
-    "patchelf; (sys_platform == 'linux' or sys_platform == 'darwin') and (platform_machine == 'x86_64' or platform_machine == 'arm64' or platform_machine == 'aarch64')",
     "platformdirs",
-    "pyelftools>=0.29",
-    "wheel>=0.33.6",
 ]
 
 [project.optional-dependencies]
@@ -70,6 +66,7 @@ Homepage = "https://github.com/pypa/cibuildwheel"
 docs = [
     "jinja2>=3.1.2",
     "mkdocs-include-markdown-plugin==7.1.8",
+    "mkdocs-intersphinx>=0.1.1; python_version >= '3.12'",
     "mkdocs-macros-plugin>=1.4.1",
     "mkdocs==1.6.1",
     "pymdown-extensions",
@@ -224,6 +221,7 @@ flake8-unused-arguments.ignore-variadic-names = true
 flake8-tidy-imports.ban-relative-imports = "all"
 flake8-annotations.allow-star-arg-any = true
 flake8-annotations.mypy-init-return = true
+future-annotations = true
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "typing.Mapping".msg = "Use collections.abc.Mapping instead."
@@ -243,7 +241,10 @@ flake8-annotations.mypy-init-return = true
 ignore = ["PC170", "PP303"]
 
 [tool.check-wheel-contents]
-ignore = ["W002"]  # constraints-*.txt are allowed to be duplicates of one another
+ignore = [
+  "W002",  # constraints-*.txt are allowed to be duplicates of one another
+  "W004",  # "-" is fine for our iOS support files for now
+]
 
 [tool.codespell]
 ignore-words-list = [

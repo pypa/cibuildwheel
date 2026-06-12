@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 import configparser
 import contextlib
@@ -8,9 +10,9 @@ import functools
 import shlex
 import textwrap
 import tomllib
-from collections.abc import Callable, Generator, Iterable, Mapping, Sequence, Set
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Final, Literal, Self, assert_never
+from typing import assert_never
 
 from packaging.specifiers import SpecifierSet
 
@@ -26,6 +28,11 @@ from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util import resources
 from cibuildwheel.util.helpers import format_safe, parse_key_value_string, strtobool, unwrap
 from cibuildwheel.util.packaging import DependencyConstraints
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator, Iterable, Set
+    from typing import Any, Final, Literal, Self
 
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",
@@ -113,6 +120,7 @@ class BuildOptions:
     before_all: str
     before_build: str | None
     xbuild_tools: list[str] | None
+    xbuild_files: dict[str, list[str]]
     repair_command: str
     manylinux_images: dict[str, str] | None
     musllinux_images: dict[str, str] | None
@@ -765,6 +773,14 @@ class Options:
             if xbuild_tools == ["\u0000"]:
                 xbuild_tools = None
 
+            xbuild_files = parse_key_value_string(
+                self.reader.get(
+                    "xbuild-files",
+                    option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+                ),
+                kw_arg_names=["*"],
+            )
+
             test_sources = shlex.split(
                 self.reader.get(
                     "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
@@ -864,11 +880,7 @@ class Options:
                         f"manylinux-{build_platform}-image", ignore_empty=True
                     )
                     self._check_pinned_image(config_value, pinned_images)
-                    if config_value in pinned_images:
-                        image = pinned_images[config_value]
-                    else:
-                        image = config_value
-                    manylinux_images[build_platform] = image
+                    manylinux_images[build_platform] = pinned_images.get(config_value, config_value)
 
                 for build_platform in MUSLLINUX_ARCHS:
                     pinned_images = all_pinned_container_images[build_platform]
@@ -876,11 +888,7 @@ class Options:
                         f"musllinux-{build_platform}-image", ignore_empty=True
                     )
                     self._check_pinned_image(config_value, pinned_images)
-                    if config_value in pinned_images:
-                        image = pinned_images[config_value]
-                    else:
-                        image = config_value
-                    musllinux_images[build_platform] = image
+                    musllinux_images[build_platform] = pinned_images.get(config_value, config_value)
 
             container_engine_str = self.reader.get(
                 "container-engine",
@@ -918,6 +926,7 @@ class Options:
                 before_all=before_all,
                 build_verbosity=build_verbosity,
                 xbuild_tools=xbuild_tools,
+                xbuild_files=xbuild_files,
                 repair_command=repair_command,
                 environment=environment,
                 dependency_constraints=dependency_constraints,

@@ -1,5 +1,6 @@
 ci:
   autoupdate_schedule: monthly
+exclude: "^cibuildwheel/resources/ios-support/(?!make_cross_venv\\.py)"
 
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -17,14 +18,14 @@ repos:
     exclude: ^cibuildwheel/resources/android/android.patch$
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: 6fec9b7edb08fd9989088709d864a7826dc74e80  # frozen: v0.15.12
+  rev: 0671d8ab202c4ac093b78433ae5baf74f3fc7246  # frozen: v0.15.15
   hooks:
   - id: ruff-check
     args: ["--fix"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: fc0f09a29bb495f4a91f00266155d6282d52485d  # frozen: v1.20.2
+  rev: d2823d321df3af8f878f7ee3414dc94d037145b9  # frozen: v2.1.0
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
@@ -38,7 +39,6 @@ repos:
       - nox>=2025.2.9
       - orjson
       - packaging
-      - pyelftools
       - pygithub
       - pytest
       - rich

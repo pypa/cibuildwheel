@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import contextlib
 import dataclasses
 import shutil
@@ -5,7 +7,6 @@ import subprocess
 import sys
 import textwrap
 from collections import OrderedDict
-from collections.abc import Iterable, Iterator, Sequence, Set
 from pathlib import Path, PurePath, PurePosixPath
 from typing import assert_never
 
@@ -15,8 +16,6 @@ from cibuildwheel.audit import needs_audit, run_audit
 from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config_settings
 from cibuildwheel.logger import log
 from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
-from cibuildwheel.options import BuildOptions, Options
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.file import copy_test_sources
 from cibuildwheel.util.helpers import prepare_command, unwrap
@@ -24,6 +23,10 @@ from cibuildwheel.util.packaging import find_compatible_wheel
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator, Sequence, Set
+
+    from cibuildwheel.options import BuildOptions, Options
+    from cibuildwheel.selector import BuildSelector
     from cibuildwheel.typing import PathOrStr
 
 ARCHITECTURE_OCI_PLATFORM_MAP = {
@@ -234,6 +237,7 @@ def build_in_container(
         env["PATH"] = f"{python_bin}:{env['PATH']}"
 
         env = build_options.environment.as_dictionary(env, executor=container.environment_executor)
+        env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
 
         # check config python is still on PATH
         which_python = container.call(["which", "python"], env=env, capture_output=True).strip()
@@ -489,7 +493,7 @@ def build(options: Options, tmp_path: Path) -> None:
     abs_package_dir = options.globals.package_dir.resolve()
     if cwd != abs_package_dir and cwd not in abs_package_dir.parents:
         msg = "package_dir must be inside the working directory"
-        raise Exception(msg)
+        raise errors.ConfigurationError(msg)
 
     container_project_path = PurePosixPath("/project")
     container_package_dir = container_project_path / abs_package_dir.relative_to(cwd)

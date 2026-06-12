@@ -1,7 +1,7 @@
+from __future__ import annotations
+
 import contextlib
 import sys
-from collections.abc import Generator
-from pathlib import Path
 
 import pytest
 import setuptools._distutils.util
@@ -11,6 +11,9 @@ from cibuildwheel.errors import FatalError
 from cibuildwheel.platforms.windows import PythonConfiguration, setup_setuptools_cross_compile
 
 TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Generator
+    from pathlib import Path
 
 # monkeypatching os.name is too flaky. E.g. It works on my machine, but fails in pipeline
 if not sys.platform.startswith("win") and not TYPE_CHECKING:

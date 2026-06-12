@@ -1,5 +1,6 @@
 ---
 title: Delivering to PyPI
+ref: deliver-to-pypi
 ---
 
 # Delivering to PyPI

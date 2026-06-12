@@ -1,19 +1,27 @@
+from __future__ import annotations
+
 import fnmatch
 import functools
+import hashlib
 import json
 import platform
+import subprocess
 import typing
-from pathlib import Path
 
 from filelock import FileLock
 
-from cibuildwheel.util.file import download, extract_tar
+from cibuildwheel.util.file import download, extract_tar, remove_on_error
 from cibuildwheel.util.resources import PYTHON_BUILD_STANDALONE_RELEASES
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class PythonBuildStandaloneAsset(typing.TypedDict):
     name: str
     url: str
+    sha256: str
 
 
 class PythonBuildStandaloneRelease(typing.TypedDict):
@@ -33,6 +41,26 @@ def get_python_build_standalone_release_data() -> PythonBuildStandaloneReleaseDa
 
 class PythonBuildStandaloneError(Exception):
     """Errors related to python-build-standalone."""
+
+
+def _is_musl_libc() -> bool:
+    """
+    Detect whether the host uses musl libc (e.g. Alpine Linux).
+
+    ``platform.libc_ver()`` only ever reports glibc, so we shell out to ``ldd``,
+    which prints "musl libc" on musl-based systems (and "GNU libc"/"GLIBC" on
+    glibc systems). If ``ldd`` is unavailable, we fall back to assuming glibc.
+    """
+    try:
+        ldd = subprocess.run(
+            ["ldd", "--version"],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except OSError:
+        return False
+    return "musl" in (ldd.stdout + ldd.stderr).lower()
 
 
 def _get_platform_identifiers() -> tuple[str, str, str | None]:
@@ -60,7 +88,7 @@ def _get_platform_identifiers() -> tuple[str, str, str | None]:
     # Map OS + Libc
     if system == "Linux":
         platform_identifier = "unknown-linux"
-        libc_identifier = "musl" if "musl" in (platform.libc_ver() or ("", "")) else "gnu"
+        libc_identifier = "musl" if _is_musl_libc() else "gnu"
     elif system == "Darwin":
         platform_identifier = "apple-darwin"
     elif system == "Windows":
@@ -81,8 +109,8 @@ def _get_pbs_asset(
     arch_identifier: str,
     platform_identifier: str,
     libc_identifier: str | None,
-) -> tuple[str, str, str]:
-    """Finds the asset, returning (tag, filename, url)."""
+) -> tuple[str, str, str, str]:
+    """Finds the asset, returning (tag, url, filename, sha256)."""
     release_data = get_python_build_standalone_release_data()
 
     expected_suffix = f"{arch_identifier}-{platform_identifier}"
@@ -100,22 +128,37 @@ def _get_pbs_asset(
                 continue
 
             asset_url = asset["url"]
-            return release["tag"], asset_url, asset_name
+            asset_sha256 = asset.get("sha256", "")
+            return release["tag"], asset_url, asset_name, asset_sha256
 
     # If loop completes without finding a match
     msg = f"Could not find python-build-standalone release asset matching {asset_pattern!r}."
     raise PythonBuildStandaloneError(msg)
 
 
-def _download_or_get_from_cache(asset_url: str, asset_filename: str, cache_dir: Path) -> Path:
+def _download_or_get_from_cache(
+    asset_url: str, asset_filename: str, cache_dir: Path, sha256: str = ""
+) -> Path:
     with FileLock(cache_dir / (asset_filename + ".lock")):
         asset_cache_path = cache_dir / asset_filename
         if asset_cache_path.is_file():
-            print(f"Using cached python_build_standalone: {asset_cache_path}")
-            return asset_cache_path
+            if sha256:
+                computed = hashlib.sha256(asset_cache_path.read_bytes()).hexdigest()
+                if computed != sha256:
+                    print(
+                        f"Cached python_build_standalone SHA256 mismatch for {asset_cache_path}; redownloading."
+                    )
+                    asset_cache_path.unlink(missing_ok=True)
+                else:
+                    print(f"Using cached python_build_standalone: {asset_cache_path}")
+                    return asset_cache_path
+            else:
+                print(f"Using cached python_build_standalone: {asset_cache_path}")
+                return asset_cache_path
 
         print(f"Downloading python_build_standalone: {asset_url} to {asset_cache_path}")
-        download(asset_url, asset_cache_path)
+        with remove_on_error(asset_cache_path):
+            download(asset_url, asset_cache_path, sha256=sha256 or None)
         return asset_cache_path
 
 
@@ -161,7 +204,7 @@ def create_python_build_standalone_environment(
 
     arch_id, platform_id, libc_id = _get_platform_identifiers()
 
-    pbs_tag, asset_url, asset_filename = _get_pbs_asset(
+    pbs_tag, asset_url, asset_filename, asset_sha256 = _get_pbs_asset(
         python_version=python_version,
         arch_identifier=arch_id,
         platform_identifier=platform_id,
@@ -171,7 +214,7 @@ def create_python_build_standalone_environment(
     print(f"Using python-build-standalone release: {pbs_tag}")
 
     archive_path = _download_or_get_from_cache(
-        asset_url=asset_url, asset_filename=asset_filename, cache_dir=cache_dir
+        asset_url=asset_url, asset_filename=asset_filename, cache_dir=cache_dir, sha256=asset_sha256
     )
 
     python_base_dir = temp_dir / "pbs"

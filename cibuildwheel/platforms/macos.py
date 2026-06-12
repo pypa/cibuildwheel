@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import dataclasses
 import functools
 import inspect
@@ -8,32 +10,43 @@ import shutil
 import subprocess
 import sys
 import typing
-from collections.abc import Set
 from pathlib import Path
-from typing import Literal, assert_never
+from typing import assert_never
 
 from filelock import FileLock
 from packaging.version import Version
 
 from cibuildwheel import errors
-from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import run_audit
 from cibuildwheel.ci import detect_ci_provider
-from cibuildwheel.environment import ParsedEnvironment
 from cibuildwheel.frontend import (
     BuildFrontendName,
     get_build_frontend_extra_flags,
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
-from cibuildwheel.options import Options
-from cibuildwheel.selector import BuildSelector
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
-from cibuildwheel.util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
+from cibuildwheel.util.file import (
+    CIBW_CACHE_PATH,
+    copy_test_sources,
+    download,
+    move_file,
+    remove_on_error,
+)
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
 from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Set
+    from typing import Literal
+
+    from cibuildwheel.architecture import Architecture
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 
 @functools.cache
@@ -81,6 +94,7 @@ class PythonConfiguration:
     version: str
     identifier: str
     url: str
+    sha256: str
 
 
 def all_python_configurations() -> list[PythonConfiguration]:
@@ -128,7 +142,7 @@ def get_python_configurations(
     return python_configurations
 
 
-def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) -> Path:
+def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool, sha256: str) -> Path:
     ft = "T" if free_threading else ""
     installation_path = Path(f"/Library/Frameworks/Python{ft}.framework/Versions/{version}")
     with FileLock(CIBW_CACHE_PATH / f"cpython{version}.lock"):
@@ -154,7 +168,7 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
             python_filename = url.rsplit("/", maxsplit=1)[-1]
             pkg_path = CIBW_CACHE_PATH / "cpython-installer" / python_filename
             if not pkg_path.exists():
-                download(url, pkg_path)
+                download(url, pkg_path, sha256=sha256)
             args = []
             if version.startswith("3.14"):
                 args += ["-applyChoiceChangesXML", str(resources.FREE_THREAD_ENABLE_314.resolve())]
@@ -178,7 +192,7 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool) ->
     return installation_path / "bin" / (f"python{version}t" if free_threading else "python3")
 
 
-def install_pypy(tmp: Path, url: str) -> Path:
+def install_pypy(tmp: Path, url: str, sha256: str) -> Path:
     pypy_tar_bz2 = url.rsplit("/", 1)[-1]
     extension = ".tar.bz2"
     assert pypy_tar_bz2.endswith(extension)
@@ -186,14 +200,15 @@ def install_pypy(tmp: Path, url: str) -> Path:
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             downloaded_tar_bz2 = tmp / pypy_tar_bz2
-            download(url, downloaded_tar_bz2)
+            download(url, downloaded_tar_bz2, sha256=sha256)
             installation_path.parent.mkdir(parents=True, exist_ok=True)
-            call("tar", "-C", installation_path.parent, "-xf", downloaded_tar_bz2)
+            with remove_on_error(installation_path):
+                call("tar", "-C", installation_path.parent, "-xf", downloaded_tar_bz2)
             downloaded_tar_bz2.unlink()
     return installation_path / "bin" / "pypy3"
 
 
-def install_graalpy(tmp: Path, url: str) -> Path:
+def install_graalpy(tmp: Path, url: str, sha256: str) -> Path:
     graalpy_archive = url.rsplit("/", 1)[-1]
     extension = ".tar.gz"
     assert graalpy_archive.endswith(extension)
@@ -201,10 +216,18 @@ def install_graalpy(tmp: Path, url: str) -> Path:
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             downloaded_archive = tmp / graalpy_archive
-            download(url, downloaded_archive)
-            installation_path.mkdir(parents=True)
-            # GraalPy top-folder name is inconsistent with archive name
-            call("tar", "-C", installation_path, "--strip-components=1", "-xzf", downloaded_archive)
+            download(url, downloaded_archive, sha256=sha256)
+            with remove_on_error(installation_path):
+                installation_path.mkdir(parents=True)
+                # GraalPy top-folder name is inconsistent with archive name
+                call(
+                    "tar",
+                    "-C",
+                    installation_path,
+                    "--strip-components=1",
+                    "-xzf",
+                    downloaded_archive,
+                )
             downloaded_archive.unlink()
     return installation_path / "bin" / "graalpy"
 
@@ -225,13 +248,17 @@ def setup_python(
     if implementation_id.startswith("cp"):
         free_threading = "t-macos" in python_configuration.identifier
         base_python = install_cpython(
-            tmp, python_configuration.version, python_configuration.url, free_threading
+            tmp,
+            python_configuration.version,
+            python_configuration.url,
+            free_threading,
+            python_configuration.sha256,
         )
 
     elif implementation_id.startswith("pp"):
-        base_python = install_pypy(tmp, python_configuration.url)
+        base_python = install_pypy(tmp, python_configuration.url, python_configuration.sha256)
     elif implementation_id.startswith("gp"):
-        base_python = install_graalpy(tmp, python_configuration.url)
+        base_python = install_graalpy(tmp, python_configuration.url, python_configuration.sha256)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
@@ -459,6 +486,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.environment,
                 build_frontend.name,
             )
+            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
             pip_version = None if use_uv else get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)

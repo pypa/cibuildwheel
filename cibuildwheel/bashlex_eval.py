@@ -1,16 +1,21 @@
+from __future__ import annotations
+
 import dataclasses
 import subprocess
-from collections.abc import (
-    Callable,
-    Iterable,
-    Mapping,
-    Sequence,
-)
 
 import bashlex
 
-# a function that takes a command and the environment, and returns the result
-EnvironmentExecutor = Callable[[list[str], dict[str, str]], str]
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import (
+        Callable,
+        Iterable,
+        Mapping,
+        Sequence,
+    )
+
+    # a function that takes a command and the environment, and returns the result
+    EnvironmentExecutor = Callable[[list[str], dict[str, str]], str]
 
 
 def local_environment_executor(command: Sequence[str], env: Mapping[str, str]) -> str:
