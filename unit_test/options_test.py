@@ -106,6 +106,35 @@ def test_options_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     assert local.pyodide_version == "0.29.4"
 
 
+def test_test_and_audit_requires_with_dependency_specifiers(tmp_path: Path) -> None:
+    """Regression test for https://github.com/pypa/cibuildwheel/issues/2912"""
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """
+[tool.cibuildwheel]
+test-requires = [
+    "pytest",
+    "pyzstd; python_version >= '3.14'",
+    "zarr>=3",
+]
+audit-requires = ["abi3audit; python_version >= '3.9'"]
+"""
+    )
+
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+    build_options = options.build_options(identifier=None)
+
+    assert build_options.test_requires == [
+        "pytest",
+        "pyzstd; python_version >= '3.14'",
+        "zarr>=3",
+    ]
+    assert build_options.audit_requires == ["abi3audit; python_version >= '3.9'"]
+
+
 def test_passthrough(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     with tmp_path.joinpath("pyproject.toml").open("w") as f:
         f.write(PYPROJECT_1)
