@@ -1,5 +1,13 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.helpers",
+    "packaging",
+    "packaging.utils",
+    "shlex",
+}
+
 import shlex
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath

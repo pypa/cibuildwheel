@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"bashlex", "bashlex.errors"}
+
 import dataclasses
 from typing import Protocol
 

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+__lazy_modules__ = {"bracex", "fnmatch", "itertools", "packaging", "packaging.version"}
+
 import dataclasses
 import itertools
 from enum import StrEnum
