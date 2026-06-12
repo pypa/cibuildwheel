@@ -219,6 +219,7 @@ def create_python_build_standalone_environment(
     )
 
     python_base_dir = temp_dir / "pbs"
+    assert not python_base_dir.exists()
     extract_tar(archive_path, python_base_dir)
 
     return _find_python_executable(python_base_dir)
