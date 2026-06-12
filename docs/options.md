@@ -1670,6 +1670,10 @@ Platform-specific environment variables are also available:<br/>
     # Install specific versions of test dependencies
     [tool.cibuildwheel]
     test-requires = ["pytest==8.2.2", "packaging==24.1"]
+
+    # Dependency specifiers with environment markers are supported
+    [tool.cibuildwheel]
+    test-requires = ["pytest", "pyzstd; python_version >= '3.14'"]
     ```
 
     In configuration files, you can use an array, and the items will be joined with a space.
@@ -1682,6 +1686,10 @@ Platform-specific environment variables are also available:<br/>
 
     # Install specific versions of test dependencies
     CIBW_TEST_REQUIRES: pytest==8.2.2 packaging==24.1
+
+    # Use shell-style quoting around specifiers containing spaces, such as
+    # those with environment markers
+    CIBW_TEST_REQUIRES: "pytest 'pyzstd; python_version >= \"3.14\"'"
     ```
 
 
