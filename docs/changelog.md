@@ -5,6 +5,16 @@ ref: changelog
 
 # Changelog
 
+### v4.1.0
+
+_12 June 2026_
+
+- ✨ Updates Pyodide to the final 314.0.0 release, so Pyodide 3.14 wheels now build by default without the `pyodide-prerelease` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) flag. (#2906)
+- 🐛 Raises clear errors when a build produces no wheel, instead of failing later with a confusing message (#2909)
+- 🛠 Speeds up CLI startup through lazy imports on Python 3.15 (#2797)
+- 📚 Adds an FAQ section on caching cibuildwheel's downloaded tools with `CIBW_CACHE_PATH` (#2842)
+- 📚 Documentation improvements: clarifies which shell is used for command options, clarifies environment variable precedence, and fixes a dead Pyodide env info link (#2904, #2905, #2911)
+
 ### v4.0.0
 
 _7 June 2026_

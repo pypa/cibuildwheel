@@ -98,7 +98,7 @@ jobs:
       - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==4.0.0
+        run: python -m pip install cibuildwheel==4.1.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -239,6 +239,16 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v4.1.0
+
+_12 June 2026_
+
+- ✨ Updates Pyodide to the final 314.0.0 release, so Pyodide 3.14 wheels now build by default without the `pyodide-prerelease` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) flag. (#2906)
+- 🐛 Raises clear errors when a build produces no wheel, instead of failing later with a confusing message (#2909)
+- 🛠 Speeds up CLI startup through lazy imports on Python 3.15 (#2797)
+- 📚 Adds an FAQ section on caching cibuildwheel's downloaded tools with `CIBW_CACHE_PATH` (#2842)
+- 📚 Documentation improvements: clarifies which shell is used for command options, clarifies environment variable precedence, and fixes a dead Pyodide env info link (#2904, #2905, #2911)
+
 ### v4.0.0
 
 _7 June 2026_
@@ -324,21 +334,7 @@ _5 January 2026_
 
 - 🛠 Update dependencies and container pins, including updating to CPython 3.14.2. (#2708)
 
-### v3.3.0
-
-_12 November 2025_
-
-- 🐛 Fix an incompatibility with Docker v29 (#2660)
-- ✨ Adds `test-runtime` option, to customise how tests on simulated/emulated environments are run (#2636)
-- ✨ Adds support for new `manylinux_2_35` images on 32-bit ARM `armv7l`, offering better C++20 compatibility (#2656)
-- ✨ `build[uv]` is now supported on Android (#2587)
-- ✨ You can now install extras (such as `uv`) with a simple option on the GitHub Action (#2630)
-- ✨ `{project}` and `{package}` placeholders are now supported in `repair-wheel-command` (#2589)
-- 🛠 The versions set with `dependency-versions` no longer constrain packages specified by your `build-system.requires`. Previously, on platforms other than Linux, the constraints in this option would remain in the environment during the build. This has been tidied up make behaviour more consistent between platforms, and to prevent version conflicts. (#2583)
-- 🛠 Improve the handling of `test-command` on Android, enabling more options to be passed (#2590)
-- 📚 Docs improvements (#2618)
-
-<!-- [[[end]]] (sum: D4aAeqwKSW) -->
+<!-- [[[end]]] (sum: s3fkxPyqwC) -->
 
 ---
 
