@@ -15,7 +15,17 @@ if TYPE_CHECKING:
     "frontend_name",
     [
         pytest.param("pip", marks=utils.skip_if_pyodide("No pip for pyodide")),
-        "build",
+        pytest.param(
+            "build",
+            marks=utils.skip_if_pyodide("pyodide only supports the pyodide-build frontend"),
+        ),
+        pytest.param(
+            "pyodide-build",
+            marks=pytest.mark.skipif(
+                utils.get_platform() != "pyodide",
+                reason="pyodide-build frontend is only valid on pyodide",
+            ),
+        ),
     ],
 )
 def test_build_frontend_args(
