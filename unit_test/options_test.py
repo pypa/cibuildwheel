@@ -571,10 +571,15 @@ def test_deprecated_image(
         ("build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
         ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-vv"]),
         ("uv", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("pyodide-build", -1, ["-Ca", "-Cb", "-1"]),
+        ("pyodide-build", 0, ["-Ca", "-Cb", "-1"]),
+        ("pyodide-build", 1, ["-Ca", "-Cb", "-1", "-v"]),
+        ("pyodide-build", 2, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("pyodide-build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
     ],
 )
 def test_get_build_frontend_extra_flags(
-    frontend: Literal["pip", "build", "build[uv]"],
+    frontend: Literal["pip", "build", "build[uv]", "uv", "pyodide-build"],
     verbosity: int,
     result: list[str],
     monkeypatch: pytest.MonkeyPatch,
