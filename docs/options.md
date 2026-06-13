@@ -481,7 +481,11 @@ files (from workspaces) are not supported.
     are building GraalPy wheels, use `build` or `pip` as the build frontend
     instead of `build[uv]` or `uv`.
 
-On Android and Pyodide, the "pip" frontend is not supported.
+On Android, the "pip" frontend is not supported.
+
+On Pyodide, `build-frontend` must be `pyodide-build`, which is the default for that
+platform. See [Pyodide build frontend support](platforms.md#pyodide-build-frontend) for
+details.
 
 You can specify extra arguments to pass to the build frontend using the
 optional `args` option.
