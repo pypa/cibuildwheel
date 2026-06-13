@@ -1,5 +1,4 @@
 import dataclasses
-import os
 import shlex
 import typing
 from collections.abc import Sequence
@@ -38,15 +37,6 @@ class BuildFrontendConfig:
 
 
 def _get_verbosity_flags(level: int, frontend: BuildFrontendName) -> list[str]:
-    # The pseudo build-frontend provided by pyodide-build does not yet support
-    # tuning its verbosity level, see https://github.com/pyodide/pyodide-build/issues/222
-    # We can use the "PYODIDE" env var to detect if we're running in that context.
-    if os.environ.get("PYODIDE") == "1":
-        if level != 0:
-            log.warning(f"build_verbosity {level} is not supported for Pyodide builds. Ignoring.")
-
-        return []
-
     if level < 0:
         if frontend == "pip":
             return ["-" + -level * "q"]
