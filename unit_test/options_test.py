@@ -400,7 +400,7 @@ def test_pyodide_build_frontend_default(tmp_path: Path) -> None:
     build_frontend = options.build_options(identifier=None).build_frontend
 
     assert build_frontend.name == "pyodide-build"
-    assert build_frontend.args == ()
+    assert build_frontend.args == []
 
 
 def test_pyodide_build_frontend_args(tmp_path: Path) -> None:
