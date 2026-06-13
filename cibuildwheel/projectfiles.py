@@ -1,10 +1,17 @@
+from __future__ import annotations
+
+__lazy_modules__ = {"configparser", "contextlib", "dependency_groups"}
+
 import ast
 import configparser
 import contextlib
-from pathlib import Path
-from typing import Any
 
 import dependency_groups
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
+    from typing import Any
 
 
 def get_parent(node: ast.AST | None, depth: int = 1) -> ast.AST | None:
@@ -50,7 +57,7 @@ class Analyzer(ast.NodeVisitor):
         )
 
         match node:
-            case ast.keyword(arg="python_requires", value=ast.Constant(value=str(version))):
+            case ast.keyword(arg="python_requires", value=ast.Constant(value=str() as version)):
                 if unnested or name_main_unnested:
                     self.requires_python = version
 

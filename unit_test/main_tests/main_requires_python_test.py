@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import sys
 import textwrap
 
@@ -6,9 +8,15 @@ from packaging.specifiers import SpecifierSet
 
 from cibuildwheel.__main__ import main
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    from .conftest import ArgsInterceptor
+
 
 @pytest.fixture(autouse=True)
-def fake_package_dir(monkeypatch, tmp_path):
+def fake_package_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     """
     Set up a fake project
     """
@@ -24,7 +32,7 @@ def fake_package_dir(monkeypatch, tmp_path):
 
 
 @pytest.mark.usefixtures("platform")
-def test_no_override(intercepted_build_args):
+def test_no_override(intercepted_build_args: ArgsInterceptor) -> None:
     main()
 
     options = intercepted_build_args.args[0]
@@ -37,7 +45,9 @@ def test_no_override(intercepted_build_args):
 
 
 @pytest.mark.usefixtures("platform")
-def test_override_env(monkeypatch, intercepted_build_args):
+def test_override_env(
+    monkeypatch: pytest.MonkeyPatch, intercepted_build_args: ArgsInterceptor
+) -> None:
     monkeypatch.setenv("CIBW_PROJECT_REQUIRES_PYTHON", ">=3.8")
 
     main()
@@ -52,7 +62,9 @@ def test_override_env(monkeypatch, intercepted_build_args):
 
 
 @pytest.mark.usefixtures("platform")
-def test_override_setup_cfg(intercepted_build_args, fake_package_dir):
+def test_override_setup_cfg(
+    intercepted_build_args: ArgsInterceptor, fake_package_dir: Path
+) -> None:
     fake_package_dir.joinpath("setup.cfg").write_text(
         textwrap.dedent(
             """
@@ -74,7 +86,9 @@ def test_override_setup_cfg(intercepted_build_args, fake_package_dir):
 
 
 @pytest.mark.usefixtures("platform")
-def test_override_pyproject_toml(intercepted_build_args, fake_package_dir):
+def test_override_pyproject_toml(
+    intercepted_build_args: ArgsInterceptor, fake_package_dir: Path
+) -> None:
     fake_package_dir.joinpath("pyproject.toml").write_text(
         textwrap.dedent(
             """
@@ -96,7 +110,9 @@ def test_override_pyproject_toml(intercepted_build_args, fake_package_dir):
 
 
 @pytest.mark.usefixtures("platform")
-def test_override_setup_py_simple(intercepted_build_args, fake_package_dir):
+def test_override_setup_py_simple(
+    intercepted_build_args: ArgsInterceptor, fake_package_dir: Path
+) -> None:
     fake_package_dir.joinpath("setup.py").write_text(
         textwrap.dedent(
             """

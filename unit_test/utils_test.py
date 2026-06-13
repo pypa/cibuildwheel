@@ -1,12 +1,13 @@
+import re
 import textwrap
-from pathlib import PurePath
+from pathlib import Path, PurePath
 from unittest.mock import Mock, call
 
 import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.ci import fix_ansi_codes_for_github_actions
-from cibuildwheel.util.file import copy_test_sources
+from cibuildwheel.util.file import copy_test_sources, remove_on_error
 from cibuildwheel.util.helpers import (
     FlexibleVersion,
     format_safe,
@@ -15,10 +16,10 @@ from cibuildwheel.util.helpers import (
     unwrap,
     unwrap_preserving_paragraphs,
 )
-from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.util.packaging import find_compatible_wheel, is_abi3_wheel
 
 
-def test_format_safe():
+def test_format_safe() -> None:
     assert format_safe("{wheel}", wheel="filename.whl") == "filename.whl"
     assert format_safe("command #{wheel}", wheel="filename.whl") == "command {wheel}"
     assert format_safe("{command #{wheel}}", wheel="filename.whl") == "{command {wheel}}"
@@ -37,7 +38,7 @@ def test_format_safe():
     assert format_safe("#{not_a_param} {param}", param="1") == "#{not_a_param} 1"
 
 
-def test_prepare_command():
+def test_prepare_command() -> None:
     assert prepare_command("python -m {project}", project="project") == "python -m project"
     assert prepare_command("python -m {something}", project="project") == "python -m {something}"
     assert (
@@ -103,7 +104,7 @@ def test_find_compatible_wheel_not_found(wheel: str, identifier: str) -> None:
     assert find_compatible_wheel([PurePath(wheel)], identifier) is None
 
 
-def test_fix_ansi_codes_for_github_actions():
+def test_fix_ansi_codes_for_github_actions() -> None:
     input = textwrap.dedent(
         """
         This line is normal
@@ -131,7 +132,7 @@ def test_fix_ansi_codes_for_github_actions():
     assert output == expected
 
 
-def test_parse_key_value_string():
+def test_parse_key_value_string() -> None:
     assert parse_key_value_string("bar", positional_arg_names=["foo"]) == {"foo": ["bar"]}
     assert parse_key_value_string("foo:bar", kw_arg_names=["foo"]) == {"foo": ["bar"]}
     with pytest.raises(ValueError, match="Too many positional arguments"):
@@ -212,7 +213,29 @@ def test_parse_key_value_string():
     }
 
 
-def test_flexible_version_comparisons():
+def test_parse_key_value_string_unknown_name() -> None:
+    # Unknown fields are not allowed by default.
+    with pytest.raises(ValueError, match=r"Failed to parse 'key: value'. Unknown field name 'key'"):
+        parse_key_value_string("key: value")
+
+    # Unknown fields can be enabled by passing "*".
+    assert parse_key_value_string(
+        "key: value",
+        kw_arg_names=["*"],
+    ) == {
+        "key": ["value"],
+    }
+
+    assert parse_key_value_string(
+        "key1: value1a value1b; key2: value2",
+        kw_arg_names=["*"],
+    ) == {
+        "key1": ["value1a", "value1b"],
+        "key2": ["value2"],
+    }
+
+
+def test_flexible_version_comparisons() -> None:
     assert FlexibleVersion("2.0") == FlexibleVersion("2")
     assert FlexibleVersion("2.0") < FlexibleVersion("2.1")
     assert FlexibleVersion("2.1") > FlexibleVersion("2")
@@ -227,7 +250,7 @@ def test_flexible_version_comparisons():
 
 
 @pytest.fixture
-def sample_project(tmp_path):
+def sample_project(tmp_path: Path) -> Path:
     """Create a directory structure that contains a range of files."""
     project_path = tmp_path / "project"
 
@@ -324,7 +347,13 @@ def sample_project(tmp_path):
         ),
     ],
 )
-def test_copy_test_sources(tmp_path, sample_project, test_sources, expected, not_expected):
+def test_copy_test_sources(
+    tmp_path: Path,
+    sample_project: Path,
+    test_sources: list[str],
+    expected: list[str],
+    not_expected: list[str],
+) -> None:
     """Test sources can be copied into the test directory."""
     target = tmp_path / "somewhere/test_cwd"
     copy_test_sources(test_sources, sample_project, target)
@@ -336,7 +365,7 @@ def test_copy_test_sources(tmp_path, sample_project, test_sources, expected, not
         assert not (tmp_path / "somewhere/test_cwd" / path).exists()
 
 
-def test_copy_test_sources_missing_file(tmp_path, sample_project):
+def test_copy_test_sources_missing_file(tmp_path: Path, sample_project: Path) -> None:
     """If test_sources references a folder that doesn't exist, an error is raised."""
 
     with pytest.raises(
@@ -350,7 +379,7 @@ def test_copy_test_sources_missing_file(tmp_path, sample_project):
         )
 
 
-def test_copy_test_sources_alternate_copy_into(sample_project):
+def test_copy_test_sources_alternate_copy_into(sample_project: Path) -> None:
     """If an alternate copy_into method is provided, it is used."""
 
     target = PurePath("/container/test_cwd")
@@ -367,7 +396,59 @@ def test_copy_test_sources_alternate_copy_into(sample_project):
     )
 
 
-def test_unwrap():
+def test_remove_on_error_keeps_paths(tmp_path: Path) -> None:
+    file_path = tmp_path / "file.txt"
+    file_path.write_text("data")
+    dir_path = tmp_path / "dir"
+    dir_path.mkdir()
+
+    for path in (file_path, dir_path):
+        with remove_on_error(path):
+            pass
+
+    assert file_path.exists()
+    assert dir_path.exists()
+
+
+def test_remove_on_error_file_or_tree(tmp_path: Path) -> None:
+    file_path = tmp_path / "file.txt"
+    file_path.write_text("data")
+    dir_path = tmp_path / "dir"
+    nested_file_path = dir_path / "nested.txt"
+    nested_file_path.parent.mkdir()
+    nested_file_path.write_text("data")
+
+    for path in (file_path, dir_path):
+        with pytest.raises(RuntimeError), remove_on_error(path):
+            raise RuntimeError
+
+    assert not file_path.exists()
+    assert not dir_path.exists()
+
+
+def test_remove_on_error_cleanup_failure(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = tmp_path / "cleanup-failure"
+    path.mkdir()
+    original_exception = RuntimeError("original error")
+    cleanup_exception = PermissionError("cleanup error")
+
+    def _raise_cleanup_error(_: Path) -> None:
+        raise cleanup_exception
+
+    monkeypatch.setattr("cibuildwheel.util.file.shutil.rmtree", _raise_cleanup_error)
+    with (
+        pytest.raises(
+            BaseExceptionGroup,
+            match=re.escape(f"Failed to remove {path}. Please remove it manually."),
+        ) as caught_exception,
+        remove_on_error(path),
+    ):
+        raise original_exception
+
+    assert caught_exception.value.exceptions == (original_exception, cleanup_exception)
+
+
+def test_unwrap() -> None:
     assert (
         unwrap("""
             This is a
@@ -378,7 +459,7 @@ def test_unwrap():
     )
 
 
-def test_unwrap_preserving_paragraphs():
+def test_unwrap_preserving_paragraphs() -> None:
     assert (
         unwrap("""
             This is a
@@ -395,3 +476,23 @@ def test_unwrap_preserving_paragraphs():
         """)
         == "paragraph one\n\nparagraph two"
     )
+
+
+class TestIsAbi3Wheel:
+    def test_abi3_wheel(self) -> None:
+        assert is_abi3_wheel("foo-1.0-cp310-abi3-manylinux_2_28_x86_64.whl") is True
+
+    def test_abi3_wheel_macos(self) -> None:
+        assert is_abi3_wheel("foo-1.0-cp311-abi3-macosx_11_0_arm64.whl") is True
+
+    def test_abi3_wheel_windows(self) -> None:
+        assert is_abi3_wheel("foo-1.0-cp310-abi3-win_amd64.whl") is True
+
+    def test_cpython_wheel(self) -> None:
+        assert is_abi3_wheel("foo-1.0-cp310-cp310-manylinux_2_28_x86_64.whl") is False
+
+    def test_none_any_wheel(self) -> None:
+        assert is_abi3_wheel("foo-1.0-py3-none-any.whl") is False
+
+    def test_none_platform_wheel(self) -> None:
+        assert is_abi3_wheel("foo-1.0-cp310-none-win_amd64.whl") is False

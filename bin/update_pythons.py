@@ -1,14 +1,27 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
 
+# /// script
+# dependencies = [
+#   "click",
+#   "packaging",
+#   "requests",
+#   "rich",
+#   "cibuildwheel",
+# ]
+#
+# [tool.uv.sources]
+# cibuildwheel = { path = ".." }
+# ///
+from __future__ import annotations
 
 import difflib
+import hashlib
 import logging
 import operator
 import re
 import tomllib
-from collections.abc import Mapping, MutableMapping
 from pathlib import Path
-from typing import Any, Final, Literal, TypedDict
+from typing import Any, Final, Literal, NotRequired, TypedDict
 from xml.etree import ElementTree as ET
 
 import click
@@ -21,6 +34,10 @@ from rich.syntax import Syntax
 
 from cibuildwheel.extra import dump_python_configurations, get_pyodide_xbuildenv_info
 from cibuildwheel.platforms.android import android_triplet
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Mapping, MutableMapping
 
 log = logging.getLogger("cibw")
 
@@ -40,11 +57,13 @@ class Config(TypedDict):
 
 class ConfigUrl(Config):
     url: str
+    sha256: NotRequired[str]
 
 
 class ConfigPyodide(Config):
     default_pyodide_version: str
     node_version: str
+    sha256: str
 
 
 # The following set of "Versions" classes allow the initial call to the APIs to
@@ -105,19 +124,27 @@ class GraalPyVersions:
         response.raise_for_status()
 
         releases = response.json()
-        gp_version_re = re.compile(r"-(\d+\.\d+\.\d+)$")
+        gp_asset_re = re.compile(
+            r"^(?P<prefix>graalpy(?P<cpython>\d+\.\d+)?-(?P<graalpy>\d+\.\d+\.\d+))-"
+        )
         cp_version_re = re.compile(r"Python (\d+\.\d+(?:\.\d+)?)")
         for release in releases:
-            m = gp_version_re.search(release["tag_name"])
-            if m:
-                release["graalpy_version"] = Version(m.group(1))
-            m = cp_version_re.search(release["body"])
-            if m:
+            for asset in release["assets"]:
+                m = gp_asset_re.match(asset["name"])
+                if m:
+                    release["asset_prefix"] = m.group("prefix")
+                    release["graalpy_version"] = Version(m.group("graalpy"))
+                    if m.group("cpython"):
+                        release["python_version"] = Version(m.group("cpython"))
+                    break
+            if "python_version" not in release and (
+                m := cp_version_re.search(release["body"] or "")
+            ):
                 release["python_version"] = Version(m.group(1))
 
         self.releases = [r for r in releases if "graalpy_version" in r and "python_version" in r]
 
-    def update_version(self, identifier: str, spec: Specifier) -> ConfigUrl:
+    def update_version(self, identifier: str, spec: Specifier) -> ConfigUrl | None:
         if "x86_64" in identifier or "amd64" in identifier:
             arch = "x86_64"
         elif "arm64" in identifier or "aarch64" in identifier:
@@ -126,22 +153,18 @@ class GraalPyVersions:
             msg = f"{identifier} not supported yet on GraalPy"
             raise RuntimeError(msg)
 
-        gpspec_str = identifier.split("-")[0].split("_")[1]
+        gpspec_str = identifier.split("-", maxsplit=1)[0].split("_")[1]
         if "." not in gpspec_str and len(gpspec_str) == 3:
             gpspec_str = gpspec_str[:2] + "." + gpspec_str[-1]
         gpspec = Specifier(f"=={gpspec_str}.*")
 
-        releases = [r for r in self.releases if spec.contains(r["python_version"])]
-        releases = [r for r in self.releases if gpspec.contains(r["graalpy_version"])]
-        releases = sorted(releases, key=lambda r: r["graalpy_version"])
+        releases_tmp = (r for r in self.releases if spec.contains(r["python_version"]))
+        releases_tmp = (r for r in releases_tmp if gpspec.contains(r["graalpy_version"]))
+        releases = sorted(releases_tmp, key=lambda r: r["graalpy_version"])
 
         if not releases:
             msg = f"GraalPy {arch} not found for {spec}!"
             raise RuntimeError(msg)
-
-        release = releases[-1]
-        version = release["python_version"]
-        gpversion = release["graalpy_version"]
 
         if "macosx" in identifier:
             arch = "x86_64" if "x86_64" in identifier else "arm64"
@@ -155,18 +178,38 @@ class GraalPyVersions:
 
         arch = "amd64" if arch == "x86_64" else "aarch64"
         ext = "zip" if "win" in identifier else "tar.gz"
-        (url,) = (
-            rf["browser_download_url"]
-            for rf in release["assets"]
-            if rf["name"].endswith(f"{platform}-{arch}.{ext}")
-            and rf["name"].startswith(f"graalpy-{gpversion.major}")
-        )
+        for release in reversed(releases):
+            version = release["python_version"]
+            urls = [
+                rf["browser_download_url"]
+                for rf in release["assets"]
+                if rf["name"].endswith(f"{platform}-{arch}.{ext}")
+                and rf["name"].startswith(release["asset_prefix"])
+            ]
+            if not urls:
+                continue
 
-        return ConfigUrl(
-            identifier=identifier,
-            version=f"{version.major}.{version.minor}",
-            url=url,
-        )
+            (url,) = urls
+            # Fetch sha256 from the ".sha256" sidecar asset in the same release.
+            sha256 = ""
+            sha256_asset_name = url.rsplit("/", 1)[-1] + ".sha256"
+            sha256_urls = [
+                rf["browser_download_url"]
+                for rf in release["assets"]
+                if rf["name"] == sha256_asset_name
+            ]
+            if sha256_urls:
+                sha256_response = requests.get(sha256_urls[0])
+                sha256_response.raise_for_status()
+                sha256 = sha256_response.text.strip().split()[0]
+            return ConfigUrl(
+                identifier=identifier,
+                version=f"{version.major}.{version.minor}",
+                url=url,
+                sha256=sha256,
+            )
+
+        return None
 
 
 class PyPyVersions:
@@ -264,9 +307,11 @@ class CPythonVersions:
 
             # Removing the prefix
             version = Version(release["name"].removeprefix("Python "))
+            self.versions_dict[version] = release["resource_uri"]
 
-            uri = int(release["resource_uri"].rstrip("/").split("/")[-1])
-            self.versions_dict[version] = uri
+        files_response = requests.get("https://www.python.org/api/v2/downloads/release_file/")
+        files_response.raise_for_status()
+        self.files_info = files_response.json()
 
     def update_version(self, identifier: str, spec: Specifier, file_ident: str) -> ConfigUrl | None:
         # see note above on Specifier.filter
@@ -276,18 +321,16 @@ class CPythonVersions:
         for new_version in sorted_versions:
             # Find the first patch version that contains the requested file
             uri = self.versions_dict[new_version]
-            response = requests.get(
-                f"https://www.python.org/api/v2/downloads/release_file/?release={uri}"
-            )
-            response.raise_for_status()
-            file_info = response.json()
+            files = [rf for rf in self.files_info if rf["release"] == uri]
 
-            urls = [rf["url"] for rf in file_info if file_ident in rf["url"]]
-            if urls:
+            matching = [rf for rf in files if file_ident in rf["url"]]
+            if matching:
+                rf = matching[0]
                 return ConfigUrl(
                     identifier=identifier,
                     version=f"{new_version.major}.{new_version.minor}",
-                    url=urls[0],
+                    url=rf["url"],
+                    sha256=rf.get("sha256_sum", ""),
                 )
 
         return None
@@ -404,6 +447,7 @@ class PyodideVersions:
             version=str(version),
             default_pyodide_version=release["version"],
             node_version=node_version,
+            sha256=release["sha256"],
         )
 
 
@@ -431,6 +475,16 @@ class AllVersions:
         self.graalpy = GraalPyVersions()
 
         self.pyodide = PyodideVersions()
+
+    def _stream_sha256(self, url: str) -> str:
+        """Download a file (streaming) and return its SHA256 hex digest."""
+        log.debug("Computing sha256 for %s by streaming download...", url)
+        response = requests.get(url, stream=True)
+        response.raise_for_status()
+        hasher = hashlib.sha256()
+        for chunk in response.iter_content(65536):
+            hasher.update(chunk)
+        return hasher.hexdigest()
 
     def update_config(self, config: MutableMapping[str, str]) -> None:
         identifier = config["identifier"]
@@ -473,13 +527,36 @@ class AllVersions:
             versions = self.maven if identifier.startswith("cp313") else self.cpython
             config_update = versions.update_version_android(identifier, spec)
         elif "ios" in identifier:
-            config_update = self.ios_cpython.update_version_ios(identifier, version)
+            # Python 3.13 and 3.14 are released by BeeWare on GitHub.
+            # Python 3.15 and newer have official releases on python.org.
+            if identifier.startswith(("cp313", "cp314")):
+                config_update = self.ios_cpython.update_version_ios(identifier, version)
+            else:
+                config_update = self.cpython.update_version(
+                    identifier, spec, "iOS-XCframework.tar.gz"
+                )
         elif "pyodide" in identifier:
             config_update = self.pyodide.update_version_pyodide(
                 identifier, version, spec, config["node_version"]
             )
 
         assert config_update is not None, f"{identifier} not found!"
+
+        # Fill in sha256 for URL-based configs if not already provided by the
+        # update_version_* method (e.g. PyPy, BeeWare iOS, Maven have no sidecar).
+        # Also fills in sha256 when the CPython API doesn't return a sha256_sum
+        # (e.g. for older releases).
+        # Widen the type to allow arbitrary key access on the underlying dict.
+        config_update_dict: dict[str, str] = config_update  # type: ignore[assignment]
+        if "url" in config_update_dict and not config_update_dict.get("sha256"):
+            url = config_update_dict["url"]
+            existing_sha256 = config.get("sha256", "")
+            if url == config.get("url") and existing_sha256:
+                # URL unchanged — preserve the existing sha256
+                config_update_dict["sha256"] = existing_sha256
+            else:
+                config_update_dict["sha256"] = self._stream_sha256(url)
+
         if config_update != config:
             log.info("  Updated %s to %s", config, config_update)
             config.clear()

@@ -1,5 +1,5 @@
 linux:
-  image: python:3.12
+  image: python:3.13
   services:
     - name: docker:dind
       entrypoint: ["env", "-u", "DOCKER_HOST"]
@@ -14,7 +14,7 @@ linux:
     # (comment the below line in a PR to debug a Gitlab-specific issue)
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH =~ /^gitlab/'
       variables:
         CIBW_ENABLE: "all"
   script:
@@ -25,28 +25,29 @@ linux:
     - python ./bin/run_tests.py
 
 windows:
-  image: mcr.microsoft.com/windows/servercore:1809
   variables:
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
-  before_script:
-    - choco install python -y --allow-downgrade --version 3.12.4
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH =~ /^gitlab/'
       variables:
-        CIBW_ENABLE: "all"
+        # Everything except graalpy. GraalPy is JVM-based and very slow to
+        # start; on the small (2-core) GitLab SaaS Windows runners,
+        # virtualenv's interpreter query for graalpy.exe times out, failing
+        # the build. (Other platforms run the full "all" group.)
+        CIBW_ENABLE: "cpython-prerelease pypy pypy-eol pyodide-eol pyodide-prerelease"
   script:
-    - py -m pip install -U pip
-    - py -m pip install -e. pytest-custom-exit-code --group test
-    - py bin\run_tests.py
+    - python -m pip install -U pip
+    - python -m pip install -e. pytest-custom-exit-code --group test
+    - python bin\run_tests.py
   tags:
     - saas-windows-medium-amd64
 
 macos:
-  image: macos-14-xcode-15
+  image: macos-15-xcode-16
   variables:
     PYTEST_ADDOPTS: -k "unit_test or test_0_basic" --suppress-no-test-exit-code
   rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH =~ /^gitlab/'
       variables:
         CIBW_ENABLE: "all"
   script:

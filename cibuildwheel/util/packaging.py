@@ -1,14 +1,28 @@
+from __future__ import annotations
+
+__lazy_modules__ = {
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.helpers",
+    "packaging",
+    "packaging.utils",
+    "shlex",
+}
+
 import shlex
-from collections.abc import Mapping, MutableMapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
-from typing import Any, Literal, Self, TypeVar
+from typing import TypeVar
 
 from packaging.utils import parse_wheel_filename
 
-from . import resources
-from .cmd import call
-from .helpers import parse_key_value_string, unwrap
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call
+from cibuildwheel.util.helpers import parse_key_value_string, unwrap
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+    from typing import Literal, Self
 
 
 @dataclass(kw_only=True)
@@ -102,7 +116,7 @@ class DependencyConstraints:
 
         return None
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> str | dict[str, str]:
         if self == DependencyConstraints.pinned():
             return "pinned"
         elif self.packages:
@@ -169,10 +183,9 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
             elif platform.startswith("pyodide"):
                 # each Pyodide version has its own platform tag
                 continue
-            else:
-                # Windows should exactly match
-                if tag.platform != platform:
-                    continue
+            # Windows should exactly match
+            elif tag.platform != platform:
+                continue
 
             # If all the filters above pass, then the wheel is a previously built compatible wheel.
             return wheel
@@ -180,28 +193,7 @@ def find_compatible_wheel(wheels: Sequence[T], identifier: str) -> T | None:
     return None
 
 
-def combine_constraints(
-    env: MutableMapping[str, str], /, constraints_path: Path, tmp_dir: Path | None
-) -> None:
-    """
-    This will workaround a bug in pip<=21.1.1 or uv<=0.2.0 if a tmp_dir is given.
-    If set to None, this will use the modern URI method.
-    """
-
-    if tmp_dir:
-        if " " in str(constraints_path):
-            assert " " not in str(tmp_dir)
-            tmp_file = tmp_dir / "constraints.txt"
-            tmp_file.write_bytes(constraints_path.read_bytes())
-            constraints_path = tmp_file
-        our_constraints = str(constraints_path)
-    else:
-        our_constraints = (
-            constraints_path.as_uri() if " " in str(constraints_path) else str(constraints_path)
-        )
-
-    user_constraints = env.get("PIP_CONSTRAINT")
-
-    env["UV_CONSTRAINT"] = env["PIP_CONSTRAINT"] = " ".join(
-        c for c in [our_constraints, user_constraints] if c
-    )
+def is_abi3_wheel(wheel_name: str) -> bool:
+    """Check if a wheel uses the abi3 stable ABI based on its filename."""
+    _, _, _, tags = parse_wheel_filename(wheel_name)
+    return any(tag.abi == "abi3" for tag in tags)

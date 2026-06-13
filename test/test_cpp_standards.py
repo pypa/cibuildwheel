@@ -1,7 +1,13 @@
+from __future__ import annotations
+
 import jinja2
 
 from . import utils
 from .test_projects import TestProject
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 cpp_test_project = TestProject()
 
@@ -52,7 +58,7 @@ cpp_test_project.files["setup.py"] = jinja2.Template(setup_py_template)
 cpp_test_project.files["spam.cpp"] = jinja2.Template(spam_cpp_template)
 
 
-def test_cpp11(tmp_path):
+def test_cpp11(tmp_path: Path) -> None:
     # This test checks that the C++11 standard is supported
     project_dir = tmp_path / "project"
     cpp11_project = cpp_test_project.copy()
@@ -68,7 +74,7 @@ def test_cpp11(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_cpp14(tmp_path):
+def test_cpp14(tmp_path: Path) -> None:
     # This test checks that the C++14 standard is supported
     project_dir = tmp_path / "project"
     cpp14_project = cpp_test_project.copy()
@@ -84,7 +90,7 @@ def test_cpp14(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_cpp17(tmp_path):
+def test_cpp17(tmp_path: Path) -> None:
     # This test checks that the C++17 standard is supported
     project_dir = tmp_path / "project"
     cpp17_project = cpp_test_project.copy()

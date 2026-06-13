@@ -1,4 +1,7 @@
+from __future__ import annotations
+
 import subprocess
+import textwrap
 from contextlib import nullcontext as does_not_raise
 
 import pytest
@@ -6,6 +9,10 @@ import pytest
 from test import test_projects
 
 from . import utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 basic_project = test_projects.new_c_project()
 basic_project.files["repair.py"] = """
@@ -16,10 +23,10 @@ from pathlib import Path
 wheel = Path(sys.argv[1])
 dest_dir = Path(sys.argv[2])
 platform = wheel.stem.split("-")[-1]
-if platform.startswith("pyodide"):
-    # for the sake of this test, munge the pyodide platforms into one, it's
+if platform.startswith("pyemscripten"):
+    # for the sake of this test, munge the pyemscripten platforms into one, it's
     # not valid, but it does activate the uniqueness check
-    platform = "pyodide"
+    platform = "pyemscripten"
 
 name = f"spam-0.1.0-py2-none-{platform}.whl"
 dest = dest_dir / name
@@ -29,7 +36,7 @@ shutil.copy(wheel, dest)
 """
 
 
-def test(tmp_path, capfd):
+def test(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     # this test checks that a generated wheel name shall be unique in a given cibuildwheel run
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
@@ -56,3 +63,42 @@ def test(tmp_path, capfd):
         # We only produced one wheel (perhaps Pyodide)
         # check that it has the right name
         assert result[0].startswith("spam-0.1.0-py2-none-")
+
+
+@pytest.mark.parametrize(
+    "repair_command",
+    [
+        "python repair.py {wheel} {dest_dir}",
+        "python {package}/repair.py {wheel} {dest_dir}",
+        "python {project}/repair.py {wheel} {dest_dir}",
+    ],
+    ids=["no-placeholder", "package-placeholder", "project-placeholder"],
+)
+def test_repair_wheel_command_structure(tmp_path: Path, repair_command: str) -> None:
+    project_dir = tmp_path / "project"
+    project = test_projects.new_c_project()
+    project.files["repair.py"] = textwrap.dedent("""
+        import shutil
+        import sys
+        from pathlib import Path
+
+        wheel = Path(sys.argv[1])
+        dest_dir = Path(sys.argv[2])
+
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy(wheel, dest_dir / "spamrepaired-0.0.1-py-none-any.whl")
+    """)
+
+    # Combined test for repair wheel command formats (plain, {package}, {project})
+    project.generate(project_dir)
+
+    result = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_REPAIR_WHEEL_COMMAND": repair_command,
+            "CIBW_ARCHS": "native",
+        },
+        single_python=True,
+    )
+
+    assert result == ["spamrepaired-0.0.1-py-none-any.whl"]

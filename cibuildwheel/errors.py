@@ -4,6 +4,8 @@ a different return code, by defining them all here, we can ensure that they're
 semantically clear and unique.
 """
 
+__lazy_modules__ = {"textwrap"}
+
 import textwrap
 
 
@@ -76,7 +78,7 @@ class RepairStepProducedNoWheelError(FatalError):
             Build failed because the repair step completed successfully but
             did not produce a wheel.
 
-            Your `repair-wheel-command` is expected to place the repaired
+            Your `repair-wheel-command` must place the repaired
             wheel in the {dest_dir} directory. See the documentation for
             example configurations:
 
@@ -94,7 +96,7 @@ class RepairStepProducedMultipleWheelsError(FatalError):
             Build failed because the repair step completed successfully but
             produced multiple wheels: {wheels}
 
-            Your `repair-wheel-command` is expected to place one repaired
+            Your `repair-wheel-command` must place exactly one repaired
             wheel in the {{dest_dir}} directory. See the documentation for
             example configurations:
 
@@ -103,3 +105,25 @@ class RepairStepProducedMultipleWheelsError(FatalError):
         )
         super().__init__(message)
         self.return_code = 8
+
+
+class AuditCommandFailedError(FatalError):
+    def __init__(self, message: str) -> None:
+        super().__init__(message)
+        self.return_code = 9
+
+
+class BuildProducedNoWheelError(FatalError):
+    def __init__(self) -> None:
+        message = textwrap.dedent(
+            """
+            Build failed because the build frontend completed successfully but
+            did not produce a wheel.
+
+            This usually indicates a problem with your project configuration or
+            build backend. Check your project configuration, or run cibuildwheel
+            with CIBW_BUILD_VERBOSITY=1 to view build logs.
+            """
+        )
+        super().__init__(message)
+        self.return_code = 10

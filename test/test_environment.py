@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import subprocess
 import sys
@@ -6,6 +8,10 @@ import textwrap
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 project_with_environment_asserts = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
@@ -33,7 +39,7 @@ project_with_environment_asserts = test_projects.new_c_project(
 )
 
 
-def test(tmp_path):
+def test(tmp_path: Path) -> None:
     python_echo = f"'{sys.executable}' -c \"import sys; print(*sys.argv[1:])\""
     project_dir = tmp_path / "project"
     project_with_environment_asserts.generate(project_dir)
@@ -55,7 +61,7 @@ def test(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_overridden_path(tmp_path, capfd):
+def test_overridden_path(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     project_dir = tmp_path / "project"
     output_dir = tmp_path / "output"
 
@@ -108,7 +114,7 @@ def test_overridden_path(tmp_path, capfd):
         ),
     ],
 )
-def test_overridden_pip_constraint(tmp_path, build_frontend):
+def test_overridden_pip_constraint(tmp_path: Path, build_frontend: str) -> None:
     """
     Verify that users can use PIP_CONSTRAINT to specify a specific version of
     a build-system.requires dependency, by asserting the version of pytz in the

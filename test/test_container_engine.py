@@ -1,11 +1,19 @@
+from __future__ import annotations
+
 import pytest
 
 from . import test_projects, utils
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
+
 basic_project = test_projects.new_c_project()
 
 
-def test_podman(tmp_path, capfd, request):
+def test_podman(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str], request: pytest.FixtureRequest
+) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
 
@@ -35,7 +43,7 @@ def test_podman(tmp_path, capfd, request):
     assert "test log statement from before-all" in captured.out
 
 
-def test_create_args(tmp_path, capfd):
+def test_create_args(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
 

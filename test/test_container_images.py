@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import platform
 import textwrap
 
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 dockcross_only_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
@@ -22,7 +28,7 @@ dockcross_only_project = test_projects.new_c_project(
 
 
 @pytest.mark.usefixtures("docker_cleanup")
-def test(tmp_path):
+def test(tmp_path: Path) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
     if platform.machine() not in ["x86_64", "i686"]:
@@ -49,6 +55,6 @@ def test(tmp_path):
         for w in utils.expected_wheels(
             "spam", "0.1.0", manylinux_versions=manylinux_versions, musllinux_versions=[]
         )
-        if "-cp38-" in w or "-cp39-" in w
+        if "-cp39-" in w
     ]
     assert set(actual_wheels) == set(expected_wheels)

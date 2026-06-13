@@ -1,30 +1,67 @@
+from __future__ import annotations
+
+__lazy_modules__ = {
+    "cibuildwheel.architecture",
+    "cibuildwheel.audit",
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "cibuildwheel.venv",
+    "filelock",
+    "pathlib",
+    "platform",
+    "shutil",
+    "subprocess",
+    "textwrap",
+    "typing",
+}
+
 import dataclasses
-import json
 import os
 import platform as platform_module
 import shutil
 import subprocess
 import textwrap
-from collections.abc import MutableMapping, Set
 from functools import cache
 from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
 
-from .. import errors
-from ..architecture import Architecture
-from ..environment import ParsedEnvironment
-from ..frontend import BuildFrontendName, get_build_frontend_extra_flags
-from ..logger import log
-from ..options import Options
-from ..selector import BuildSelector
-from ..util import resources
-from ..util.cmd import call, shell
-from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, extract_zip, move_file
-from ..util.helpers import prepare_command, unwrap
-from ..util.packaging import combine_constraints, find_compatible_wheel, get_pip_version
-from ..venv import constraint_flags, find_uv, virtualenv
+from cibuildwheel import errors
+from cibuildwheel.architecture import Architecture
+from cibuildwheel.audit import run_audit
+from cibuildwheel.frontend import (
+    BuildFrontendName,
+    get_build_frontend_extra_flags,
+    prepare_config_settings,
+)
+from cibuildwheel.logger import log
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call, shell
+from cibuildwheel.util.file import (
+    CIBW_CACHE_PATH,
+    copy_test_sources,
+    download,
+    extract_zip,
+    move_file,
+    remove_on_error,
+)
+from cibuildwheel.util.helpers import prepare_command, unwrap
+from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
+from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import MutableMapping, Sequence, Set
+
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 
 def get_nuget_args(
@@ -56,6 +93,7 @@ class PythonConfiguration:
     version: str
     identifier: str
     url: str | None = None
+    sha256: str = ""
 
     @property
     def arch(self) -> str:
@@ -94,7 +132,8 @@ def _ensure_nuget() -> Path:
     nuget = CIBW_CACHE_PATH / "nuget.exe"
     with FileLock(str(nuget) + ".lock"):
         if not nuget.exists():
-            download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", nuget)
+            with remove_on_error(nuget):
+                download("https://dist.nuget.org/win-x86-commandline/latest/nuget.exe", nuget)
     return nuget
 
 
@@ -110,11 +149,12 @@ def install_cpython(configuration: PythonConfiguration, arch: str | None = None)
     with FileLock(str(base_output_dir) + f"-{version}{free_threaded_str}-{arch}.lock"):
         if not installation_path.exists():
             nuget = _ensure_nuget()
-            call(nuget, "install", *nuget_args)
+            with remove_on_error(installation_path.parent):
+                call(nuget, "install", *nuget_args)
     return installation_path / "python.exe"
 
 
-def install_pypy(tmp: Path, arch: str, url: str) -> Path:
+def install_pypy(tmp: Path, arch: str, url: str, sha256: str) -> Path:
     assert arch == "64"
     assert "win64" in url
     # Inside the PyPy zip file is a directory with the same name
@@ -125,13 +165,14 @@ def install_pypy(tmp: Path, arch: str, url: str) -> Path:
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             pypy_zip = tmp / zip_filename
-            download(url, pypy_zip)
-            # Extract to the parent directory because the zip file still contains a directory
-            extract_zip(pypy_zip, installation_path.parent)
+            download(url, pypy_zip, sha256=sha256)
+            with remove_on_error(installation_path):
+                # Extract to the parent directory because the zip file still contains a directory
+                extract_zip(pypy_zip, installation_path.parent)
     return installation_path / "python.exe"
 
 
-def install_graalpy(tmp: Path, url: str) -> Path:
+def install_graalpy(tmp: Path, url: str, sha256: str) -> Path:
     zip_filename = url.rsplit("/", 1)[-1]
     extension = ".zip"
     assert zip_filename.endswith(extension)
@@ -139,9 +180,10 @@ def install_graalpy(tmp: Path, url: str) -> Path:
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             graalpy_zip = tmp / zip_filename
-            download(url, graalpy_zip)
-            # Extract to the parent directory because the zip file still contains a directory
-            extract_zip(graalpy_zip, installation_path.parent)
+            download(url, graalpy_zip, sha256=sha256)
+            with remove_on_error(installation_path):
+                # Extract to the parent directory because the zip file still contains a directory
+                extract_zip(graalpy_zip, installation_path.parent)
     return installation_path / "bin" / "graalpy.exe"
 
 
@@ -232,11 +274,6 @@ def setup_rust_cross_compile(
         )
 
 
-def can_use_uv(python_configuration: PythonConfiguration) -> bool:
-    conditions = (not python_configuration.identifier.startswith("pp38-"),)
-    return all(conditions)
-
-
 def setup_python(
     tmp: Path,
     python_configuration: PythonConfiguration,
@@ -260,18 +297,20 @@ def setup_python(
             base_python = install_cpython(python_configuration, arch=native_arch)
     elif implementation_id.startswith("pp"):
         assert python_configuration.url is not None
-        base_python = install_pypy(tmp, python_configuration.arch, python_configuration.url)
+        assert python_configuration.sha256
+        base_python = install_pypy(
+            tmp, python_configuration.arch, python_configuration.url, python_configuration.sha256
+        )
     elif implementation_id.startswith("gp"):
-        base_python = install_graalpy(tmp, python_configuration.url or "")
+        assert python_configuration.url is not None
+        assert python_configuration.sha256
+        base_python = install_graalpy(tmp, python_configuration.url, python_configuration.sha256)
     else:
         msg = "Unknown Python implementation"
         raise ValueError(msg)
     assert base_python.exists()
 
-    if build_frontend == "build[uv]" and not can_use_uv(python_configuration):
-        build_frontend = "build"
-
-    use_uv = build_frontend == "build[uv]"
+    use_uv = build_frontend in {"build[uv]", "uv"}
     uv_path = find_uv()
 
     log.step("Setting up build environment...")
@@ -282,12 +321,15 @@ def setup_python(
         venv_path,
         dependency_constraint,
         use_uv=use_uv,
+        marker_env=target_marker_env(implementation_id=implementation_id),
     )
 
     # set up environment variables for run_with_env
     env["PYTHON_VERSION"] = python_configuration.version
     env["PYTHON_ARCH"] = python_configuration.arch
-    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    env.pop("UV_PYTHON", None)
+    if not use_uv:
+        env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
 
     # update env with results from CIBW_ENVIRONMENT
     env = environment.as_dictionary(prev_environment=env)
@@ -298,7 +340,7 @@ def setup_python(
     if where_python != str(venv_path / "Scripts" / "python.exe"):
         msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
         raise errors.FatalError(msg)
-    call("python", "--version", env=env)
+    call("python", "-V", "-V", env=env)
     call("python", "-c", "\"import struct; print(struct.calcsize('P') * 8)\"", env=env)
 
     # check what pip version we're on
@@ -306,19 +348,29 @@ def setup_python(
         assert (venv_path / "Scripts" / "pip.exe").exists()
         where_pip = call("where", "pip", env=env, capture_stdout=True).splitlines()[0].strip()
         print(where_pip)
-        if where_pip.strip() != str(venv_path / "Scripts" / "pip.exe"):
+        if where_pip != str(venv_path / "Scripts" / "pip.exe"):
             msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
             raise errors.FatalError(msg)
         call("pip", "--version", env=env)
 
     log.step("Installing build tools...")
     match build_frontend:
+        case "pip":
+            call(
+                "pip",
+                "install",
+                "--upgrade",
+                "delvewheel",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
         case "build":
             call(
                 "pip",
                 "install",
                 "--upgrade",
                 "build[virtualenv]",
+                "delvewheel",
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
@@ -328,52 +380,34 @@ def setup_python(
                 uv_path,
                 "pip",
                 "install",
+                "--python",
+                where_python,
                 "--upgrade",
                 "build[virtualenv]",
+                "delvewheel",
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
+        case "uv":
+            assert uv_path is not None
+            call(
+                uv_path,
+                "pip",
+                "install",
+                "--python",
+                where_python,
+                "--upgrade",
+                "delvewheel",
+                *constraint_flags(dependency_constraint),
+                env=env,
+            )
+        case _:
+            assert_never(build_frontend)
 
     if python_libs_base:
         # Set up the environment for various backends to enable cross-compilation
         setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
         setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
-
-    if implementation_id.startswith("gp311"):
-        # GraalPy 24 fails to discover compilers, setup the relevant environment
-        # variables. Adapted from
-        # https://github.com/microsoft/vswhere/wiki/Start-Developer-Command-Prompt
-        # Remove when GraalPy 24.x is dropped.
-        vcpath = call(
-            Path(os.environ["PROGRAMFILES(X86)"])
-            / "Microsoft Visual Studio"
-            / "Installer"
-            / "vswhere.exe",
-            "-products",
-            "*",
-            "-latest",
-            "-property",
-            "installationPath",
-            capture_stdout=True,
-        ).strip()
-        log.notice(f"Discovering Visual Studio for GraalPy at {vcpath}")
-        vcvars_file = tmp / "vcvars.json"
-        call(
-            f"{vcpath}\\Common7\\Tools\\vsdevcmd.bat",
-            "-no_logo",
-            "-arch=amd64",
-            "-host_arch=amd64",
-            "&&",
-            "python",
-            "-c",
-            # this command needs to be one line for Windows reasons
-            "import sys, json, pathlib, os; pathlib.Path(sys.argv[1]).write_text(json.dumps(dict(os.environ)))",
-            vcvars_file,
-            env=env,
-        )
-        with open(vcvars_file, encoding="utf-8") as f:
-            vcvars = json.load(f)
-        env.update(vcvars)
 
     return base_python, env
 
@@ -385,6 +419,8 @@ def build(options: Options, tmp_path: Path) -> None:
 
     if not python_configurations:
         return
+
+    uv_path = find_uv()
 
     try:
         before_all_options_identifier = python_configurations[0].identifier
@@ -403,8 +439,7 @@ def build(options: Options, tmp_path: Path) -> None:
         for config in python_configurations:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
-
-            use_uv = build_frontend.name == "build[uv]" and can_use_uv(config)
+            use_uv = build_frontend.name in {"build[uv]", "uv"}
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
@@ -425,6 +460,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_options.environment,
                 build_frontend.name,
             )
+            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
             pip_version = None if use_uv else get_pip_version(env)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
@@ -449,31 +485,14 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel_dir.mkdir()
 
                 extra_flags = get_build_frontend_extra_flags(
-                    build_frontend, build_options.build_verbosity, build_options.config_settings
+                    build_frontend,
+                    build_options.build_verbosity,
+                    prepare_config_settings(
+                        build_options.config_settings,
+                        project=".",
+                        package=options.globals.package_dir,
+                    ),
                 )
-
-                if (
-                    config.identifier.startswith("gp311")
-                    and build_frontend.name == "build"
-                    and "--no-isolation" not in extra_flags
-                    and "-n" not in extra_flags
-                ):
-                    # GraalPy 24 fails to discover its standard library when a venv is created
-                    # from a virtualenv seeded executable. See
-                    # https://github.com/oracle/graalpython/issues/491 and remove this once
-                    # GraalPy 24 is dropped.
-                    log.notice(
-                        "Disabling build isolation to workaround GraalPy bug. If the build fails, consider using pip or build[uv] as build frontend."
-                    )
-                    shell("graalpy -m pip install setuptools wheel", env=env)
-                    extra_flags = [*extra_flags, "-n"]
-
-                build_env = env.copy()
-                if pip_version is not None:
-                    build_env["VIRTUALENV_PIP"] = pip_version
-
-                if constraints_path:
-                    combine_constraints(build_env, constraints_path, identifier_tmp_dir)
 
                 match build_frontend.name:
                     case "pip":
@@ -488,7 +507,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             f"--wheel-dir={built_wheel_dir}",
                             "--no-deps",
                             *extra_flags,
-                            env=build_env,
+                            env=env,
                         )
                     case "build" | "build[uv]":
                         if (
@@ -506,12 +525,27 @@ def build(options: Options, tmp_path: Path) -> None:
                             "--wheel",
                             f"--outdir={built_wheel_dir}",
                             *extra_flags,
-                            env=build_env,
+                            env=env,
+                        )
+                    case "uv":
+                        assert uv_path is not None
+                        call(
+                            uv_path,
+                            "build",
+                            f"--python={base_python}",
+                            build_options.package_dir,
+                            "--wheel",
+                            f"--out-dir={built_wheel_dir}",
+                            *extra_flags,
+                            env=env,
                         )
                     case _:
                         assert_never(build_frontend)
 
-                built_wheel = next(built_wheel_dir.glob("*.whl"))
+                try:
+                    built_wheel = next(built_wheel_dir.glob("*.whl"))
+                except StopIteration:
+                    raise errors.BuildProducedNoWheelError() from None
 
                 # repair the wheel
                 repaired_wheel_dir.mkdir()
@@ -525,6 +559,8 @@ def build(options: Options, tmp_path: Path) -> None:
                         build_options.repair_command,
                         wheel=built_wheel,
                         dest_dir=repaired_wheel_dir,
+                        package=build_options.package_dir,
+                        project=".",
                     )
                     shell(repair_command_prepared, env=env)
                 else:
@@ -537,6 +573,8 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                     raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+
+                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
 
             test_selected = options.globals.test_selector(config.identifier)
             if test_selected and config.arch == "ARM64" != platform_module.machine():
@@ -580,7 +618,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     )
                     shell(before_test_prepared, env=virtualenv_env)
 
-                pip = ["uv", "pip"] if use_uv else ["pip"]
+                pip: Sequence[Path | str]
+                if use_uv:
+                    assert uv_path is not None
+                    pip = [uv_path, "pip"]
+                else:
+                    pip = ["pip"]
 
                 # install the wheel
                 call(

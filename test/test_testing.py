@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import inspect
 import subprocess
 import textwrap
-from pathlib import Path
 
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 project_with_a_test = test_projects.new_c_project(
     setup_cfg_add=textwrap.dedent(
@@ -43,11 +48,11 @@ def path_contains(parent, child):
 
 
 class TestSpam(TestCase):
-    def test_filter(self):
+    def test_filter(self) -> None:
         self.assertEqual(0, spam.filter("spam"))
         self.assertNotEqual(0, spam.filter("ham"))
 
-    def test_virtualenv(self):
+    def test_virtualenv(self) -> None:
         # sys.prefix is different from sys.base_prefix when running a virtualenv
         # See https://docs.python.org/3/library/venv.html, which virtualenv seems
         # to honor in recent releases
@@ -58,7 +63,7 @@ class TestSpam(TestCase):
         self.assertTrue(path_contains(sys.prefix, spam.__file__))
         self.assertIn("VIRTUAL_ENV", os.environ)
 
-    def test_uname(self):
+    def test_uname(self) -> None:
         if platform.system() == "Windows":
             return
         # if we're running in 32-bit Python, check that the machine is i686.
@@ -69,7 +74,7 @@ class TestSpam(TestCase):
 '''
 
 
-def test(tmp_path):
+def test(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     project_with_a_test.generate(project_dir)
 
@@ -90,7 +95,7 @@ def test(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_extras_require(tmp_path):
+def test_extras_require(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     project_with_a_test.generate(project_dir)
 
@@ -112,7 +117,7 @@ def test_extras_require(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_dependency_groups(tmp_path):
+def test_dependency_groups(tmp_path: Path) -> None:
     group_project = project_with_a_test.copy()
     group_project.files["pyproject.toml"] = inspect.cleandoc("""
         [build-system]
@@ -149,12 +154,12 @@ project_with_a_failing_test.files["test/spam_test.py"] = r"""
 from unittest import TestCase
 
 class TestSpam(TestCase):
-    def test_something(self):
+    def test_something(self) -> None:
         self.fail('this test is supposed to fail')
 """
 
 
-def test_failing_test(tmp_path):
+def test_failing_test(tmp_path: Path) -> None:
     """Ensure a failing test causes cibuildwheel to error out and exit"""
     project_dir = tmp_path / "project"
     output_dir = tmp_path / "output"
@@ -167,11 +172,6 @@ def test_failing_test(tmp_path):
             add_env={
                 "CIBW_TEST_REQUIRES": "pytest",
                 "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} {{project}}/test",
-                # CPython 3.8 when running on macOS arm64 is unusual. The build
-                # always runs in x86_64, so the arm64 tests are not run. See
-                # #1169 for reasons why. That means the build succeeds, which
-                # we don't want. So we skip that build.
-                "CIBW_SKIP": "cp38-macosx_arm64",
             },
         )
 
@@ -199,9 +199,6 @@ def test_bare_pytest_invocation(
                 "CIBW_TEST_COMMAND": (
                     "python -m pytest" if test_runner == "pytest" else "python -m unittest"
                 ),
-                # Skip CPython 3.8 on macOS arm64, see comment above in
-                # 'test_failing_test'
-                "CIBW_SKIP": "cp38-macosx_arm64",
             },
         )
 
@@ -215,7 +212,7 @@ def test_bare_pytest_invocation(
     )
 
 
-def test_test_sources(tmp_path):
+def test_test_sources(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     project_with_a_test.generate(project_dir)
 
@@ -235,7 +232,7 @@ def test_test_sources(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_test_environment(tmp_path):
+def test_test_environment(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     test_projects.new_c_project().generate(project_dir)
 

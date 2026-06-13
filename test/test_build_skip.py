@@ -1,6 +1,12 @@
+from __future__ import annotations
+
 import textwrap
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 project_with_skip_asserts = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
@@ -15,7 +21,7 @@ project_with_skip_asserts = test_projects.new_c_project(
 )
 
 
-def test(tmp_path):
+def test(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     project_with_skip_asserts.generate(project_dir)
 

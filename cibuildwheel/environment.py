@@ -1,11 +1,19 @@
+from __future__ import annotations
+
+__lazy_modules__ = {"bashlex", "bashlex.errors"}
+
 import dataclasses
-from collections.abc import Mapping, Sequence
-from typing import Any, Protocol
+from typing import Protocol
 
 import bashlex
 import bashlex.errors
 
-from . import bashlex_eval
+from cibuildwheel import bashlex_eval
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+    from typing import Any
 
 
 class EnvironmentParseError(Exception):
@@ -131,7 +139,7 @@ class ParsedEnvironment:
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({[repr(a) for a in self.assignments]!r})"
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> list[EnvironmentAssignment]:
         return self.assignments
 
 

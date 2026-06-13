@@ -34,6 +34,7 @@ nav:
   - About:
     - contributing.md
     - changelog.md
+    - Source repository: https://github.com/pypa/cibuildwheel
 
 markdown_extensions:
   - md_in_html
@@ -57,3 +58,5 @@ plugins:
       j2_variable_end_string: »
       on_error_fail: true
       on_undefined: strict
+  - intersphinx:
+      project: cibuildwheel

@@ -1,5 +1,6 @@
 ---
 title: Platforms
+ref: platforms
 ---
 # Platforms
 
@@ -23,7 +24,7 @@ The only side effect to your system will be docker images being pulled.
 
 Linux wheels are built in [`manylinux`/`musllinux` containers](https://github.com/pypa/manylinux) to provide binary compatible wheels on Linux, according to [PEP 600](https://www.python.org/dev/peps/pep-0600/) / [PEP 656](https://www.python.org/dev/peps/pep-0656/). Because of this, when building with `cibuildwheel` on Linux, a few things should be taken into account:
 
--   Programs and libraries are not installed on the CI runner host, but rather should be installed inside the container - using `yum` for `manylinux2014`, `apt-get` for `manylinux_2_31`, `dnf` for `manylinux_2_28` and `apk` for `musllinux_1_1` or `musllinux_1_2`, or manually. The same goes for environment variables that are potentially needed to customize the wheel building.
+-   Programs and libraries are not installed on the CI runner host, but rather should be installed inside the container - using `yum` for `manylinux2014`, `apt-get` for `manylinux_2_31` or `manylinux_2_35`, `dnf` for `manylinux_2_28` and `apk` for `musllinux_1_1` or `musllinux_1_2`, or manually. The same goes for environment variables that are potentially needed to customize the wheel building.
 
     `cibuildwheel` supports this by providing the [`environment`](options.md#environment) and [`before-all`](options.md#before-all) options to setup the build environment inside the running container.
 
@@ -62,10 +63,10 @@ macOS builds will honor the `MACOSX_DEPLOYMENT_TARGET` environment variable to c
 
 | Arch  | Python version range | Minimum target |
 |-------|----------------------|----------------|
-| Intel | CPython 3.8-3.11     | 10.9           |
-| Intel | CPython 3.12+        | 10.13          |
+| Intel | CPython 3.9-3.11     | 10.9           |
+| Intel | CPython 3.12-3.13    | 10.13          |
+| Intel | CPython 3.14+        | 10.15          |
 | AS    | CPython or PyPy      | 11             |
-| Intel | PyPy 3.8             | 10.13          |
 | Intel | PyPy 3.9+            | 10.15          |
 
 If you set the value lower, cibuildwheel will cap it to the lowest supported value for each target as needed.
@@ -73,7 +74,7 @@ If you set the value lower, cibuildwheel will cap it to the lowest supported val
 !!! note
     For Rust-based extensions, `Rustc` requires `MACOSX_DEPLOYMENT_TARGET` to be at
     least 10.12. However, `cibuildwheel` defaults to 10.9 for
-    **Intel / CPython 3.8-3.11** builds. Users must manually set
+    **Intel / CPython 3.9-3.11** builds. Users must manually set
     `MACOSX_DEPLOYMENT_TARGET` to 10.12 or higher when building Rust extensions.
 
 ### macOS architectures
@@ -158,8 +159,6 @@ By default, `ARM64` is not enabled when running on non-`ARM64` runners. Use [`CI
 
 ## Pyodide/WebAssembly {: #pyodide}
 
-Pyodide is offered as an experimental feature in cibuildwheel.
-
 ### System requirements
 
 Pyodide builds require a Linux or macOS machine.
@@ -170,13 +169,24 @@ You must target pyodide with `--platform pyodide` (or use `--only` on the identi
 
 ### Choosing a Pyodide version {: #pyodide-choosing-a-version}
 
-It is also possible to target a specific Pyodide version by setting the [`pyodide-version`](options.md#pyodide-version) option to the desired version. Users are responsible for setting an appropriate Pyodide version according to the `pyodide-build` version. A list is available in Pyodide's [cross-build environments metadata file](https://github.com/pyodide/pyodide/blob/main/pyodide-cross-build-environments.json), which can be viewed more easily by installing `pyodide-build` from PyPI and using `pyodide xbuildenv search --all` to see a compatibility table.
+It is also possible to target a specific Pyodide version by setting the [`pyodide-version`](options.md#pyodide-version) option to the desired version. Users are responsible for setting an appropriate Pyodide version according to the `pyodide-build` version. A list is available in Pyodide's [cross-build environments metadata file](https://pyodide.github.io/pyodide/api/v2/pyodide-cross-build-environments.json), which can be viewed more easily by installing `pyodide-build` from PyPI and using `pyodide xbuildenv search --all` to see a compatibility table.
 
-If there are pre-releases available for a newer Pyodide version, the `pyodide-prerelease` [`enable`](options.md#enable) can be used to include pre-release versions.
+If there are pre-releases available for a newer Pyodide version, the `pyodide-prerelease` [`enable`](options.md#enable) can be used to include pre-release versions. To build for older Pyodide versions that are no longer the current stable, use the `pyodide-eol` [`enable`](options.md#enable).
 
 ### Running tests
 
 Currently, it's recommended to run tests using a `python -m` entrypoint, rather than a command line entrypoint, or a shell script. This is because custom entrypoints have some issues in the Pyodide virtual environment. For example, `pytest` may not work as a command line entrypoint, but will work as a `python -m pytest` entrypoint.
+
+### Repairing wheels
+
+Unlike other platforms, cibuildwheel does not set a default [`repair-wheel-command`](options.md#repair-wheel-command) for Pyodide. If your package links shared libraries, you need to explicitly configure the repair command using [`pyodide auditwheel`](https://github.com/pyodide/auditwheel-emscripten):
+
+```toml
+[tool.cibuildwheel.pyodide]
+repair-wheel-command = "pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}"
+```
+
+The `--libdir` option specifies the directory containing cross-compiled shared libraries for WASM. You should not use the system library directories (e.g. `/usr/lib`), as those libraries are not built for WebAssembly.
 
 
 ## Android {: android}
@@ -184,7 +194,7 @@ Currently, it's recommended to run tests using a `python -m` entrypoint, rather 
 ### Prerequisites
 
 cibuildwheel can build Android wheels on any POSIX platform supported by the Android
-development tools, which currently means Linux x86_64, macOS ARM64 or macOS x86_64. Any
+development tools, which currently means Linux `x86_64`, macOS `ARM64` or macOS `x86_64`. Any
 of these platforms can be used to build wheels for any Android architecture supported by
 Python. However, *testing* wheels has additional requirements: see the section below.
 
@@ -210,20 +220,14 @@ It also requires the following commands to be on the `PATH`:
 
 Android builds will honor the `ANDROID_API_LEVEL` environment variable to set the
 minimum supported [API level](https://developer.android.com/tools/releases/platforms)
-for generated wheels. This will default to the minimum API level of the selected Python
-version.
-
-If the [`repair-wheel-command`](options.md#repair-wheel-command) adds any libraries to
-the wheel, then `ANDROID_API_LEVEL` must be at least 24. This is already the default
-when building for Python 3.14 and later, but you may need to set it when building for
-Python 3.13.
+for generated wheels. This defaults to 24, which is supported by [99% of active
+devices](https://dl.google.com/android/studio/metadata/distributions.json), and is the first
+version to support RUNPATH, which auditwheel needs in order to graft external libraries.
 
 ### Build frontend support
 
-Android builds only support the `build` frontend. In principle, support for the
-`build[uv]` frontend should be possible, but `uv` [doesn't currently have support for
-cross-platform builds](https://github.com/astral-sh/uv/issues/7957), and [doesn't have
-support for iOS or Android wheel tags](https://github.com/astral-sh/uv/issues/8029).
+Android builds do not support the `pip` frontend. The `build`, `build[uv]`, and
+`uv` frontends work.
 
 ### Tests
 
@@ -232,10 +236,12 @@ machine – for example, if you're building on an ARM64 machine, then you can te
 ARM64 wheel. Wheels of other architectures can still be built, but testing will
 automatically be skipped.
 
+Any arguments specified using [`test-runtime`](options.md#test-runtime) will be passed as arguments to the Python script that starts the [testbed project](https://github.com/python/cpython/blob/main/Android/README.md#testing). cibuildwheel will automatically start the testbed project with `--site-packages` and `--cwd` arguments matching your test environment, as well as enabling verbose output with `-v` if [`build-verbosity`](options.md#build-verbosity) is enabled. The most common additional arguments to use will be `--managed minVersion` or `--managed maxVersion`, specifying the use of a managed Android emulator with the minimum or maximum supported Android version; or `--connected <serial>`, specifying the use of an existing booted Android emulator or device. By default, the testbed project will run with `--managed maxVersion`.
+
 Running an emulator requires the build machine to either be bare-metal or support
 nested virtualization. CI platforms known to meet this requirement are:
 
-* GitHub Actions Linux x86_64
+* GitHub Actions Linux `x86_64`
 
 On Linux, the emulator needs access to the KVM virtualization interface. This may
 require adding your user to a group, or changing your udev rules. On GitHub
@@ -261,9 +267,6 @@ to one of the following URLs:
 You must be building on a macOS machine, with Xcode installed. The Xcode installation must have an iOS SDK available, with all license agreements agreed to by the user. To check if an iOS SDK is available, open the Xcode settings panel, and check the Platforms tab. This will also ensure that license agreements have been acknowledged.
 
 Building iOS wheels also requires a working macOS Python installation. See the notes on [macOS builds](#macos) for details about configuration of the macOS environment.
-
-!!! note
-    If you are running cibuildwheel on GitHub Actions or Azure runners, you should avoid the `macos-15` and `macos-latest` images. The [20250811 image update](https://github.com/actions/runner-images/releases/tag/macos-15-arm64%2F20250811.2170) made some [significant changes](https://github.com/actions/runner-images/issues/12541) that are [incompatible with CPython's iOS test runner](https://github.com/actions/runner-images/issues/12777). At this time, Microsoft's advice is to use the `macos-14` image instead.
 
 ### Specifying an iOS build
 
@@ -308,7 +311,7 @@ iOS builds are *cross platform builds*, as it not possible to run compilers and 
 
 ### Build frontend support
 
-iOS builds support both the `pip` and `build` build frontends. In principle, support for `uv` with the `build[uv]` frontend should be possible, but `uv` [doesn't currently have support for cross-platform builds](https://github.com/astral-sh/uv/issues/7957), and [doesn't have support for iOS (or Android) tags](https://github.com/astral-sh/uv/issues/8029).
+iOS builds support both the `pip` and `build` build frontends. In principle, support for `uv` and `build[uv]` frontends should be possible, but `uv` [doesn't support iOS fully yet](https://github.com/astral-sh/uv/issues/16724).
 
 ### Build environment
 
@@ -322,4 +325,6 @@ If tests have been configured, the test suite will be executed on the simulator 
 
 The iOS test environment can't support running shell scripts, so the [`test-command`](options.md#test-command) value must be specified as if it were a command line being passed to `python -m ...`.
 
-The test process uses the same testbed used by CPython itself to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <test-command>`.
+The test process uses the [same testbed used by CPython itself](https://github.com/python/cpython/tree/main/Apple/iOS#testing-python-on-ios) to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <test-command>`.
+
+Any arguments specified using [`test-runtime`](options.md#test-runtime) will be passed as arguments to the Python script that starts the testbed project. The testbed project will be started with `-v` enabling verbose output if [`build-verbosity`](options.md#build-verbosity) is enabled; the most common additional argument to use will be `--simulator`, which allows the specification of a specific device or iOS version for the test simulator. By default, the testbed project will attempt to find an "SE class" simulator (i.e., an iPhone SE, iPhone 16e, or similar), running the newest iOS version available.

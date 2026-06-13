@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import textwrap
 
 import packaging.utils
@@ -7,6 +9,10 @@ from cibuildwheel.logger import Logger
 from cibuildwheel.selector import EnableGroup
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 basic_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
@@ -21,7 +27,7 @@ basic_project = test_projects.new_c_project(
 
 
 @pytest.mark.serial
-def test_dummy_serial():
+def test_dummy_serial() -> None:
     """A no-op test to ensure that at least one serial test is always found.
 
     Without this no-op test, CI fails on CircleCI because no serial tests are
@@ -29,7 +35,10 @@ def test_dummy_serial():
     """
 
 
-def test(tmp_path, build_frontend_env, capfd):
+@pytest.mark.flaky(reruns=2, reruns_delay=5)
+def test(
+    tmp_path: Path, build_frontend_env: dict[str, str], capfd: pytest.CaptureFixture[str]
+) -> None:
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
@@ -52,7 +61,7 @@ def test(tmp_path, build_frontend_env, capfd):
 
 
 @pytest.mark.skip(reason="to keep test output clean")
-def test_sample_build(tmp_path, capfd):
+def test_sample_build(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
@@ -67,10 +76,10 @@ def test_sample_build(tmp_path, capfd):
             logger.step_end()
 
 
-@pytest.mark.parametrize(
-    "enable_setting", ["", "cpython-prerelease", "pypy", "cpython-freethreading"]
-)
-def test_build_identifiers(tmp_path, enable_setting, monkeypatch):
+@pytest.mark.parametrize("enable_setting", ["", "cpython-prerelease", "pypy"])
+def test_build_identifiers(
+    tmp_path: Path, enable_setting: str, monkeypatch: pytest.MonkeyPatch
+) -> None:
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 
@@ -93,7 +102,9 @@ def test_build_identifiers(tmp_path, enable_setting, monkeypatch):
         (None, {"CIBW_ALLOW_EMPTY": "1"}),
     ],
 )
-def test_allow_empty(tmp_path, add_args, env_allow_empty):
+def test_allow_empty(
+    tmp_path: Path, add_args: list[str] | None, env_allow_empty: dict[str, str]
+) -> None:
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
 

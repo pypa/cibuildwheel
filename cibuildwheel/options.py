@@ -1,3 +1,29 @@
+from __future__ import annotations
+
+__lazy_modules__ = {
+    "cibuildwheel.architecture",
+    "cibuildwheel.environment",
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.oci_container",
+    "cibuildwheel.projectfiles",
+    "cibuildwheel.selector",
+    "cibuildwheel.typing",
+    "cibuildwheel.util",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "collections",
+    "configparser",
+    "contextlib",
+    "difflib",
+    "packaging",
+    "packaging.specifiers",
+    "pathlib",
+    "shlex",
+    "textwrap",
+    "tomllib",
+}
+
 import collections
 import configparser
 import contextlib
@@ -8,24 +34,29 @@ import functools
 import shlex
 import textwrap
 import tomllib
-from collections.abc import Callable, Generator, Iterable, Mapping, Sequence, Set
+from collections.abc import Mapping, Sequence
 from pathlib import Path
-from typing import Any, Final, Literal, Self, assert_never
+from typing import assert_never
 
 from packaging.specifiers import SpecifierSet
 
-from . import errors
-from .architecture import Architecture
-from .environment import EnvironmentParseError, ParsedEnvironment, parse_environment
-from .frontend import BuildFrontendConfig
-from .logger import log
-from .oci_container import OCIContainerEngineConfig
-from .projectfiles import get_requires_python_str, resolve_dependency_groups
-from .selector import BuildSelector, EnableGroup, TestSelector, selector_matches
-from .typing import PLATFORMS, PlatformName
-from .util import resources
-from .util.helpers import format_safe, strtobool, unwrap
-from .util.packaging import DependencyConstraints
+from cibuildwheel import errors
+from cibuildwheel.architecture import Architecture
+from cibuildwheel.environment import EnvironmentParseError, ParsedEnvironment, parse_environment
+from cibuildwheel.frontend import BuildFrontendConfig
+from cibuildwheel.logger import log
+from cibuildwheel.oci_container import OCIContainerEngineConfig
+from cibuildwheel.projectfiles import get_requires_python_str, resolve_dependency_groups
+from cibuildwheel.selector import BuildSelector, EnableGroup, TestSelector, selector_matches
+from cibuildwheel.typing import PLATFORMS, PlatformName
+from cibuildwheel.util import resources
+from cibuildwheel.util.helpers import format_safe, parse_key_value_string, strtobool, unwrap
+from cibuildwheel.util.packaging import DependencyConstraints
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator, Iterable, Set
+    from typing import Any, Final, Literal, Self
 
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",
@@ -92,6 +123,20 @@ class GlobalOptions:
     allow_empty: bool
 
 
+@dataclasses.dataclass(frozen=True)
+class TestRuntimeConfig:
+    args: Sequence[str] = ()
+
+    @classmethod
+    def from_config_string(cls, config_string: str) -> Self:
+        config_dict = parse_key_value_string(config_string, [], ["args"])
+        args = config_dict.get("args") or []
+        return cls(args=args)
+
+    def options_summary(self) -> str | dict[str, str]:
+        return {"args": repr(self.args)}
+
+
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class BuildOptions:
     globals: GlobalOptions
@@ -99,6 +144,7 @@ class BuildOptions:
     before_all: str
     before_build: str | None
     xbuild_tools: list[str] | None
+    xbuild_files: dict[str, list[str]]
     repair_command: str
     manylinux_images: dict[str, str] | None
     musllinux_images: dict[str, str] | None
@@ -110,6 +156,9 @@ class BuildOptions:
     test_extras: str
     test_groups: list[str]
     test_environment: ParsedEnvironment
+    test_runtime: TestRuntimeConfig
+    audit_requires: list[str]
+    audit_command: list[str]
     build_verbosity: int
     build_frontend: BuildFrontendConfig
     config_settings: str
@@ -691,11 +740,12 @@ class Options:
 
     def _check_pinned_image(self, value: str, pinned_images: Mapping[str, str]) -> None:
         error_set = {"manylinux1", "manylinux2010", "manylinux_2_24", "musllinux_1_1"}
+        # Currently no warnings, next: https://github.com/pypa/manylinux/issues/1925
         warning_set: set[str] = set()
 
         if value in error_set:
             msg = (
-                f"cibuildwheel 3.x does not support the image {value!r}. Either upgrade to a "
+                f"cibuildwheel 4.x does not support the image {value!r}. Either upgrade to a "
                 "supported image or continue using the image by pinning it directly with"
                 " its full OCI registry '<name>{:<tag>|@<digest>}'."
             )
@@ -747,6 +797,14 @@ class Options:
             if xbuild_tools == ["\u0000"]:
                 xbuild_tools = None
 
+            xbuild_files = parse_key_value_string(
+                self.reader.get(
+                    "xbuild-files",
+                    option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+                ),
+                kw_arg_names=["*"],
+            )
+
             test_sources = shlex.split(
                 self.reader.get(
                     "test-sources", option_format=ListFormat(sep=" ", quote=shlex.quote)
@@ -760,6 +818,20 @@ class Options:
             except (EnvironmentParseError, ValueError) as e:
                 msg = f"Malformed environment option {test_environment_config!r}"
                 raise errors.ConfigurationError(msg) from e
+
+            test_runtime_str = self.reader.get(
+                "test-runtime",
+                env_plat=False,
+                option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+            )
+            if not test_runtime_str:
+                test_runtime = TestRuntimeConfig()
+            else:
+                try:
+                    test_runtime = TestRuntimeConfig.from_config_string(test_runtime_str)
+                except ValueError as e:
+                    msg = f"Failed to parse test runtime config. {e}"
+                    raise errors.ConfigurationError(msg) from e
 
             test_requires = self.reader.get(
                 "test-requires", option_format=ListFormat(sep=" ")
@@ -832,11 +904,7 @@ class Options:
                         f"manylinux-{build_platform}-image", ignore_empty=True
                     )
                     self._check_pinned_image(config_value, pinned_images)
-                    if config_value in pinned_images:
-                        image = pinned_images[config_value]
-                    else:
-                        image = config_value
-                    manylinux_images[build_platform] = image
+                    manylinux_images[build_platform] = pinned_images.get(config_value, config_value)
 
                 for build_platform in MUSLLINUX_ARCHS:
                     pinned_images = all_pinned_container_images[build_platform]
@@ -844,11 +912,7 @@ class Options:
                         f"musllinux-{build_platform}-image", ignore_empty=True
                     )
                     self._check_pinned_image(config_value, pinned_images)
-                    if config_value in pinned_images:
-                        image = pinned_images[config_value]
-                    else:
-                        image = config_value
-                    musllinux_images[build_platform] = image
+                    musllinux_images[build_platform] = pinned_images.get(config_value, config_value)
 
             container_engine_str = self.reader.get(
                 "container-engine",
@@ -863,11 +927,21 @@ class Options:
 
             pyodide_version = self.reader.get("pyodide-version", env_plat=False)
 
+            audit_command_str = self.reader.get(
+                "audit-command", option_format=ListFormat(sep=" && ")
+            )
+            audit_command = audit_command_str.split(" && ") if audit_command_str else []
+
+            audit_requires = self.reader.get(
+                "audit-requires", option_format=ListFormat(sep=" ")
+            ).split()
+
             return BuildOptions(
                 globals=self.globals,
                 test_command=test_command,
                 test_sources=test_sources,
                 test_environment=test_environment,
+                test_runtime=test_runtime,
                 test_requires=[*test_requires, *test_requirements_from_groups],
                 test_extras=test_extras,
                 test_groups=test_groups,
@@ -876,6 +950,7 @@ class Options:
                 before_all=before_all,
                 build_verbosity=build_verbosity,
                 xbuild_tools=xbuild_tools,
+                xbuild_files=xbuild_files,
                 repair_command=repair_command,
                 environment=environment,
                 dependency_constraints=dependency_constraints,
@@ -885,6 +960,8 @@ class Options:
                 config_settings=config_settings,
                 container_engine=container_engine,
                 pyodide_version=pyodide_version or None,
+                audit_command=audit_command,
+                audit_requires=audit_requires,
             )
 
     def check_for_invalid_configuration(self, identifiers: Iterable[str]) -> None:
@@ -957,8 +1034,8 @@ class Options:
     def option_summary(
         self,
         option_name: str,
-        option_value: Any,
-        default_value: Any,
+        option_value: Any,  # noqa: ANN401
+        default_value: Any,  # noqa: ANN401
         overrides: Mapping[str, Any] | None = None,
         skip_unset: bool = False,
     ) -> str | None:
@@ -1010,7 +1087,7 @@ class Options:
             return value
 
     @staticmethod
-    def option_summary_value(option_value: Any) -> str:
+    def option_summary_value(option_value: Any) -> str:  # noqa: ANN401
         if hasattr(option_value, "options_summary"):
             option_value = option_value.options_summary()
 

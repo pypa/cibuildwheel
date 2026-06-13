@@ -1,6 +1,14 @@
+from __future__ import annotations
+
 import textwrap
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
+
+    import pytest
 
 pyproject_toml = r"""
 [build-system]
@@ -11,6 +19,7 @@ build-backend = "setuptools.build_meta"
 limited_api_project = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
         r"""
+        import sys
         import sysconfig
 
         IS_CPYTHON = sys.implementation.name == "cpython"
@@ -31,7 +40,7 @@ limited_api_project = test_projects.new_c_project(
 limited_api_project.files["pyproject.toml"] = pyproject_toml
 
 
-def test_abi3(tmp_path):
+def test_abi3(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     limited_api_project.generate(project_dir)
 
@@ -40,15 +49,20 @@ def test_abi3(tmp_path):
         project_dir,
         add_env={
             # free_threaded, GraalPy, and PyPy do not have a Py_LIMITED_API equivalent, just build one of those
+            # pyodide uses cp314 (the latest stable version) which supports limited API / abi3
             # also limit the number of builds for test performance reasons
-            "CIBW_BUILD": "cp39-* cp310-* pp310-* gp312_250-* cp312-* cp313t-*",
+            "CIBW_BUILD": (
+                "cp314-*"
+                if utils.get_platform() == "pyodide"
+                else "cp39-* cp310-* pp310-* gp312_250-* cp312-* cp314t-*"
+            ),
             "CIBW_ENABLE": "all",
         },
     )
 
     # check that the expected wheels are produced
     if utils.get_platform() == "pyodide":
-        # there's only 1 possible configuration for pyodide, cp312. It builds
+        # there's only 1 possible configuration for pyodide, cp313. It builds
         # a wheel that is tagged abi3, compatible back to 3.10
         expected_wheels = utils.expected_wheels(
             "spam",
@@ -62,7 +76,7 @@ def test_abi3(tmp_path):
             python_abi_tags=[
                 "cp39-cp39",
                 "cp310-abi3",  # <-- ABI3, works with 3.10 and 3.12
-                "cp313-cp313t",
+                "cp314-cp314t",
                 "pp310-pypy310_pp73",
                 "graalpy312-graalpy250_312_native",
             ],
@@ -178,7 +192,7 @@ ctypes_project.files["test/add_test.py"] = textwrap.dedent(
 ctypes_project.files["pyproject.toml"] = pyproject_toml
 
 
-def test_abi_none(tmp_path, capfd):
+def test_abi_none(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     project_dir = tmp_path / "project"
     ctypes_project.generate(project_dir)
 
@@ -189,7 +203,7 @@ def test_abi_none(tmp_path, capfd):
             "CIBW_TEST_REQUIRES": "pytest",
             "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} {{project}}/test",
             # limit the number of builds for test performance reasons
-            "CIBW_BUILD": "cp38-* cp{}{}-* cp313t-* pp310-*".format(*utils.SINGLE_PYTHON_VERSION),
+            "CIBW_BUILD": "cp39-* cp{}{}-* cp314t-* pp310-*".format(*utils.SINGLE_PYTHON_VERSION),
             "CIBW_ENABLE": "all",
         },
     )

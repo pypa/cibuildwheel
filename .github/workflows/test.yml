@@ -28,6 +28,8 @@ on:
   workflow_dispatch:
     # allow manual runs on branches without a PR
 
+permissions: {}
+
 concurrency:
   group: test-${{ github.ref }}
   cancel-in-progress: true
@@ -37,18 +39,42 @@ jobs:
     name: Linters (mypy, ruff, etc.)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
-    - uses: actions/setup-python@v6
-      id: python
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:
         python-version: "3.x"
-    - uses: pre-commit/action@v3.0.1
+    - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+    - uses: j178/prek-action@bdca6f102f98e2b4c7029491a53dfd366469e33d # v2.0.4
     - name: PyLint checks
-      run: pipx run --python "${{ steps.python.outputs.python-path }}" nox -s pylint -- --output-format=github
+      run: uvx nox -s pylint -- --output-format=github
+
+  sample:
+    name: Generate a sample project
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+      name: Install Python
+      with:
+        python-version: "3.x"
+    - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+    - name: Install dependencies
+      run: uv sync --no-dev --group test
+    - name: Generate a sample project
+      run: uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: sample_proj
+        path: sample_proj
 
   test:
     name: Test on ${{ matrix.os }} (${{ matrix.python_version }}) ${{ matrix.test_select }}
-    needs: lint
+    needs: sample
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -59,9 +85,9 @@ jobs:
           python_version: '3.11'
         # Max Python
         - os: ubuntu-latest
-          python_version: '3.14'
+          python_version: '3.15'
         - os: ubuntu-latest
-          python_version: '3.13'
+          python_version: '3.14'
           test_select: android
         - os: ubuntu-24.04-arm
           python_version: '3.13'
@@ -76,50 +102,60 @@ jobs:
         - os: macos-15-intel
           python_version: '3.13'
           test_select: ios
-        - os: macos-14  # See https://github.com/actions/runner-images/issues/12777
+        - os: macos-15
           python_version: '3.13'
           test_select: ios
+          # Exercise iOS on a non-default simulator.
+          test_runtime: 'args: --simulator "iPhone 16e,OS=18.5"'
         - os: macos-15-intel
           python_version: '3.13'
           test_select: android
+          # Exercise Android on a non-default simulator
+          test_runtime: 'args: --managed minVersion'
         - os: macos-15
           python_version: '3.13'
           test_select: android
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v5
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       name: Install Python ${{ matrix.python_version }}
       with:
         python-version: ${{ matrix.python_version }}
         allow-prereleases: true
 
-    - uses: astral-sh/setup-uv@v6
+    - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
     - name: Free up disk space
-      if: runner.os == 'Linux'
+      if: runner.os == 'Linux' && matrix.test_select != 'android'
       run: |
-        docker system prune -a -f
-        sudo rm -rf $ANDROID_HOME/ndk/{26,28}.* /opt/hostedtoolcache/CodeQL \
+        sudo rm -rf $ANDROID_HOME/ndk /opt/hostedtoolcache/CodeQL \
           /usr/local/lib/node_modules /usr/local/share/chromium \
           /usr/local/share/powershell
-        df -h
+        df -m
 
     # for oci_container unit tests
     - name: Set up QEMU
       if: runner.os == 'Linux'
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
+
+    - name: Set up Xcode
+      if: ${{ startsWith(matrix.os, 'macos-15') }}
+      run: |
+        # GitHub recommends explicitly selecting the desired Xcode version
+        sudo xcode-select --switch /Applications/Xcode_16.4.app
 
     - name: Install dependencies
-      run: |
-        uv sync --no-dev --group test
+      run: uv sync --no-dev --group test
 
-    - uses: joerick/pr-labels-action@v1.0.9
+    - uses: joerick/pr-labels-action@0543b277721e852d821c6738d449f2f4dea03d5f # v1.0.9
 
     - name: Set CIBW_ENABLE
       shell: bash
       run: |
-        if [[ "${{ github.ref_name }}" == "main" ]]; then
+        if [[ "$GITHUB_REF_NAME" == "main" ]]; then
           CIBW_ENABLE=all
         else
           # get the default CIBW_ENABLE value from the test module
@@ -135,9 +171,11 @@ jobs:
         fi
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
-    - name: Generate a sample project
-      run: |
-        uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
+    - name: Download a sample project
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: sample_proj
+        path: sample_proj
 
     - name: Run a sample build (GitHub Action)
       uses: ./
@@ -148,6 +186,7 @@ jobs:
         CIBW_ARCHS_MACOS: x86_64 universal2 arm64
         CIBW_BUILD_FRONTEND: ${{ matrix.test_select && 'build' || 'build[uv]' }}
         CIBW_PLATFORM: ${{ matrix.test_select }}
+        CIBW_TEST_RUNTIME: ${{ matrix.test_runtime }}
 
     - name: Run a sample build (GitHub Action, only)
       uses: ./
@@ -173,6 +212,7 @@ jobs:
       uses: ./
       env:
         CIBW_PLATFORM: ${{ matrix.test_select }}
+        CIBW_TEST_RUNTIME: ${{ matrix.test_runtime }}
       with:
         package-dir: sample_proj
         output-dir: wheelhouse_config_file
@@ -190,14 +230,15 @@ jobs:
       run: |
         test $(find wheelhouse_only -name '*.whl' | wc -l) -eq 1
 
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
       with:
         name: cibw-wheels-${{ matrix.os }}-${{ strategy.job-index }}
         path: wheelhouse/*.whl
 
     - name: Test cibuildwheel
-      run: |
-        uv run --no-sync bin/run_tests.py --test-select=${{ matrix.test_select || 'native' }} ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
+      env:
+        CIBW_TEST_RUNTIME: ${{ matrix.test_runtime }}
+      run: uv run --no-sync bin/run_tests.py --test-select=${{ matrix.test_select || 'native' }} ${{ (runner.os == 'Linux' && runner.arch == 'X64') && '--run-podman' || '' }}
 
   emulated-archs:
     name: Get qemu emulated architectures
@@ -206,11 +247,13 @@ jobs:
     outputs:
       archs: ${{ steps.archs.outputs.archs }}
     steps:
-    - uses: actions/checkout@v5
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@v6
+    - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
     - name: Install dependencies
       run: uv sync --no-dev --group test
     - name: Get qemu emulated architectures
@@ -229,39 +272,47 @@ jobs:
       matrix:
         arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
     steps:
-    - uses: actions/checkout@v5
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@v6
+    - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
     - name: Install dependencies
       run: uv sync --no-dev --group test
 
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
+      uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
 
     - name: Run the emulation tests
-      run: uv run --no-sync pytest --run-emulation ${{ matrix.arch }} test/test_emulation.py
+      env:
+        MATRIX_ARCH: ${{ matrix.arch }}
+      run: uv run --no-sync pytest --run-emulation "$MATRIX_ARCH" test/test_emulation.py
 
   test-pyodide:
     name: Test pyodide
-    needs: lint
+    needs: sample
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@v5
-    - uses: actions/setup-python@v6
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       name: Install Python 3.12
       with:
         python-version: '3.12'
-    - uses: astral-sh/setup-uv@v6
+    - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
     - name: Install dependencies
       run: uv sync --no-dev --group test
 
-    - name: Generate a sample project
-      run: |
-        uv run --no-sync -m test.test_projects test.test_0_basic.basic_project sample_proj
+    - name: Download a sample project
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: sample_proj
+        path: sample_proj
 
     - name: Run a sample build (GitHub Action)
       uses: ./
@@ -270,9 +321,49 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_PLATFORM: pyodide
+        CIBW_ENABLE: pyodide-prerelease
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
-      run: |
-        uv run --no-sync ./bin/run_tests.py
+      run: uv run --no-sync ./bin/run_tests.py
       env:
         CIBW_PLATFORM: pyodide
+        CIBW_ENABLE: pyodide-prerelease
+
+  test-uv-extras:
+    name: Test uv extra on ${{ matrix.os }} ${{ matrix.test_select }}
+    needs: sample
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu-latest
+          test_select: android
+        - os: windows-latest
+        - os: windows-11-arm
+        - os: macos-15-intel
+        - os: macos-15
+        - os: macos-15-intel
+          test_select: android
+        - os: macos-15
+          test_select: android
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+    - name: Download a sample project
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: sample_proj
+        path: sample_proj
+    - name: Run a sample build (GitHub Action)
+      uses: ./
+      with:
+        extras: uv
+        package-dir: sample_proj
+        output-dir: wheelhouse
+      env:
+        CIBW_ARCHS_MACOS: x86_64 universal2 arm64
+        CIBW_BUILD: cp314-*
+        CIBW_BUILD_FRONTEND: 'build[uv]'
+        CIBW_PLATFORM: ${{ matrix.test_select }}

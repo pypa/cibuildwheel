@@ -1,3 +1,8 @@
+---
+title: Options
+ref: options
+---
+
 # Options
 
 <div class="options-toc"></div>
@@ -45,7 +50,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
 
 > Choose the Python versions to build
 
-List of builds to build and skip. Each build has an identifier like `cp38-manylinux_x86_64` or `cp37-macosx_x86_64` - you can list specific ones to build and cibuildwheel will only build those, and/or list ones to skip and cibuildwheel won't try to build them.
+List of builds to build and skip. Each build has an identifier like `cp314-manylinux_x86_64` or `cp313-macosx_x86_64` - you can list specific ones to build and cibuildwheel will only build those, and/or list ones to skip and cibuildwheel won't try to build them.
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `build` and does not match `skip` will be built.
 
@@ -54,18 +59,16 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 <div class="build-id-table-marker"></div>
 |               | macOS                                                                  | Windows                                             | Linux Intel                                                                                         | Linux Other                                                                                                                                                                                                                                                                   | Android                                          | iOS                                                                                               | pyodide (WASM)       |
 |---------------|------------------------------------------------------------------------|-----------------------------------------------------|-----------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------|----------------------|
-| Python 3.8    | cp38-macosx_x86_64<br/>cp38-macosx_universal2<br/>cp38-macosx_arm64    | cp38-win_amd64<br/>cp38-win32                       | cp38-manylinux_x86_64<br/>cp38-manylinux_i686<br/>cp38-musllinux_x86_64<br/>cp38-musllinux_i686     | cp38-manylinux_aarch64<br/>cp38-manylinux_ppc64le<br/>cp38-manylinux_s390x<br/>cp38-manylinux_armv7l<br/>cp38-manylinux_riscv64<br/>cp38-musllinux_aarch64<br/>cp38-musllinux_ppc64le<br/>cp38-musllinux_s390x<br/>cp38-musllinux_armv7l<br/>cp38-musllinux_riscv64           |                                                  |                                                                                                   |                      |
 | Python 3.9    | cp39-macosx_x86_64<br/>cp39-macosx_universal2<br/>cp39-macosx_arm64    | cp39-win_amd64<br/>cp39-win32<br/>cp39-win_arm64    | cp39-manylinux_x86_64<br/>cp39-manylinux_i686<br/>cp39-musllinux_x86_64<br/>cp39-musllinux_i686     | cp39-manylinux_aarch64<br/>cp39-manylinux_ppc64le<br/>cp39-manylinux_s390x<br/>cp39-manylinux_armv7l<br/>cp39-manylinux_riscv64<br/>cp39-musllinux_aarch64<br/>cp39-musllinux_ppc64le<br/>cp39-musllinux_s390x<br/>cp39-musllinux_armv7l<br/>cp39-musllinux_riscv64           |                                                  |                                                                                                   |                      |
 | Python 3.10   | cp310-macosx_x86_64<br/>cp310-macosx_universal2<br/>cp310-macosx_arm64 | cp310-win_amd64<br/>cp310-win32<br/>cp310-win_arm64 | cp310-manylinux_x86_64<br/>cp310-manylinux_i686<br/>cp310-musllinux_x86_64<br/>cp310-musllinux_i686 | cp310-manylinux_aarch64<br/>cp310-manylinux_ppc64le<br/>cp310-manylinux_s390x<br/>cp310-manylinux_armv7l<br/>cp310-manylinux_riscv64<br/>cp310-musllinux_aarch64<br/>cp310-musllinux_ppc64le<br/>cp310-musllinux_s390x<br/>cp310-musllinux_armv7l<br/>cp310-musllinux_riscv64 |                                                  |                                                                                                   |                      |
 | Python 3.11   | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-manylinux_armv7l<br/>cp311-manylinux_riscv64<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x<br/>cp311-musllinux_armv7l<br/>cp311-musllinux_riscv64 |                                                  |                                                                                                   |                      |
 | Python 3.12   | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-manylinux_armv7l<br/>cp312-manylinux_riscv64<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x<br/>cp312-musllinux_armv7l<br/>cp312-musllinux_riscv64 |                                                  |                                                                                                   | cp312-pyodide_wasm32 |
 | Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64 | cp313-android_arm64_v8a<br/>cp313-android_x86_64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator | cp313-pyodide_wasm32 |
-| Python 3.14   | cp314-macosx_x86_64<br/>cp314-macosx_universal2<br/>cp314-macosx_arm64 | cp314-win_amd64<br/>cp314-win32<br/>cp314-win_arm64 | cp314-manylinux_x86_64<br/>cp314-manylinux_i686<br/>cp314-musllinux_x86_64<br/>cp314-musllinux_i686 | cp314-manylinux_aarch64<br/>cp314-manylinux_ppc64le<br/>cp314-manylinux_s390x<br/>cp314-manylinux_armv7l<br/>cp314-manylinux_riscv64<br/>cp314-musllinux_aarch64<br/>cp314-musllinux_ppc64le<br/>cp314-musllinux_s390x<br/>cp314-musllinux_armv7l<br/>cp314-musllinux_riscv64 | cp314-android_arm64_v8a<br/>cp314-android_x86_64 | cp314-ios_arm64_iphoneos<br/>cp314-ios_arm64_iphonesimulator<br/>cp314-ios_x86_64_iphonesimulator |                      |
-| PyPy3.8 v7.3  | pp38-macosx_x86_64<br/>pp38-macosx_arm64                               | pp38-win_amd64                                      | pp38-manylinux_x86_64<br/>pp38-manylinux_i686                                                       | pp38-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
+| Python 3.14   | cp314-macosx_x86_64<br/>cp314-macosx_universal2<br/>cp314-macosx_arm64<br><br>cp314t-macosx_x86_64<br/>cp314t-macosx_universal2<br/>cp314t-macosx_arm64 | cp314-win_amd64<br/>cp314-win32<br/>cp314-win_arm64<br><br>cp314t-win_amd64<br/>cp314t-win32<br/>cp314t-win_arm64 | cp314-manylinux_x86_64<br/>cp314-manylinux_i686<br/>cp314-musllinux_x86_64<br/>cp314-musllinux_i686<br><br>cp314t-manylinux_x86_64<br/>cp314t-manylinux_i686<br/>cp314t-musllinux_x86_64<br/>cp314t-musllinux_i686 | cp314-manylinux_aarch64<br/>cp314-manylinux_ppc64le<br/>cp314-manylinux_s390x<br/>cp314-manylinux_armv7l<br/>cp314-manylinux_riscv64<br/>cp314-musllinux_aarch64<br/>cp314-musllinux_ppc64le<br/>cp314-musllinux_s390x<br/>cp314-musllinux_armv7l<br/>cp314-musllinux_riscv64<br><br>cp314t-manylinux_aarch64<br/>cp314t-manylinux_ppc64le<br/>cp314t-manylinux_s390x<br/>cp314t-manylinux_armv7l<br/>cp314t-manylinux_riscv64<br/>cp314t-musllinux_aarch64<br/>cp314t-musllinux_ppc64le<br/>cp314t-musllinux_s390x<br/>cp314t-musllinux_armv7l<br/>cp314t-musllinux_riscv64 | cp314-android_arm64_v8a<br/>cp314-android_x86_64 | cp314-ios_arm64_iphoneos<br/>cp314-ios_arm64_iphonesimulator<br/>cp314-ios_x86_64_iphonesimulator |                      |
+| Python 3.15   | cp315-macosx_x86_64<br/>cp315-macosx_universal2<br/>cp315-macosx_arm64<br><br>cp315t-macosx_x86_64<br/>cp315t-macosx_universal2<br/>cp315t-macosx_arm64 | cp315-win_amd64<br/>cp315-win32<br/>cp315-win_arm64<br><br>cp315t-win_amd64<br/>cp315t-win32<br/>cp315t-win_arm64 | cp315-manylinux_x86_64<br/>cp315-manylinux_i686<br/>cp315-musllinux_x86_64<br/>cp315-musllinux_i686<br><br>cp315t-manylinux_x86_64<br/>cp315t-manylinux_i686<br/>cp315t-musllinux_x86_64<br/>cp315t-musllinux_i686 | cp315-manylinux_aarch64<br/>cp315-manylinux_ppc64le<br/>cp315-manylinux_s390x<br/>cp315-manylinux_armv7l<br/>cp315-manylinux_riscv64<br/>cp315-musllinux_aarch64<br/>cp315-musllinux_ppc64le<br/>cp315-musllinux_s390x<br/>cp315-musllinux_armv7l<br/>cp315-musllinux_riscv64<br><br>cp315t-manylinux_aarch64<br/>cp315t-manylinux_ppc64le<br/>cp315t-manylinux_s390x<br/>cp315t-manylinux_armv7l<br/>cp315t-manylinux_riscv64<br/>cp315t-musllinux_aarch64<br/>cp315t-musllinux_ppc64le<br/>cp315t-musllinux_s390x<br/>cp315t-musllinux_armv7l<br/>cp315t-musllinux_riscv64 | cp315-android_arm64_v8a<br/>cp315-android_x86_64 | cp315-ios_arm64_iphoneos<br/>cp315-ios_arm64_iphonesimulator<br/>cp315-ios_x86_64_iphonesimulator |                      |
 | PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
 | PyPy3.10 v7.3 | pp310-macosx_x86_64<br/>pp310-macosx_arm64                             | pp310-win_amd64                                     | pp310-manylinux_x86_64<br/>pp310-manylinux_i686                                                     | pp310-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
 | PyPy3.11 v7.3 | pp311-macosx_x86_64<br/>pp311-macosx_arm64                             | pp311-win_amd64                                     | pp311-manylinux_x86_64<br/>pp311-manylinux_i686                                                     | pp311-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
-| GraalPy 3.11 v24.2 | gp311_242-macosx_x86_64<br/>gp311_242-macosx_arm64                             | gp311_242-win_amd64                                     | gp311_242-manylinux_x86_64                                                                              | gp311_242-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                                                                   |                      |
 | GraalPy 3.12 v25.0 | gp312_250-macosx_x86_64<br/>gp312_250-macosx_arm64                             | gp312_250-win_amd64                                     | gp312_250-manylinux_x86_64                                                                              | gp312_250-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                                                                   |                      |
 
 The list of supported and currently selected build identifiers can also be retrieved by passing the `--print-build-identifiers` flag to cibuildwheel.
@@ -81,29 +84,29 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 
     ```toml
     [tool.cibuildwheel]
-    # Only build on CPython 3.8
-    build = "cp38-*"
+    # Only build on CPython 3.14
+    build = "cp314-*"
 
-    # Skip building on CPython 3.8 on the Mac
-    skip = "cp38-macosx_x86_64"
+    # Skip building on CPython 3.9 on the Mac
+    skip = "cp39-macosx_x86_64"
 
-    # Skip building on CPython 3.8 on all platforms
-    skip = "cp38-*"
+    # Skip building on CPython 3.9 on all platforms
+    skip = "cp39-*"
 
-    # Skip CPython 3.8 on Windows
-    skip = "cp38-win*"
+    # Skip CPython 3.9 on Windows
+    skip = "cp39-win*"
 
-    # Skip CPython 3.8 on 32-bit Windows
-    skip = "cp38-win32"
+    # Skip CPython 3.9 on 32-bit Windows
+    skip = "cp39-win32"
 
-    # Skip CPython 3.8 and CPython 3.9
-    skip = ["cp38-*", "cp39-*"]
+    # Skip CPython 3.9 and CPython 3.10
+    skip = ["cp39-*", "cp310-*"]
 
-    # Skip Python 3.8 on Linux
-    skip = "cp38-manylinux*"
+    # Skip Python 3.9 on Linux
+    skip = "cp39-*linux*"
 
     # Skip 32-bit builds
-    skip = ["*-win32", "*-manylinux_i686"]
+    skip = ["*-win32", "*-*linux_i686"]
 
     # Disable building PyPy wheels on all platforms
     skip = "pp*"
@@ -118,29 +121,29 @@ See the [cibuildwheel 2 documentation](https://cibuildwheel.pypa.io/en/2.x/) for
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Only build on CPython 3.8
-    CIBW_BUILD: cp38-*
+    # Only build on CPython 3.14
+    CIBW_BUILD: cp314-*
 
-    # Skip building on CPython 3.8 on the Mac
-    CIBW_SKIP: cp38-macosx_x86_64
+    # Skip building on CPython 3.9 on the Mac
+    CIBW_SKIP: cp39-macosx_x86_64
 
-    # Skip building on CPython 3.8 on all platforms
-    CIBW_SKIP: cp38-*
+    # Skip building on CPython 3.9 on all platforms
+    CIBW_SKIP: cp39-*
 
-    # Skip CPython 3.8 on Windows
-    CIBW_SKIP: cp38-win*
+    # Skip CPython 3.9 on Windows
+    CIBW_SKIP: cp39-win*
 
-    # Skip CPython 3.8 on 32-bit Windows
-    CIBW_SKIP: cp38-win32
+    # Skip CPython 3.9 on 32-bit Windows
+    CIBW_SKIP: cp39-win32
 
-    # Skip CPython 3.8 and CPython 3.9
-    CIBW_SKIP: cp38-* cp39-*
+    # Skip CPython 3.9 and CPython 3.10
+    CIBW_SKIP: cp39-* cp310-*
 
-    # Skip Python 3.8 on Linux
-    CIBW_SKIP: cp38-manylinux*
+    # Skip Python 3.9 on Linux
+    CIBW_SKIP: cp39-*linux*
 
     # Skip 32-bit builds
-    CIBW_SKIP: "*-win32 *-manylinux_i686"
+    CIBW_SKIP: "*-win32 *-*linux_i686"
 
     # Disable building PyPy wheels on all platforms
     CIBW_SKIP: pp*
@@ -304,7 +307,7 @@ simple keyword assignment in a top level function call. If you need to override
 this behaviour for some reason, you can use this option.
 
 When setting this option, the syntax is the same as `project.requires-python`,
-using 'version specifiers' like `>=3.8`, according to
+using 'version specifiers' like `>=3.12`, according to
 [PEP440](https://www.python.org/dev/peps/pep-0440/#version-specifiers).
 
 Default: reads your package's Python compatibility from `pyproject.toml`
@@ -325,7 +328,7 @@ the package is compatible with all versions of Python that it can build.
         ```toml
         [project]
         ...
-        requires-python = ">=3.8"
+        requires-python = ">=3.12"
         ```
 
         Note that not all build backends fully support using a `[project]` table yet;
@@ -341,7 +344,7 @@ the package is compatible with all versions of Python that it can build.
 !!! tab examples "Environment variables"
 
     ```yaml
-    CIBW_PROJECT_REQUIRES_PYTHON: ">=3.8"
+    CIBW_PROJECT_REQUIRES_PYTHON: ">=3.12"
     ```
 
 ### `enable` {: #enable toml env-var}
@@ -355,15 +358,14 @@ values are:
 
 - `cpython-prerelease`: Enables beta versions of Pythons if any are available
   (May-July, approximately).
-- `cpython-freethreading`: Enable experimental free-threaded builds for CPython 3.13.
-  Free-threading wheels for 3.14+ are available without this flag, as it's [no
-  longer considered experimental](https://peps.python.org/pep-0779/).
 - `pypy`: Enable PyPy.
 - `pypy-eol`: Enable PyPy versions that have passed end of life (if still available).
 - `graalpy`: Enable GraalPy.
 - `pyodide-prerelease`: Pyodide versions that haven't released yet, if one is
   available. Safe if you are shipping a site with an early build, not for
   general distribution.
+- `pyodide-eol`: Enable Pyodide versions that are no longer the current stable
+  release (if still available).
 - `all`: Enable all of the above.
 
 !!! caution
@@ -379,9 +381,7 @@ values are:
     CPython that can be built without the Global Interpreter Lock (GIL). Those
     variants are also known as free-threaded / no-gil. The build identifiers for
     those variants have a `t` suffix in their `python_tag` (e.g.
-    `cp313t-manylinux_x86_64`).
-
-    Free threading was [experimental in 3.13](https://docs.python.org/3.13/whatsnew/3.13.html#free-threaded-cpython), so it required an explicit enable flag. But, as noted above, free-threading doesn't require an enable flag for 3.14+.
+    `cp314t-manylinux_x86_64`).
 
     For more info on building for free-threading, see the [Python Free-Threading Guide](https://py-free-threading.github.io/).
 
@@ -407,9 +407,6 @@ without disabling your other enables.
 
     ```toml
     [tool.cibuildwheel]
-    # Enable free-threaded support for CPython 3.13
-    enable = ["cpython-freethreading"]
-
     # Include all PyPy versions
     enable = ["pypy", "pypy-eol"]
     ```
@@ -421,14 +418,11 @@ without disabling your other enables.
     # Include latest Python beta
     CIBW_ENABLE: cpython-prerelease
 
-    # Include free-threaded support for CPython 3.13
-    CIBW_ENABLE: cpython-freethreading
-
-    # Include both
-    CIBW_ENABLE: cpython-prerelease cpython-freethreading
-
     # Include all PyPy versions
     CIBW_ENABLE: pypy pypy-eol
+
+    # Include both
+    CIBW_ENABLE: cpython-prerelease pypy pypy-eol
     ```
 
 
@@ -465,6 +459,7 @@ Options:
 - `build[;args: ...]`
 - `build[uv][;args: ...]`
 - `pip[;args: ...]`
+- `uv[;args: ...]`
 
 Default: `build`
 
@@ -474,12 +469,19 @@ You can use "build\[uv\]", which will use an external [uv][] everywhere
 possible, both through `--installer=uv` passed to build, as well as when making
 all build and test environments. This will generally speed up cibuildwheel.
 Make sure you have an external uv on Windows and macOS, either by
-pre-installing it, or installing cibuildwheel with the uv extra,
-`cibuildwheel[uv]`. uv currently does not support Windows on ARM,
-musllinux on s390x, Android, or iOS. Legacy dependencies like
-setuptools on Python < 3.12 and pip are not installed if using uv.
+pre-installing it, or installing cibuildwheel with the `uv` extra, which is
+possible by manually passing `cibuildwheel[uv]` to installers or by using the
+`extras` option in the [cibuildwheel action](ci-services.md#github-actions).
+uv currently does not support iOS or musllinux on s390x, ppc64le and riscv64.
+You can also use the `uv` backend directly; though currently multiple output
+files (from workspaces) are not supported.
 
-On Android and Pyodide, only "build" is supported.
+!!! note
+    There is currently a compatibility issue between GraalPy and uv. If you
+    are building GraalPy wheels, use `build` or `pip` as the build frontend
+    instead of `build[uv]` or `uv`.
+
+On Android and Pyodide, the "pip" frontend is not supported.
 
 You can specify extra arguments to pass to the build frontend using the
 optional `args` option.
@@ -511,6 +513,9 @@ optional `args` option.
 
     # Use uv and build with an argument
     build-frontend = { name = "build[uv]", args = ["--no-isolation"] }
+
+    # Use uv directly
+    build-frontend = "uv"
     ```
 
 !!! tab examples "Environment variables"
@@ -527,6 +532,9 @@ optional `args` option.
 
     # Use uv and build with an argument
     CIBW_BUILD_FRONTEND: "build[uv]; args: --no-isolation"
+
+    # Use uv directly
+    CIBW_BUILD_FRONTEND: "uv"
     ```
 
 
@@ -537,6 +545,9 @@ optional `args` option.
 Specify config settings for the build backend. Each space separated
 item will be passed via `--config-setting`. In TOML, you can specify
 a table of items, including arrays.
+
+You can use the `{project}` or `{package}` placeholders in `config-settings`
+to refer to the project root or package being built, respectively.
 
 !!! tip
     Currently, "build" supports arrays for options, but "pip" only supports
@@ -561,6 +572,14 @@ Platform-specific environment variables also available:<br/>
     CIBW_CONFIG_SETTINGS: "--build-option=--use-mypyc"
     ```
 
+    ```yaml
+    CIBW_CONFIG_SETTINGS_LINUX: "setup-args=--cross-file={project}/cross_file.txt"
+    ```
+
+    ```yaml
+    CIBW_CONFIG_SETTINGS: "editable-verbose=true source-dir={package}"
+    ```
+
 
 
 
@@ -572,6 +591,13 @@ A list of environment variables to set during the build and test phases. Bash sy
 You must use this variable to pass variables to Linux builds, since they execute in a container. It also works for the other platforms.
 
 You can use `$PATH` syntax to insert other variables, or the `$(pwd)` syntax to insert the output of other shell commands.
+Variables are evaluated in the order they appear. Any variable referenced before it is set will evaluate to an empty string.
+
+The environment seen by the build and test steps starts with the build
+environment. On Linux, this is the container environment, plus any variables
+passed through with [`environment-pass`](#environment-pass). On other platforms,
+the host environment is already available. Assignments in `environment` are
+evaluated after that base environment and replace any duplicate variable names.
 
 To specify more than one environment variable, separate the assignments by spaces.
 
@@ -619,6 +645,8 @@ Platform-specific environment variables are also available:<br/>
 
     In configuration files, you can use a [TOML][] table instead of a raw string as shown above.
 
+[TOML]: https://toml.io/en/
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -650,6 +678,9 @@ Platform-specific environment variables are also available:<br/>
 
 !!! note
     cibuildwheel always defines the environment variable `CIBUILDWHEEL=1`. This can be useful for [building wheels with optional extensions](faq.md#optional-extensions).
+
+!!! note
+    For each per-build step (`before_build`, the build itself, `repair_command`, `before_test`, `test_command`), cibuildwheel also sets `CIBUILDWHEEL_BUILD_IDENTIFIER` to the current build identifier (e.g. `cp311-manylinux_x86_64`). This can be used in scripts to distinguish different builds.
 
 !!! note
     To do its work, cibuildwheel sets the variables `VIRTUALENV_PIP`, `DIST_EXTRA_CONFIG`, `SETUPTOOLS_EXT_SUFFIX`, `PIP_DISABLE_PIP_VERSION_CHECK`, `PIP_ROOT_USER_ACTION`, and it extends the variables `PATH` and `PIP_CONSTRAINT`. Your assignments to these options might be replaced or extended.
@@ -702,6 +733,17 @@ This option is very useful for the Linux build, where builds take place in isola
 The placeholder `{package}` can be used here; it will be replaced by the path to the package being built by cibuildwheel.
 
 On Windows and macOS, the version of Python available inside `before-all` is whatever is available on the host machine. On Linux, a modern Python version is available on PATH.
+
+!!! note "Shell selection"
+
+    Shell command options such as `before-all`, `before-build`,
+    `repair-wheel-command`, and `before-test` are executed by a platform shell.
+    Linux builds run inside the build container and invoke the container's `sh -c`.
+    On macOS and Windows, cibuildwheel calls Python's
+    `subprocess.run(..., shell=True)`, which normally means `/bin/sh` on macOS
+    and `cmd.exe` on Windows. If you need a specific interpreter, invoke it
+    explicitly, for example `python scripts/prepare.py` or
+    `bash scripts/prepare.sh`.
 
 This option has special behavior in the overrides section in `pyproject.toml`.
 On linux, overriding it triggers a new container launch. It cannot be overridden
@@ -757,9 +799,9 @@ Platform-specific environment variables also available:<br/>
     here.](https://yaml-multiline.info).
 
 
-Note that `manylinux_2_31` builds occur inside a Debian derivative docker
+Note that `manylinux_2_31`/`manylinux_2_35` builds occur inside a Debian derivative docker
 container, where `manylinux2014` builds occur inside a CentOS one. So for
-`manylinux_2_31` the `before-all` command must use `apt-get -y`
+`manylinux_2_31`/`manylinux_2_35` the `before-all` command must use `apt-get -y`
 instead.
 
 ### `before-build` {: #before-build env-var toml}
@@ -775,6 +817,8 @@ The command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
 Platform-specific environment variables are also available:<br/>
  `CIBW_BEFORE_BUILD_MACOS` | `CIBW_BEFORE_BUILD_WINDOWS` | `CIBW_BEFORE_BUILD_LINUX` | `CIBW_BEFORE_BUILD_ANDROID` | `CIBW_BEFORE_BUILD_IOS` | `CIBW_BEFORE_BUILD_PYODIDE`
+
+In configuration files, use platform tables like `[tool.cibuildwheel.macos]`.
 
 #### Examples
 
@@ -799,6 +843,13 @@ Platform-specific environment variables are also available:<br/>
 
     # If cibuildwheel is called with a package_dir argument, it's available as {package}
     before-build = "{package}/script/prepare_for_build.sh"
+
+    # Use a different command on a specific platform
+    [tool.cibuildwheel.linux]
+    before-build = "python scripts/install-linux-deps.py"
+
+    [tool.cibuildwheel.macos]
+    before-build = "python scripts/install-macos-deps.py"
     ```
 
     In configuration files, you can use a array, and the items will be joined
@@ -819,6 +870,10 @@ Platform-specific environment variables are also available:<br/>
 
     # If cibuildwheel is called with a package_dir argument, it's available as {package}
     CIBW_BEFORE_BUILD: "{package}/script/prepare_for_build.sh"
+
+    # Use a different command on a specific platform
+    CIBW_BEFORE_BUILD_LINUX: python scripts/install-linux-deps.py
+    CIBW_BEFORE_BUILD_MACOS: python scripts/install-macos-deps.py
     ```
 
 
@@ -885,55 +940,78 @@ Platform-specific environment variables are also available on platforms that use
     ```
 
 
-### `repair-wheel-command` {: #repair-wheel-command env-var toml}
-> Execute a shell command to repair each built wheel
+### `xbuild-files` {: #xbuild-files env-var toml}
+> Platform-specific files in the build environment
 
-Default:
+When cross-compiling a package for Android, any dependencies in its [`build-system.requires`](https://packaging.python.org/en/latest/guides/writing-pyproject-toml/) are installed for the build platform. However, some dependencies contain platform-specific files such as headers and static libraries, which must correspond to the target platform.
 
-- on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
-- on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
-- on Android: There is no default command, but cibuildwheel will add `libc++` to the
-  wheel if anything links against it. Setting a command will replace this behavior.
-- on other platforms: `''`
+This option maps a [normalized](https://packaging.python.org/en/latest/specifications/name-normalization/#name-normalization) package name to a list of paths within that package. If the package is present in the build environment, then a matching version will be downloaded for the target platform, and used to overwrite the given paths within the build environment.
 
-A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
-The command is run on each built wheel (except for pure Python ones) before testing it.
-
-The following placeholders must be used inside the command and will be replaced by cibuildwheel:
-
-- `{wheel}` for the absolute path to the built wheel
-- `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
-- `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
-
-The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
+The default value of this option includes [paths from popular packages](configuration.md#configuration-file).
 
 Platform-specific environment variables are also available:<br/>
-`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_ANDROID` | `CIBW_REPAIR_WHEEL_COMMAND_IOS` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
-
-!!! tip
-    cibuildwheel doesn't yet ship a default repair command for Windows.
-
-    **If that's an issue for you, check out [delvewheel]** - a new package that aims to do the same as auditwheel or delocate for Windows.
-
-    Because delvewheel is still relatively early-stage, cibuildwheel does not yet run it by default. However, we'd recommend giving it a try! See the examples below for usage.
-
-    [Delvewheel]: https://github.com/adang1345/delvewheel
-
-!!! tip
-    When using `--platform pyodide`, `pyodide build` is used to do the build,
-    which already uses `auditwheel-emscripten` to repair the wheel, so the default
-    repair command is empty. If there is a way to do this in two steps in the future,
-    this could change.
+ `CIBW_XBUILD_FILES_ANDROID`
 
 #### Examples
 
 !!! tab examples "pyproject.toml"
 
     ```toml
-    # Use delvewheel on windows
+    [tool.cibuildwheel.xbuild-files]
+    package1 = ["some/header.h", "some/library.a"]
+    package2 = ["other/header.h"]
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    CIBW_XBUILD_FILES: "package1: some/header.h some/library.a; package2: other/header.h"
+    ```
+
+
+### `repair-wheel-command` {: #repair-wheel-command env-var toml}
+> Execute a shell command to repair each built wheel
+
+Default:
+
+- on Linux: `'auditwheel repair -w {dest_dir} {wheel}'`
+- on Windows: `'delvewheel repair -w {dest_dir} -v {wheel}'`
+- on macOS: `'delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}'`
+- on Android: `'auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}'`
+- on Pyodide: You can use `pyodide auditwheel repair --libdir /path/to/libraries --output-dir {dest_dir} {wheel}` command to repair the wheel.
+  Unlike other platforms, this command is not set by default as you need to explicitly
+  specify the library directory. You might not want to use the libraries in the system
+  directory, as they are not built for WASM and will not work.
+- on other platforms: `''`
+
+A shell command to repair a built wheel by copying external library dependencies into the wheel tree and relinking them.
+The command is run on each built wheel (except for pure Python ones) before testing it.
+
+!!! note
+    Since cibuildwheel 4.0, `delvewheel` is the default `repair-wheel-command` on Windows, so extension-module DLLs are bundled automatically. If a wheel has a platform tag but contains no extension module (for example, a package that sets a platform tag but ships a pre-built DLL itself), `delvewheel` may error. In that case, set `repair-wheel-command = ""` to skip the repair step.
+
+The following placeholders must be used inside the command and will be replaced by cibuildwheel:
+
+- `{wheel}` for the absolute path to the built wheel
+- `{dest_dir}` for the absolute path of the directory where to create the repaired wheel
+- `{delocate_archs}` (macOS only) comma-separated list of architectures in the wheel.
+- `{ldpaths}` (Android only) colon-separated list of directories to search for external libraries, set by cibuildwheel to include any necessary locations in the NDK. You can add more directories by appending them with a colon separator after the placeholder, or by setting the `AUDITWHEEL_LD_LIBRARY_PATH` environment variable.
+
+You can use the `{package}` or `{project}` placeholders in your `repair-wheel-command` to refer to the package being built or the project root, respectively.
+
+The command is run in a shell, so you can run multiple commands like `cmd1 && cmd2`.
+
+Platform-specific environment variables are also available:<br/>
+`CIBW_REPAIR_WHEEL_COMMAND_MACOS` | `CIBW_REPAIR_WHEEL_COMMAND_WINDOWS` | `CIBW_REPAIR_WHEEL_COMMAND_LINUX` | `CIBW_REPAIR_WHEEL_COMMAND_ANDROID` | `CIBW_REPAIR_WHEEL_COMMAND_IOS` | `CIBW_REPAIR_WHEEL_COMMAND_PYODIDE`
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    # Don't repair Windows wheels
     [tool.cibuildwheel.windows]
-    before-build = "pip install delvewheel"
-    repair-wheel-command = "delvewheel repair -w {dest_dir} {wheel}"
+    repair-wheel-command = ""
 
     # Don't repair macOS wheels
     [tool.cibuildwheel.macos]
@@ -950,23 +1028,10 @@ Platform-specific environment variables are also available:<br/>
       'python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}',
     ]
 
-    # Use abi3audit to catch issues with Limited API wheels
-    [tool.cibuildwheel.linux]
-    repair-wheel-command = [
-      "auditwheel repair -w {dest_dir} {wheel}",
-      "pipx run abi3audit --strict --report {wheel}",
-    ]
-    [tool.cibuildwheel.macos]
-    repair-wheel-command = [
-      "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
-      "pipx run abi3audit --strict --report {wheel}",
-    ]
-    [tool.cibuildwheel.windows]
-    repair-wheel-command = [
-      "copy {wheel} {dest_dir}",
-      "pipx run abi3audit --strict --report {wheel}",
-    ]
     ```
+
+    !!! note
+        cibuildwheel automatically runs [abi3audit](https://github.com/trailofbits/abi3audit) on abi3 wheels after the repair step. You no longer need to add it to your repair command manually.
 
     In configuration files, you can use an inline array, and the items will be joined with `&&`.
 
@@ -974,9 +1039,8 @@ Platform-specific environment variables are also available:<br/>
 !!! tab examples "Environment variables"
 
     ```yaml
-    # Use delvewheel on windows
-    CIBW_BEFORE_BUILD_WINDOWS: "pip install delvewheel"
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "delvewheel repair -w {dest_dir} {wheel}"
+    # Don't repair Windows wheels
+    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: ""
 
     # Don't repair macOS wheels
     CIBW_REPAIR_WHEEL_COMMAND_MACOS: ""
@@ -989,16 +1053,6 @@ Platform-specific environment variables are also available:<br/>
       python scripts/repair_wheel.py -w {dest_dir} {wheel} &&
       python scripts/check_repaired_wheel.py -w {dest_dir} {wheel}
 
-    # Use abi3audit to catch issues with Limited API wheels
-    CIBW_REPAIR_WHEEL_COMMAND_LINUX: >
-      auditwheel repair -w {dest_dir} {wheel} &&
-      pipx run abi3audit --strict --report {wheel}
-    CIBW_REPAIR_WHEEL_COMMAND_MACOS: >
-      delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} &&
-      pipx run abi3audit --strict --report {wheel}
-    CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-      copy {wheel} {dest_dir} &&
-      pipx run abi3audit --strict --report {wheel}
     ```
 
 
@@ -1034,7 +1088,7 @@ Set the Docker image to be used for building [manylinux / musllinux](https://git
 
 For `manylinux-*-image`, except `manylinux-armv7l-image` and `manylinux-riscv64-image`, the value of this option can either be set to `manylinux2014`, `manylinux_2_28` or `manylinux_2_34` to use a pinned version of the [official manylinux images](https://github.com/pypa/manylinux). Alternatively, set these options to any other valid Docker image name.
 
-For `manylinux-armv7l-image`, the value of this option can either be set to `manylinux_2_31` or a custom image. Support is experimental for now. The `manylinux_2_31` value is only available for `armv7`.
+For `manylinux-armv7l-image`, the value of this option can either be set to `manylinux_2_31`, `manylinux_2_35` or a custom image. Support is experimental for now. The `manylinux_2_31` and `manylinux_2_35` values are only available for `armv7`.
 
 For `manylinux-riscv64-image`, the value of this option can either be set to `manylinux_2_39` or a custom image. Support is experimental for now. The `manylinux_2_39` value is only available for `riscv64`.
 
@@ -1206,7 +1260,7 @@ specifiers inline with the `packages: SPECIFIER...` syntax.
     If you need different dependencies for each python version, provide them
     in the same folder with a `-pythonXY` suffix. e.g. if your
     `dependency-versions="./constraints.txt"`, cibuildwheel will use
-    `./constraints-python38.txt` on Python 3.8, or fallback to
+    `./constraints-python314.txt` on Python 3.14, or fallback to
     `./constraints.txt` if that's not found.
 
 Platform-specific environment variables are also available:<br/>
@@ -1217,6 +1271,10 @@ Platform-specific environment variables are also available:<br/>
     are bundled with the manylinux/musllinux image that cibuildwheel uses. To change
     dependency versions on Linux, use the [`manylinux-*` / `musllinux-*`](#linux-image)
     options.
+
+    There is one exception to this rule - when `audit-requires` is left as the
+    default `["abi3audit"]`, the `abi3audit` version is governed by this option,
+    because audits take place outside of the build container.
 
 #### Examples
 
@@ -1238,7 +1296,7 @@ Platform-specific environment variables are also available:<br/>
 
     [tool.cibuildwheel.pyodide]
     # Choose a specific pyodide-build version
-    dependency-versions = { packages = ["pyodide-build==0.29.1"] }
+    dependency-versions = { packages = ["pyodide-build==0.31.2"] }
     ```
 
 !!! tab examples "Environment variables"
@@ -1257,7 +1315,7 @@ Platform-specific environment variables are also available:<br/>
     CIBW_DEPENDENCY_VERSIONS: "packages: auditwheel==6.2.0"
 
     # Choose a specific pyodide-build version
-    CIBW_DEPENDENCY_VERSIONS_PYODIDE: "packages: pyodide-build==0.29.1"
+    CIBW_DEPENDENCY_VERSIONS_PYODIDE: "packages: pyodide-build==0.31.2"
 
     # Use shell-style quoting around spaces package specifiers
     CIBW_DEPENDENCY_VERSIONS: "packages: 'pip >=16.0.0, !=17'"
@@ -1312,12 +1370,108 @@ The available Pyodide versions are determined by the version of `pyodide-build` 
     ```
 
 
+## Auditing
+
+### `audit-requires` {: #audit-requires toml env-var }
+
+> Install Python dependencies for the audit step
+
+Default: `abi3audit`
+
+Space-separated list of package dependencies required for the audit command.
+These are installed into an isolated environment before running the
+[`audit-command`](#audit-command).
+
+If no audit command is specified, or no audit is required (i.e. your project builds non-abi3 wheels and the command refers only to abi3 wheels), then the audit environment won't be created and this option is ignored.
+
+If you leave this as the default, the versions of abi3audit and libraries are pinned according to [`dependency-versions`](#dependency-versions), even on Linux.
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    # Install twine for wheel metadata checks
+    [tool.cibuildwheel]
+    audit-requires = "twine"
+
+    # Install specific versions of audit dependencies
+    [tool.cibuildwheel]
+    audit-requires = ["twine==6.1.0", "abi3audit==0.0.17"]
+    ```
+
+    In configuration files, you can use an array, and the items will be joined with a space.
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Install twine for wheel metadata checks
+    CIBW_AUDIT_REQUIRES: twine
+
+    # Install specific versions of audit dependencies
+    CIBW_AUDIT_REQUIRES: twine==6.1.0 abi3audit==0.0.17
+    ```
+
+### `audit-command` {: #audit-command toml env-var }
+
+> Use a tool to check wheels before the end of the run
+
+Default: `abi3audit --strict --report {abi3_wheel}`
+
+Run shell commands to verify your wheels once they are built. Multiple commands can be passed, they should be separated with ` && `. In each command, you must use one of the following placeholders:
+
+- `{abi3_wheel}`: if your build produces an [ABI3 wheel](https://docs.python.org/3/c-api/stable.html#limited-c-api), as determined by the presence of an ABI3 tag in the filename, the command is run and this placeholder is substituted for the wheel path.
+- `{wheel}`: inserts the wheel path for all wheels that were built.
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    # Run a custom audit tool on all wheels
+    [tool.cibuildwheel]
+    audit-command = "my-audit-tool --check {wheel}"
+
+    # Run multiple audit commands, one for abi3 wheels only and one for all wheels
+    [tool.cibuildwheel]
+    audit-command = [
+      "./my-audit-tool --check-abi3 {abi3_wheel}",
+      "./my-audit-tool --check {wheel}",
+    ]
+
+    # Use twine check to validate wheel metadata
+    [tool.cibuildwheel]
+    audit-requires = ["twine"]
+    audit-command = "twine check {wheel}"
+
+    # Add an additional audit command using overrides, keeping the default abi3audit check
+    [[tool.cibuildwheel.overrides]]
+    select = "*"
+    inherit.audit-command = "append"
+    audit-command = "twine check {wheel}"
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Run a custom audit tool on all wheels
+    CIBW_AUDIT_COMMAND: "my-audit-tool --check {wheel}"
+
+    # Run multiple audit commands
+    CIBW_AUDIT_COMMAND: "./my-audit-tool --check-abi3 {abi3_wheel} && ./my-audit-tool --check {wheel}"
+
+    # Use twine check to validate wheel metadata
+    CIBW_AUDIT_REQUIRES: "twine"
+    CIBW_AUDIT_COMMAND: "twine check {wheel}"
+    ```
+
+
 ## Testing
 
 ### `test-command` {: #test-command env-var toml}
 > The command to test each built wheel
 
-Shell command to run tests after the build. The wheel will be installed
+Command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
@@ -1345,11 +1499,12 @@ tree. To access your test code, you have a couple of options:
 
 On all platforms other than Android and iOS, the command is run in a shell, so you can write things like `cmd1 && cmd2`.
 
-On Android and iOS, the command is parsed by `shlex.split`, and is required to
-be in one of the following forms:
+On Android and iOS, the command is parsed by `shlex.split`, and must be a Python
+command:
 
-* `python -c command ...` (Android only)
-* `python -m module-name ...`
+* On Android, the command must must begin with `python` or `python3`, and contain `-m`
+  or `-c`.
+* On iOS, the command must begin with `python -m`.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_TEST_COMMAND_MACOS` | `CIBW_TEST_COMMAND_WINDOWS` | `CIBW_TEST_COMMAND_LINUX` | `CIBW_TEST_COMMAND_ANDROID` | `CIBW_TEST_COMMAND_IOS` | `CIBW_TEST_COMMAND_PYODIDE`
@@ -1668,6 +1823,41 @@ Platform-specific environment variables are also available:<br/>
     CIBW_TEST_ENVIRONMENT: PYTHONSAFEPATH=1
     ```
 
+### `test-runtime` {: #test-runtime toml env-var }
+
+> Controls how the tests will be executed.
+
+On desktop environments, the tests are executed on the same machine/container as the wheel was built. However on Android and iOS, the tests are run inside a virtual machine – a simulator or emulator – representing the target.
+
+For these embedded platforms, a testbed project is used to run the tests. The `test-runtime` setting can define an `args` key that defines additional arguments that will be used when starting the testbed project.
+
+Platform-specific environment variables are also available:<br/>
+`CIBW_TEST_RUNTIME_ANDROID` |`CIBW_TEST_RUNTIME_IOS`
+
+#### Examples
+
+!!! tab examples "pyproject.toml"
+
+    ```toml
+    [tool.cibuildwheel.ios]
+    # Run the tests on an iPhone 16e simulator running iOS 18.5.
+    test-runtime = { args = ["--simulator='iPhone 16e,OS=18.5'"] }
+
+    [tool.cibuildwheel.android]
+    # Run the Android tests on the minimum supported Android version.
+    test-runtime = { args = ["--managed", "minVersion"] }
+    ```
+
+!!! tab examples "Environment variables"
+
+    ```yaml
+    # Run the tests on an iPhone 16e simulator running iOS 18.5.
+    CIBW_TEST_RUNTIME_IOS: "args: --simulator='iPhone 16e,OS=18.5'"
+
+    # Run the Android tests on the minimum supported Android version.
+    CIBW_TEST_RUNTIME_ANDROID: "args: --managed minVersion"
+    ```
+
 
 ## Debugging
 
@@ -1712,14 +1902,14 @@ will not produce more logging about the build itself. Other levels only affect
 the build frontend output, which is usually things like resolving and
 downloading dependencies. The settings are:
 
-|             | build | pip    | desc                             |
-|-------------|-------|--------|----------------------------------|
-| -2          | N/A   | `-qq`  | even more quiet, where supported |
-| -1          | N/A   | `-q`   | quiet mode, where supported      |
-| 0 (default) |       |        | default for build tool           |
-| 1           |       | `-v`   | print backend output             |
-| 2           | `-v`  | `-vv`  | print log messages e.g. resolving info |
-| 3           | `-vv` | `-vvv` | print even more debug info       |
+|             | build | pip    | uv    | desc                                   |
+|-------------|-------|--------|-------|----------------------------------------|
+| -2          | `-qq` | `-qq`  | `-qq` | even more quiet, where supported       |
+| -1          | `-q`  | `-q`   | `-q`  | quiet mode, where supported            |
+| 0 (default) |       |        |       | default for build tool                 |
+| 1           |       | `-v`   |       | print backend output                   |
+| 2           | `-v`  | `-vv`  | `-v`  | print log messages e.g. resolving info |
+| 3           | `-vv` | `-vvv` | `-vv` | print even more debug info             |
 
 Settings that are not supported for a specific frontend will log a warning.
 The default build frontend is `build`, which does show build backend output by

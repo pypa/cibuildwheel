@@ -1,44 +1,72 @@
 from __future__ import annotations
 
+__lazy_modules__ = {
+    "cibuildwheel.audit",
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.platforms.macos",
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "cibuildwheel.venv",
+    "filelock",
+    "packaging",
+    "packaging.version",
+    "pathlib",
+    "platform",
+    "shlex",
+    "shutil",
+    "subprocess",
+    "textwrap",
+    "typing",
+}
+
 import dataclasses
 import os
+import platform
 import shlex
 import shutil
 import subprocess
 import sys
 import textwrap
-from collections.abc import Sequence, Set
 from pathlib import Path
 from typing import assert_never
 
 from filelock import FileLock
+from packaging.version import Version
 
-from .. import errors
-from ..architecture import Architecture
-from ..environment import ParsedEnvironment
-from ..frontend import (
+from cibuildwheel import errors
+from cibuildwheel.audit import run_audit
+from cibuildwheel.frontend import (
     BuildFrontendName,
     get_build_frontend_extra_flags,
+    prepare_config_settings,
 )
-from ..logger import log
-from ..options import Options
-from ..selector import BuildSelector
-from ..util import resources
-from ..util.cmd import call, shell, split_command
-from ..util.file import (
+from cibuildwheel.logger import log
+from cibuildwheel.platforms.macos import install_cpython as install_build_cpython
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call, shell, split_command
+from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
     copy_test_sources,
     download,
     move_file,
+    remove_on_error,
 )
-from ..util.helpers import prepare_command, unwrap_preserving_paragraphs
-from ..util.packaging import (
-    combine_constraints,
-    find_compatible_wheel,
-    get_pip_version,
-)
-from ..venv import constraint_flags, virtualenv
-from .macos import install_cpython as install_build_cpython
+from cibuildwheel.util.helpers import prepare_command, unwrap_preserving_paragraphs
+from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.venv import constraint_flags, virtualenv
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence, Set
+
+    from cibuildwheel.architecture import Architecture
+    from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.options import Options
+    from cibuildwheel.selector import BuildSelector
 
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
@@ -47,6 +75,8 @@ class PythonConfiguration:
     identifier: str
     url: str
     build_url: str
+    build_sha256: str
+    sha256: str
 
     @property
     def sdk(self) -> str:
@@ -79,7 +109,7 @@ def all_python_configurations() -> list[PythonConfiguration]:
     # configuration.
     macos_python_configs = resources.read_python_configs("macos")
 
-    def build_url(config_dict: dict[str, str]) -> str:
+    def build_python_config(config_dict: dict[str, str]) -> dict[str, str]:
         # The iOS identifier will be something like cp313-ios_arm64_iphoneos.
         # Drop the iphoneos suffix, then replace ios with macosx to yield
         # cp313-macosx_arm64, which will be a macOS build identifier.
@@ -88,18 +118,30 @@ def all_python_configurations() -> list[PythonConfiguration]:
         matching = [
             config for config in macos_python_configs if config["identifier"] == macos_identifier
         ]
-        return matching[0]["url"]
+        if not matching:
+            msg = (
+                f"Internal error: no macOS configuration found matching "
+                f"{macos_identifier!r}, needed to build the iOS configuration "
+                f"{config_dict['identifier']!r}. The bundled build-platforms.toml "
+                f"resources are inconsistent."
+            )
+            raise errors.FatalError(msg)
+        return matching[0]
 
     # Load the platform configuration
     full_python_configs = resources.read_python_configs("ios")
     # Build the configurations, annotating with macOS URL details.
-    return [
-        PythonConfiguration(
-            **item,
-            build_url=build_url(item),
+    python_configurations = []
+    for item in full_python_configs:
+        build_config = build_python_config(item)
+        python_configurations.append(
+            PythonConfiguration(
+                **item,
+                build_url=build_config["url"],
+                build_sha256=build_config["sha256"],
+            )
         )
-        for item in full_python_configs
-    ]
+    return python_configurations
 
 
 def get_python_configurations(
@@ -134,9 +176,10 @@ def install_target_cpython(tmp: Path, config: PythonConfiguration, free_threadin
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
             downloaded_tar_gz = tmp / ios_python_tar_gz
-            download(config.url, downloaded_tar_gz)
-            installation_path.mkdir(parents=True, exist_ok=True)
-            call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
+            download(config.url, downloaded_tar_gz, sha256=config.sha256)
+            with remove_on_error(installation_path):
+                installation_path.mkdir(parents=True)
+                call("tar", "-C", installation_path, "-xf", downloaded_tar_gz)
             downloaded_tar_gz.unlink()
 
     return installation_path
@@ -191,18 +234,37 @@ def cross_virtualenv(
     )
 
     # Convert the macOS virtual environment into an iOS virtual environment
-    # using the cross-platform conversion script in the iOS distribution.
+    # using make_cross_venv.py.
 
     # target_python is the path to the Python binary;
     # determine the root of the XCframework slice that is being used.
     slice_path = target_python.parent.parent
-    call(
-        "python",
-        str(slice_path / f"platform-config/{multiarch}/make_cross_venv.py"),
-        str(venv_path),
-        env=env,
-        cwd=venv_path,
-    )
+    if Version(py_version) >= Version("3.15"):
+        # python.org 3.15+ distributions: sysconfig data lives in the
+        # stdlib directory (lib-<arch>/python<version>); cross-venv scripts
+        # come from cibuildwheel resources.
+        arch = multiarch.split("-", maxsplit=1)[0]
+        stdlib_path = slice_path / f"lib-{arch}" / f"python{py_version}"
+        call(
+            "python",
+            str(resources.IOS_SUPPORT_FILES / "make_cross_venv.py"),
+            str(venv_path),
+            str(stdlib_path),
+            str(resources.IOS_SUPPORT_FILES),
+            env=env,
+            cwd=venv_path,
+        )
+    else:
+        # BeeWare distributions: platform-config already contains both
+        # sysconfig data and the make_cross_venv.py script.
+        platform_config_path = slice_path / f"platform-config/{multiarch}"
+        call(
+            "python",
+            str(platform_config_path / "make_cross_venv.py"),
+            str(venv_path),
+            env=env,
+            cwd=venv_path,
+        )
 
     # When running on macOS, it's easy for the build environment to leak into
     # the target environment, especially when building for ARM64 (because the
@@ -282,7 +344,8 @@ def setup_python(
     build_frontend: BuildFrontendName,
     xbuild_tools: Sequence[str] | None,
 ) -> tuple[Path, dict[str, str]]:
-    if build_frontend == "build[uv]":
+    # Not using set because mypy can't narrow it
+    if build_frontend == "build[uv]" or build_frontend == "uv":  # noqa: PLR1714
         msg = "uv doesn't support iOS"
         raise errors.FatalError(msg)
 
@@ -300,6 +363,7 @@ def setup_python(
             python_configuration.version,
             python_configuration.build_url,
             free_threading,
+            python_configuration.build_sha256,
         )
     else:
         msg = f"Unknown Python implementation: {implementation_id}"
@@ -319,8 +383,8 @@ def setup_python(
         / f"python{python_configuration.version}"
     )
 
-    assert target_python.exists(), (
-        f"{target_python.name} not found, has {list(target_install_path.iterdir())}"
+    assert target_python.parent.exists(), (
+        f"{target_python.parent} not found, has {list(target_install_path.iterdir())}"
     )
 
     log.step("Creating cross build environment...")
@@ -367,7 +431,7 @@ def setup_python(
             "entry or insert python above it."
         )
         raise errors.FatalError(msg)
-    call("python", "--version", env=env)
+    call("python", "-V", "-V", env=env)
 
     # Check what pip version we're on
     assert (venv_bin_path / "pip").exists()
@@ -439,7 +503,8 @@ def build(options: Options, tmp_path: Path) -> None:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
             # uv doesn't support iOS
-            if build_frontend.name == "build[uv]":
+            # Not using set because mypy can't narrow it
+            if build_frontend.name == "build[uv]" or build_frontend.name == "uv":  # noqa: PLR1714
                 msg = "uv doesn't support iOS"
                 raise errors.FatalError(msg)
 
@@ -448,6 +513,7 @@ def build(options: Options, tmp_path: Path) -> None:
             identifier_tmp_dir = tmp_path / config.identifier
             identifier_tmp_dir.mkdir()
             built_wheel_dir = identifier_tmp_dir / "built_wheel"
+            repaired_wheel_dir = identifier_tmp_dir / "repaired_wheel"
 
             constraints_path = build_options.dependency_constraints.get_for_python_version(
                 version=config.version, tmp_dir=identifier_tmp_dir
@@ -461,7 +527,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 build_frontend=build_frontend.name,
                 xbuild_tools=build_options.xbuild_tools,
             )
-            pip_version = get_pip_version(env)
+            env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -486,13 +552,14 @@ def build(options: Options, tmp_path: Path) -> None:
                 built_wheel_dir.mkdir()
 
                 extra_flags = get_build_frontend_extra_flags(
-                    build_frontend, build_options.build_verbosity, build_options.config_settings
+                    build_frontend,
+                    build_options.build_verbosity,
+                    prepare_config_settings(
+                        build_options.config_settings,
+                        project=".",
+                        package=build_options.package_dir,
+                    ),
                 )
-
-                build_env = env.copy()
-                build_env["VIRTUALENV_PIP"] = pip_version
-                if constraints_path:
-                    combine_constraints(build_env, constraints_path, None)
 
                 match build_frontend.name:
                     case "pip":
@@ -508,7 +575,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             f"--wheel-dir={built_wheel_dir}",
                             "--no-deps",
                             *extra_flags,
-                            env=build_env,
+                            env=env,
                         )
                     case "build":
                         call(
@@ -519,17 +586,47 @@ def build(options: Options, tmp_path: Path) -> None:
                             "--wheel",
                             f"--outdir={built_wheel_dir}",
                             *extra_flags,
-                            env=build_env,
+                            env=env,
                         )
                     case _:
                         assert_never(build_frontend)
 
-                test_wheel = built_wheel = next(built_wheel_dir.glob("*.whl"))
+                try:
+                    built_wheel = next(built_wheel_dir.glob("*.whl"))
+                except StopIteration:
+                    raise errors.BuildProducedNoWheelError() from None
 
                 if built_wheel.name.endswith("none-any.whl"):
                     raise errors.NonPlatformWheelError()
 
+                repaired_wheel_dir.mkdir()
+                if build_options.repair_command:
+                    log.step("Repairing wheel...")
+
+                    repair_command_prepared = prepare_command(
+                        build_options.repair_command,
+                        wheel=built_wheel,
+                        dest_dir=repaired_wheel_dir,
+                        package=build_options.package_dir,
+                        project=".",
+                    )
+                    shell(repair_command_prepared, env=env)
+                else:
+                    shutil.move(str(built_wheel), repaired_wheel_dir)
+
+                try:
+                    repaired_wheel = next(repaired_wheel_dir.glob("*.whl"))
+                except StopIteration:
+                    raise errors.RepairStepProducedNoWheelError() from None
+
+                if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
+                    raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
+
                 log.step_end()
+
+                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
+
+                test_wheel = repaired_wheel
 
             if build_options.test_command and build_options.test_selector(config.identifier):
                 if not config.is_simulator:
@@ -537,9 +634,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 elif config.arch != os.uname().machine:
                     log.step("Skipping tests on non-native simulator architecture")
                 else:
-                    test_env = build_options.test_environment.as_dictionary(
-                        prev_environment=build_env
-                    )
+                    test_env = build_options.test_environment.as_dictionary(prev_environment=env)
 
                     if build_options.before_test:
                         before_test_prepared = prepare_command(
@@ -653,11 +748,35 @@ def build(options: Options, tmp_path: Path) -> None:
                                     )
                                     raise errors.FatalError(msg)
 
+                            test_runtime_args = build_options.test_runtime.args
+
+                            # 2025-10: The GitHub Actions macos-15 runner has a known issue where
+                            # the default simulator won't start due to a disk performance issue;
+                            # see https://github.com/actions/runner-images/issues/12777 for details.
+                            # In the meantime, if it looks like we're running on a GitHub Actions
+                            # macos-15 runner, use a simulator that is known to work, unless the
+                            # user explicitly specifies a simulator.
+                            os_version, _, arch = platform.mac_ver()
+                            if (
+                                "GITHUB_ACTIONS" in os.environ
+                                and os_version.startswith("15.")
+                                and arch == "arm64"
+                                and not any(
+                                    arg.startswith("--simulator") for arg in test_runtime_args
+                                )
+                            ):
+                                test_runtime_args = [
+                                    "--simulator",
+                                    "iPhone 16e,OS=18.5",
+                                    *test_runtime_args,
+                                ]
+
                             call(
                                 "python",
                                 testbed_path,
                                 "run",
                                 *(["--verbose"] if build_options.build_verbosity > 0 else []),
+                                *test_runtime_args,
                                 "--",
                                 *final_command,
                                 env=test_env,
@@ -674,11 +793,11 @@ def build(options: Options, tmp_path: Path) -> None:
             # We're all done here; move it to output (overwrite existing)
             output_wheel: Path | None = None
             if compatible_wheel is None:
-                output_wheel = build_options.output_dir.joinpath(built_wheel.name)
-                moved_wheel = move_file(built_wheel, output_wheel)
+                output_wheel = build_options.output_dir.joinpath(repaired_wheel.name)
+                moved_wheel = move_file(repaired_wheel, output_wheel)
                 if moved_wheel != output_wheel.resolve():
                     log.warning(
-                        f"{built_wheel} was moved to {moved_wheel} instead of {output_wheel}"
+                        f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}"
                     )
                 built_wheels.append(output_wheel)
 

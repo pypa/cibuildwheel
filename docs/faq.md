@@ -1,5 +1,6 @@
 ---
 title: Tips and tricks
+ref: faq
 ---
 
 # Tips and tricks
@@ -33,7 +34,7 @@ The CPython Limited API is a subset of the Python C Extension API that's declare
 
 To create a package that builds ABI3 wheels, you'll need to configure your build backend to compile libraries correctly create wheels with the right tags. [Check this repo](https://github.com/joerick/python-abi3-package-sample) for an example of how to do this with setuptools.
 
-You could also consider running [abi3audit](https://github.com/trailofbits/abi3audit) against the produced wheels in order to check for abi3 violations or inconsistencies. You can run it alongside the default in your [repair-wheel-command](options.md#repair-wheel-command).
+cibuildwheel automatically runs [abi3audit](https://github.com/trailofbits/abi3audit) on any abi3 wheel after the repair step to check for stable ABI violations or inconsistencies. If abi3audit detects any issues, the build will fail with a detailed report.
 
 ### Packages with optional C extensions {: #optional-extensions}
 
@@ -51,20 +52,7 @@ myextension = Extension(
 
 ### Building with NumPy
 
-If using NumPy, there are a couple of things that can help.
-
-First, if you require the `numpy` package at build-time (some binding tools, like `pybind11` and `nanobind`, do not), then the backward compatibility for your `build-backend.build-requires` is a little complicated for Python <3.9:
-
-* NumPy <1.25: You must build with the oldest version of NumPy you want to support at runtime.
-* NumPy 1.25 and 1.26: Anything you build will be compatible with 1.19+ by default, and you can set the minimum target to, for example, 1.22 with `#define NPY_TARGET_VERSION NPY_1_22_API_VERSION`.
-* NumPy 2.x: You must build with NumPy 2 to support NumPy 2; otherwise the same as 1.25+.
-
-So the rule is:
-
-* Python <3.8: Use the oldest supported NumPy (via helper `oldest-supported-numpy` if you want)
-* Python 3.9+: Use latest supported NumPy (2+).
-
-Second, there might be platforms you want to ship for that NumPy (or some other scientific Python libraries) are not shipping yet for. This is often true for beta candidates of new Python releases, for example. To work with this, you can use the Scientific Python Nightly wheels. Here's an example, depending on what frontend you use:
+If using NumPy, there might be platforms you want to ship for that NumPy (or some other scientific Python libraries) are not shipping yet for. This is often true for beta candidates of new Python releases, for example. To work with this, you can use the Scientific Python Nightly wheels. Here's an example, depending on what frontend you use:
 
 !!! tab "pip based"
     For frontends like `build` (the default) and `pip`:
@@ -99,6 +87,66 @@ Second, there might be platforms you want to ship for that NumPy (or some other 
 
 (Note the `*_ONLY_BINARY` variable also supports `":all:"`, and you don't need both that and `*_PREFER_BINARY`, you can use either one, depending on if you want a missing wheel to be a failure or an attempt to build in CI.)
 
+### Building with Meson-Python on Windows
+
+Meson generally works well with cibuildwheel, but there are a few things to be aware of:
+
+-   On GitHub Actions, the compiler that's chosen by default on Windows is often the MinGW compiler, rather than the MSVC toolchain that Python was compiled with.
+
+    The simplest fix for this is to configure cibuildwheel to pass the `--vsenv` flag to meson, like this:
+
+    ```toml
+    [tool.cibuildwheel.windows]
+    config-settings = { "setup-args" = "--vsenv" }
+    ```
+
+-   If you need to build 32-bit Windows wheels, you need to activate a 32-bit compiler toolchain before starting cibuildwheel. Many users use [ilammy/msvc-dev-cmd](https://github.com/ilammy/msvc-dev-cmd) for this purpose.
+
+### Caching cibuildwheel's downloaded tools {: #caching}
+
+To speed up builds, cibuildwheel caches the tools it downloads — CPython/PyPy installers, [`virtualenv`][virtualenv], [python-build-standalone][pbs] archives used on Android/iOS, etc. The active cache folder is printed in the preamble of every run:
+
+```
+Cache folder: /Users/Matt/Library/Caches/cibuildwheel
+```
+
+By default it lives under the OS user-cache directory:
+
+| Platform     | Default cache folder                          |
+| ------------ | --------------------------------------------- |
+| Linux        | `~/.cache/cibuildwheel`                       |
+| macOS / iOS  | `~/Library/Caches/cibuildwheel`               |
+| Windows      | `%LOCALAPPDATA%\pypa\cibuildwheel\Cache`      |
+
+Set the `CIBW_CACHE_PATH` environment variable to point cibuildwheel at a different folder. On CI you'll typically want a workflow-defined path so that the runner's cache action can persist it between runs.
+
+#### Persisting the cache on GitHub Actions
+
+```yaml
+- uses: actions/cache@v5
+  with:
+    path: ${{ runner.temp }}/cibw-cache
+    key: cibw-${{ runner.os }}-${{ hashFiles('pyproject.toml') }}
+    restore-keys: |
+      cibw-${{ runner.os }}-
+
+- uses: pypa/cibuildwheel@v3.4.1
+  env:
+    CIBW_CACHE_PATH: ${{ runner.temp }}/cibw-cache
+```
+
+The `restore-keys` fallback lets a slightly stale cache still be reused if `pyproject.toml` changes. Adjust the cache key to whatever set of inputs determines what cibuildwheel will download (e.g. include a hash of `pyproject.toml`'s `[tool.cibuildwheel]` section, or pin on a Python build-tools version).
+
+For platform-specific notes (e.g. caching the official python.org installers on macOS, or NuGet CPython downloads on Windows), see the [platforms documentation](platforms.md).
+
+If the cache becomes stale or corrupt, run `cibuildwheel --clean-cache` (or simply delete the folder) before re-running.
+
+!!! warning "Cache poisoning security risk"
+    Use of caching in a release pipeline means the cache folder is now a possible security risk - an attacker could [poison the cache](https://hivesecurity.gitlab.io/blog/github-actions-cache-poisoning-supply-chain/) with executables they have compromised. If you use this for release builds, consider who has access to modify the cache. Specifically be careful if your repo has any workflows using `pull_request_target`, even if they appear unrelated.
+
+[virtualenv]: https://virtualenv.pypa.io/
+[pbs]: https://gregoryszorc.com/docs/python-build-standalone/main/
+
 ### Automatic updates using Dependabot {: #automatic-updates}
 
 Selecting a moving target (like the latest release) is generally a bad idea in CI. If something breaks, you can't tell whether it was your code or an upstream update that caused the breakage, and in a worst-case scenario, it could occur during a release.
@@ -110,10 +158,13 @@ There are two suggested methods for keeping cibuildwheel up to date that instead
 If you use GitHub Actions for builds, you can use cibuildwheel as an action:
 
 ```yaml
-uses: pypa/cibuildwheel@v3.2.0
+uses: pypa/cibuildwheel@v4.1.0
 ```
 
 This is a composite step that just runs cibuildwheel using pipx. You can set command-line options as `with:` parameters, and use `env:` as normal.
+
+!!! note "Minor version tags"
+    Unlike some GitHub Actions, cibuildwheel does **not** provide a floating `@v3` major-version tag, since our minor version change can add/remove wheels. You can, however, pin to a minor version such as `@v3.4` to automatically receive patch releases within that minor version. Dependabot (shown below) is the recommended way to stay up to date.
 
 Then, your `.github/dependabot.yml` file could look like this:
 
@@ -132,7 +183,7 @@ The second option, and the only one that supports other CI systems, is using a `
 
 ```bash
 # requirements-cibw.txt
-cibuildwheel==3.2.0
+cibuildwheel==4.1.0
 ```
 
 Then your install step would have `python -m pip install -r requirements-cibw.txt` in it. Your `.github/dependabot.yml` file could look like this:
@@ -215,6 +266,60 @@ Your build might need some compiler flags to be set through environment variable
 Consider incorporating these into your package, for example, in `setup.py` using [`extra_compile_args` or
 `extra_link_args`](https://setuptools.pypa.io/en/latest/userguide/ext_modules.html#setuptools.Extension).
 
+### Building wheels with CUDA on Linux
+
+On Linux, you can build binary wheels with CUDA to take advantage of NVIDIA GPUs for hardware acceleration.
+Specify the custom Docker containers with CUDA Toolkit as follows:
+
+```yaml
+CIBW_MANYLINUX_X86_64_IMAGE: >-
+  quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda13_1:latest
+CIBW_MANYLINUX_AARCH64_IMAGE: >-
+  quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda13_1:latest
+```
+Currently, we support the following CUDA manylinux containers:
+
+* `quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_x86_64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_aarch64_cuda12_9:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_x86_64_cuda13_1:latest`
+* `quay.io/manylinux_cuda/manylinux_2_34_aarch64_cuda13_1:latest`
+
+A typical GitHub Actions workflow will look like this:
+
+```yaml
+jobs:
+  build-wheels:
+    name: Build wheels
+    runs-on: ${{ matrix.target.runner }}
+    strategy:
+      matrix:
+        manylinux-base: [manylinux_2_28, manylinux_2_34]
+        cuda-version: [12_9, 13_1]
+        target:
+          - arch: x86_64
+            runner: ubuntu-24.04
+          - arch: aarch64
+            runner: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v3
+        env:
+          CIBW_MANYLINUX_X86_64_IMAGE: >-
+            quay.io/manylinux_cuda/${{ matrix.manylinux-base }}_x86_64_cuda${{ matrix.cuda-version }}:latest
+          CIBW_MANYLINUX_AARCH64_IMAGE: >-
+            quay.io/manylinux_cuda/${{ matrix.manylinux-base }}_aarch64_cuda${{ matrix.cuda-version }}:latest
+          CIBW_BUILD: cp312-manylinux_${{ matrix.target.arch }}
+```
+
+
 ## Troubleshooting
 
 If your wheel didn't compile, you might have a mistake in your config.
@@ -229,7 +334,7 @@ Sometimes a build will fail due to a missing dependency.
 
 **If you need a build tool** (e.g. cmake, automake, ninja), you can install it through a package manager like apt/yum, brew or choco, using the [`before-all`](options.md#before-all) option.
 
-**If your build is linking into a native library dependency**, you can build/install that in [`before-all`](options.md#before-all). However, on Linux, Mac (and Windows if you're using [delvewheel]), the library that you install will be bundled into the wheel in the [repair step]. So take care to ensure that
+**If your build is linking into a native library dependency**, you can build/install that in [`before-all`](options.md#before-all). However, on Linux, Mac, and Windows (which uses [delvewheel] by default since cibuildwheel 4.0), the library that you install will be bundled into the wheel in the [repair step]. So take care to ensure that
 
 - the bundled library doesn't accidentally increase the minimum system requirements (such as the minimum macOS version)
 - the bundled library matches the architecture of the wheel you're building when cross-compiling
@@ -297,7 +402,7 @@ Solutions to this vary, but the simplest is to use pipx:
 # most runners have pipx preinstalled, but in case you don't
 python3 -m pip install pipx
 
-pipx run cibuildwheel==3.2.0 --output-dir wheelhouse
+pipx run cibuildwheel==4.1.0 --output-dir wheelhouse
 pipx run twine upload wheelhouse/*.whl
 ```
 
@@ -325,34 +430,6 @@ To work around this, use a different environment variable such as `REPAIR_LIBRAR
     ```
 
 See [#816](https://github.com/pypa/cibuildwheel/issues/816), thanks to @phoerious for reporting.
-
-### macOS: Building CPython 3.8 wheels on arm64
-
-If you're building on an arm64 runner, you might notice something strange about CPython 3.8 - unlike Python 3.9+, it's cross-compiled to arm64 from an x86_64 version of Python running under Rosetta emulation. This is because (despite the prevalence of arm64 versions of Python 3.8 from Apple and Homebrew) there is no officially supported Python.org installer of Python 3.8 for arm64.
-
-This is fine for simple C extensions, but for more complicated builds on arm64 it becomes an issue.
-
-So, if you want to build macOS arm64 wheels on an arm64 runner (e.g., `macos-14`) on Python 3.8, before invoking cibuildwheel, you should install a native arm64 Python 3.8 interpreter on the runner:
-
-
-!!! tab "GitHub Actions"
-
-    ```yaml
-    - uses: actions/setup-python@v5
-      with:
-        python-version: 3.8
-      if: runner.os == 'macOS' && runner.arch == 'ARM64'
-    ```
-
-!!! tab "Generic"
-
-    ```bash
-    curl -o /tmp/Python38.pkg https://www.python.org/ftp/python/3.8.10/python-3.8.10-macos11.pkg
-    sudo installer -pkg /tmp/Python38.pkg -target /
-    sh "/Applications/Python 3.8/Install Certificates.command"
-    ```
-
-Then cibuildwheel will detect that it's installed and use it instead. However, you probably don't want to build x86_64 wheels on this Python, unless you're happy with them only supporting macOS 11+.
 
 ### macOS: Library dependencies do not satisfy target MacOS
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run -q
+#!/usr/bin/env -S uv run --script
 
 # /// script
 # dependencies = ["pyyaml"]
@@ -15,6 +15,8 @@ parser = argparse.ArgumentParser(allow_abbrev=False)
 parser.add_argument("--schemastore", action="store_true", help="Generate schema_store version")
 args = parser.parse_args()
 
+# The defaults in the schema are used by external tools for validation and IDE support. They
+# should match the values in defaults.toml, which are used by cibuildwheel itself.
 starter = """
 $schema: http://json-schema.org/draft-07/schema#
 $id: https://github.com/pypa/cibuildwheel/blob/main/cibuildwheel/resources/cibuildwheel.schema.json
@@ -28,8 +30,6 @@ $defs:
     description: How to inherit the parent's value.
   enable:
     enum:
-      - cpython-experimental-riscv64
-      - cpython-freethreading
       - cpython-prerelease
       - graalpy
       - pyodide-prerelease
@@ -40,6 +40,12 @@ additionalProperties: false
 description: cibuildwheel's settings.
 type: object
 properties:
+  audit-command:
+    description: Execute a shell command to audit each wheel after it is repaired. Use {wheel} for each wheel path, or {abi3_wheel} to only audit abi3 wheels.
+    type: string_array
+  audit-requires:
+    description: Install Python dependencies for the audit step.
+    type: string_array
   archs:
     description: Change the architectures built on your machine by default.
     type: string_array
@@ -58,21 +64,23 @@ properties:
     type: string_array
   build-frontend:
     default: default
-    description: Set the tool to use to build, either "build" (default), "build[uv]", or "pip"
+    description: Set the tool to use to build, either "build" (default), "build[uv]", "uv", or "pip"
     oneOf:
-      - enum: [pip, build, "build[uv]", default]
+      - enum: [pip, build, "build[uv]", uv, default]
       - type: string
         pattern: '^pip; ?args:'
       - type: string
         pattern: '^build; ?args:'
       - type: string
         pattern: '^build\\[uv\\]; ?args:'
+      - type: string
+        pattern: '^uv; ?args:'
       - type: object
         additionalProperties: false
         required: [name]
         properties:
           name:
-            enum: [pip, build, "build[uv]"]
+            enum: [pip, build, "build[uv]", uv]
           args:
             type: array
             items:
@@ -194,6 +202,9 @@ properties:
   xbuild-tools:
     description: Binaries on the path that should be included in an isolated cross-build environment
     type: string_array
+  xbuild-files:
+    description: Platform-specific files in the build environment
+    type: string_table_array
   pyodide-version:
     type: string
     description: Specify the version of Pyodide to use
@@ -224,6 +235,24 @@ properties:
   test-environment:
     description: Set environment variables for the test environment
     type: string_table
+  test-runtime:
+    description: Additional configuration for the test runner
+    oneOf:
+      - type: string
+        pattern: '^$'
+      - type: object
+        additionalProperties: false
+      - type: string
+        pattern: 'args:'
+      - type: object
+        additionalProperties: false
+        required: [args]
+        properties:
+          args:
+            type: array
+            items:
+              type: string
+
 """
 
 schema = yaml.safe_load(starter)
@@ -290,9 +319,12 @@ items:
       type: object
       additionalProperties: false
       properties:
+        audit-command: {"$ref": "#/$defs/inherit"}
+        audit-requires: {"$ref": "#/$defs/inherit"}
         before-all: {"$ref": "#/$defs/inherit"}
         before-build: {"$ref": "#/$defs/inherit"}
         xbuild-tools: {"$ref": "#/$defs/inherit"}
+        xbuild-files: {"$ref": "#/$defs/inherit"}
         before-test: {"$ref": "#/$defs/inherit"}
         config-settings: {"$ref": "#/$defs/inherit"}
         container-engine: {"$ref": "#/$defs/inherit"}
@@ -304,6 +336,7 @@ items:
         test-sources: {"$ref": "#/$defs/inherit"}
         test-requires: {"$ref": "#/$defs/inherit"}
         test-environment: {"$ref": "#/$defs/inherit"}
+        test-runtime: {"$ref": "#/$defs/inherit"}
 """
 )
 
@@ -347,14 +380,16 @@ oses = {
     "ios": as_object(not_linux),
 }
 
-oses["linux"]["properties"]["repair-wheel-command"] = {
-    **schema["properties"]["repair-wheel-command"],
-    "default": "auditwheel repair -w {dest_dir} {wheel}",
-}
-oses["macos"]["properties"]["repair-wheel-command"] = {
-    **schema["properties"]["repair-wheel-command"],
-    "default": "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}",
-}
+for os_name, command in [
+    ("linux", "auditwheel repair -w {dest_dir} {wheel}"),
+    ("windows", "delvewheel repair -w {dest_dir} -v {wheel}"),
+    ("macos", "delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel}"),
+    ("android", "auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {wheel}"),
+]:
+    oses[os_name]["properties"]["repair-wheel-command"] = {
+        **schema["properties"]["repair-wheel-command"],
+        "default": command,
+    }
 
 del oses["linux"]["properties"]["dependency-versions"]
 

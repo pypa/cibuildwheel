@@ -33,8 +33,8 @@ def lint(session: nox.Session) -> None:
     """
     Run the linter.
     """
-    session.install("pre-commit")
-    session.run("pre-commit", "run", "--all-files", *session.posargs)
+    session.install("prek")
+    session.run("prek", "run", "--all-files", *session.posargs)
 
 
 @nox.session(tags=["lint"])
@@ -69,19 +69,17 @@ def update_constraints(session: nox.Session) -> None:
     Update the dependencies inplace.
     """
 
-    session.install("-e.", "click")
-
     resources = Path("cibuildwheel/resources")
 
     if session.venv_backend != "uv":
-        session.install("uv>=0.1.23")
+        session.install("uv>=0.9")
 
     # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
     # regenerate the constraints files
     env = os.environ.copy()
     env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
 
-    for minor_version in range(8, 15):
+    for minor_version in range(9, 16):
         python_version = f"3.{minor_version}"
         output_file = resources / f"constraints-python{python_version.replace('.', '')}.txt"
         session.run(
@@ -96,7 +94,7 @@ def update_constraints(session: nox.Session) -> None:
         )
 
     shutil.copyfile(
-        resources / "constraints-python314.txt",
+        resources / "constraints-python315.txt",
         resources / "constraints.txt",
     )
 
@@ -108,8 +106,7 @@ def update_constraints(session: nox.Session) -> None:
 
         tmp_file = Path(session.create_tmp()) / "constraints-pyodide.in"
 
-        session.run(
-            "python",
+        session.install_and_run_script(
             "bin/generate_pyodide_constraints.py",
             "--output-file",
             tmp_file,
@@ -135,13 +132,11 @@ def update_pins(session: nox.Session) -> None:
     Update the python, docker, virtualenv, node, and python-build-standalone
     version pins inplace.
     """
-    pyproject = nox.project.load_toml()
-    session.install("-e.", *nox.project.dependency_groups(pyproject, "bin"))
-    session.run("python", "bin/update_pythons.py", "--force")
-    session.run("python", "bin/update_docker.py")
-    session.run("python", "bin/update_virtualenv.py", "--force")
-    session.run("python", "bin/update_nodejs.py", "--force")
-    session.run("python", "bin/update_python_build_standalone.py")
+    session.install_and_run_script("bin/update_pythons.py", "--force")
+    session.install_and_run_script("bin/update_docker.py")
+    session.install_and_run_script("bin/update_virtualenv.py", "--force")
+    session.install_and_run_script("bin/update_nodejs.py", "--force")
+    session.install_and_run_script("bin/update_python_build_standalone.py")
 
 
 @nox.session(default=False, reuse_venv=True, tags=["update"])
@@ -182,6 +177,14 @@ def docs(session: nox.Session) -> None:
     pyproject = nox.project.load_toml()
     session.install("-e.", *nox.project.dependency_groups(pyproject, "docs"))
     session.run("mkdocs", "serve" if session.interactive else "build", "--strict", *session.posargs)
+
+
+@nox.session(default=False)
+def update_how_it_works_image(session: nox.Session) -> None:
+    """
+    Generate the how it works image.
+    """
+    session.install_and_run_script("bin/update_how_it_works_image.py")
 
 
 @nox.session(default=False)

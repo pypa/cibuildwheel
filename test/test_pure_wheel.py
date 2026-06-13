@@ -1,10 +1,17 @@
+from __future__ import annotations
+
 import subprocess
+from pathlib import Path
 
 import pytest
 
 from test import test_projects
 
 from . import utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 pure_python_project = test_projects.TestProject()
 pure_python_project.files["setup.py"] = """
@@ -23,7 +30,7 @@ def a_function():
 """
 
 
-def test(tmp_path, capfd):
+def test(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     # this test checks that if a pure wheel is generated, the build should
     # fail.
     project_dir = tmp_path / "project"

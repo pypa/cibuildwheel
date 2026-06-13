@@ -1,5 +1,6 @@
 ---
 title: Contributing
+ref: contributing
 ---
 
 # Contributing
@@ -26,7 +27,7 @@ Other notes:
 
 ### cibuildwheel's relationship with build errors
 
-cibuildwheel doesn't really do anything itself - it's always deferring to other tools (pip, wheel, auditwheel, delocate, docker). Without cibuildwheel, the process is really fragmented. Different tools, across different OSs need to be stitched together in just the right way to make it work.
+cibuildwheel doesn't really do anything itself - it's always deferring to other tools (pip, wheel, auditwheel, delocate, delvewheel, docker). Without cibuildwheel, the process is really fragmented. Different tools, across different OSs need to be stitched together in just the right way to make it work.
 
 We're not responsible for errors in those tools, for fixing errors/crashes there. But cibuildwheel's job is providing users with an 'integrated' user experience across those tools. We provide an abstraction. The user says 'build me some wheels', not 'open the docker container, build a wheel with pip, fix up the symbols with auditwheel' etc.  However, errors have a habit of breaking abstractions. And this is where users get confused, because the mechanism of cibuildwheel is laid bare, and they must understand a little bit how it works to debug.
 
@@ -82,7 +83,7 @@ A few notes-
 
 - Running the macOS integration tests requires _system installs_ of Python from python.org for all the versions that are tested. We won't attempt to install these when running locally, but you can do so manually using the URL in the error message that is printed when the install is not found.
 
-- The ['enable groups'](options.md#enable) run by default are just 'cpython-prerelease' and 'cpython-freethreading'. You can add other groups like pypy or graalpy by passing the `--enable` argument to pytest, i.e. `nox -s tests -- test --enable pypy`. On GitHub PRs, you can add a label to the PR to enable these groups.
+- The ['enable groups'](options.md#enable) run by default is just 'cpython-prerelease'. You can add other groups like pypy or graalpy by passing the `--enable` argument to pytest, i.e. `nox -s tests -- test --enable pypy`. On GitHub PRs, you can add a label to the PR to enable these groups.
 
 #### Running pytest directly
 
@@ -161,32 +162,6 @@ bin/run_example_ci_configs.py examples/github-with-qemu.yml
 
 The script then outputs a Markdown table that can be copy/pasted into a PR to monitor and record the test.
 
-### Preparing environments
-
-This has been moved to using docker, so you only need the following instructions if you add `--no-docker` to avoid using docker.
-
-The dependency update script in the next section requires multiple python versions installed. One way to do this is to use `pyenv`:
-
-```bash
-pyenv install 3.7.8
-# Optionally add 3.8 and make it the local version;
-# otherwise assuming 3.8+ already is your current python version
-```
-
-Then, you need to make the required virtual environments:
-
-```bash
-$(pyenv prefix 3.7.8)/bin/python -m venv env37
-```
-
-<!-- Note for fish users: use zsh/bash for these lines for now, there's not a nice one-line fish replacement -->
-
-And, you need to install the requirements into each environment:
-
-```bash
-for f in env*/bin/pip; do $f install pip-tools; done
-```
-
 ### Making a release
 
 Before making a release, ensure pinned dependencies are up-to-date. Autoupdates are run weekly, with a PR being raised with any changes as required, so just make sure the latest one is merged before continuing.
@@ -208,3 +183,9 @@ git push && git push --tags
 Then head to https://github.com/pypa/cibuildwheel/releases and create a GitHub release from the new tag, pasting in the changelog entry. Once the release is created inside GitHub, a CI job will create the assets and upload them to PyPI.
 
 If there were any schema updates, run `pipx run ./bin/generate_schema.py --schemastore > partial-cibuildwheel.json` and contribute the changes to SchemaStore.
+
+### Platform-specific maintenance
+
+This section is a stub. Please open a PR to add guidance for any platform you would like to help maintain!
+
+- **Pyodide**: see [Maintaining Pyodide support](_internal/pyodide-maintenance.md) for instructions and maintainer-specific information on updating Pyodide-related code in cibuildwheel and updating to new Pyodide releases.

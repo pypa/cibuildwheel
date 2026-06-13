@@ -1,8 +1,14 @@
+from __future__ import annotations
+
 import textwrap
 
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 project_with_manylinux_symbols = test_projects.new_c_project(
     spam_c_top_level_add=textwrap.dedent(
@@ -27,7 +33,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
     ["musllinux_1_2"],
 )
 @pytest.mark.usefixtures("docker_cleanup")
-def test(musllinux_image, tmp_path):
+def test(musllinux_image: str, tmp_path: Path) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the container image test is only relevant to the linux build")
 

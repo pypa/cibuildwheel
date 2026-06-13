@@ -1,14 +1,22 @@
+from __future__ import annotations
+
+__lazy_modules__ = {"cibuildwheel.errors", "shlex", "shutil", "subprocess"}
+
 import os
 import shlex
 import shutil
 import subprocess
 import sys
 import typing
-from collections.abc import Iterator, Mapping
-from typing import Final, Literal
 
-from ..errors import FatalError
-from ..typing import PathOrStr
+from cibuildwheel.errors import FatalError
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Iterator, Mapping
+    from typing import Final, Literal
+
+    from cibuildwheel.typing import PathOrStr
 
 _IS_WIN: Final[bool] = sys.platform.startswith("win")
 
@@ -72,7 +80,7 @@ def call(
     if not capture_stdout:
         return None
     sys.stderr.write(result.stderr)
-    return typing.cast(str, result.stdout)
+    return typing.cast("str", result.stdout)
 
 
 def shell(

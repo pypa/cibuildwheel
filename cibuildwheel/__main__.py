@@ -1,21 +1,47 @@
+from __future__ import annotations
+
+__lazy_modules__ = {
+    "argparse",
+    "cibuildwheel._compat",
+    "cibuildwheel._compat.tarfile",
+    "cibuildwheel.architecture",
+    "cibuildwheel.ci",
+    "cibuildwheel.logger",
+    "cibuildwheel.options",
+    "cibuildwheel.platforms",
+    "cibuildwheel.selector",
+    "cibuildwheel.typing",
+    "cibuildwheel.util",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.resources",
+    "contextlib",
+    "functools",
+    "io",
+    "pathlib",
+    "shutil",
+    "tempfile",
+    "textwrap",
+    "traceback",
+}
+
 import argparse
 import contextlib
 import dataclasses
+import functools
+import io
 import os
 import shutil
 import sys
-import tarfile
 import textwrap
 import traceback
 import typing
-from collections.abc import Generator, Iterable, Sequence
 from pathlib import Path
 from tempfile import mkdtemp
-from typing import Any, Literal, TextIO
 
 import cibuildwheel
-import cibuildwheel.util
 from cibuildwheel import errors
+from cibuildwheel._compat.tarfile import TarFile, safe_extractall
 from cibuildwheel.architecture import Architecture, allowed_architectures_check
 from cibuildwheel.ci import CIProvider, detect_ci_provider, fix_ansi_codes_for_github_actions
 from cibuildwheel.logger import log
@@ -27,6 +53,11 @@ from cibuildwheel.util.file import CIBW_CACHE_PATH, ensure_cache_sentinel
 from cibuildwheel.util.helpers import strtobool
 from cibuildwheel.util.resources import read_all_configs
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Generator, Iterable, Sequence
+    from typing import Literal
+
 
 @dataclasses.dataclass
 class GlobalOptions:
@@ -37,23 +68,6 @@ class GlobalOptions:
 class FileReport:
     name: str
     size: str
-
-
-# Taken from https://stackoverflow.com/a/107717
-class Unbuffered:
-    def __init__(self, stream: TextIO) -> None:
-        self.stream = stream
-
-    def write(self, data: str) -> None:
-        self.stream.write(data)
-        self.stream.flush()
-
-    def writelines(self, data: Iterable[str]) -> None:
-        self.stream.writelines(data)
-        self.stream.flush()
-
-    def __getattr__(self, attr: str) -> Any:
-        return getattr(self.stream, attr)
 
 
 def main() -> None:
@@ -78,8 +92,13 @@ def main_inner(global_options: GlobalOptions) -> None:
     `main_inner` is the same as `main`, but it raises FatalError exceptions
     rather than exiting directly.
     """
+    # Default in 3.15+, only needed on 3.14
+    if sys.version_info >= (3, 14):
+        arg_parser = functools.partial(argparse.ArgumentParser, suggest_on_error=True)
+    else:
+        arg_parser = argparse.ArgumentParser
 
-    parser = argparse.ArgumentParser(
+    parser = arg_parser(
         description="Build wheels for all the platforms.",
         epilog="""
             Most options are supplied via environment variables or in
@@ -257,8 +276,8 @@ def main_inner(global_options: GlobalOptions) -> None:
     # Tarfile builds require extraction and changing the directory
     temp_dir = Path(mkdtemp(prefix="cibw-sdist-")).resolve(strict=True)
     try:
-        with tarfile.open(args.package_dir) as tar:
-            tar.extractall(path=temp_dir)
+        with TarFile.open(args.package_dir) as tar:
+            safe_extractall(tar, temp_dir)
 
         # The extract directory is now the project dir
         try:
@@ -314,7 +333,7 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
     if args.only:
         return _compute_platform_only(args.only)
     elif platform_option_value != "auto":
-        return typing.cast(PlatformName, platform_option_value)
+        return typing.cast("PlatformName", platform_option_value)
 
     return native_platform()
 
@@ -350,10 +369,11 @@ def build_in_directory(args: CommandLineArguments) -> None:
     # Add CIBUILDWHEEL environment variable
     os.environ["CIBUILDWHEEL"] = "1"
 
-    # Python is buffering by default when running on the CI platforms, giving
-    # problems interleaving subprocess call output with unflushed calls to
-    # 'print'
-    sys.stdout = Unbuffered(sys.stdout)
+    # Python block-buffers stdout when it isn't a tty, which de-interleaves
+    # `print` output and direct fd-1 writes from subprocesses sharing this
+    # stdout. line_buffering allows each newline to flush all the way to fd-1.
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(line_buffering=True)
 
     # create the cache dir before it gets printed & builds performed
     CIBW_CACHE_PATH.mkdir(parents=True, exist_ok=True)
@@ -426,17 +446,17 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
         msg = "\n".join(error_list)
         raise errors.ConfigurationError(msg)
 
+    n = len(identifiers)
+    print(f"{n} build{'s' if n != 1 else ''} selected:")
+    print(", ".join(identifiers))
+    print()
     print("Here we go!\n")
 
 
 def detect_errors(*, options: Options, identifiers: Iterable[str]) -> Generator[str, None, None]:
     # Check for deprecated CIBW_FREE_THREADED_SUPPORT environment variable
     if "CIBW_FREE_THREADED_SUPPORT" in os.environ:
-        yield (
-            "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported. "
-            'Use tool.cibuildwheel.enable = ["cpython-freethreading"] in pyproject.toml '
-            "or set CIBW_ENABLE=cpython-freethreading instead."
-        )
+        yield "CIBW_FREE_THREADED_SUPPORT environment variable is no longer supported."
 
     # Deprecated {python} and {pip}
     for option_name in ["test_command", "before_build"]:
@@ -462,13 +482,6 @@ def detect_warnings(*, options: Options) -> Generator[str, None, None]:
 
     build_selector = options.globals.build_selector
     test_selector = options.globals.test_selector
-
-    if EnableGroup.CPythonExperimentalRiscV64 in build_selector.enable:
-        yield (
-            "'cpython-experimental-riscv64' enable is deprecated and will be removed in a future version. "
-            "It should be removed from tool.cibuildwheel.enable in pyproject.toml "
-            "or CIBW_ENABLE environment variable."
-        )
 
     all_valid_identifiers = [
         config.identifier
@@ -535,10 +548,16 @@ def check_for_invalid_selectors(
                 msg += "This selector matches a group that wasn't enabled. Enable it using the `enable` option or remove this selector. "
 
             if "p2" in selector_ or "p35" in selector_:
-                msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 1.x series or update `{selector_name}`. "
+                msg += f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the 1.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
             if "p36" in selector_ or "p37" in selector_:
-                msg += f"cibuildwheel 3.x no longer supports Python < 3.8. Please use the 2.x series or update `{selector_name}`. "
+                msg += f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the 2.x series or update `{selector_name}`. "
+                error_type = errors.DeprecationError
+            if "p38" in selector_:
+                msg += f"cibuildwheel 4.x no longer supports Python < 3.9. Please use the 3.x series or update `{selector_name}`. "
+                error_type = errors.DeprecationError
+            if "cp313t" in selector_:
+                msg += f"cibuildwheel 4.x no longer supports Python 3.13 free-threading. Please use the 3.x series or update `{selector_name}`. "
                 error_type = errors.DeprecationError
 
             if selector_name == "build":

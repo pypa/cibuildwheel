@@ -1,9 +1,14 @@
+from __future__ import annotations
+
 import subprocess
 
 import pytest
 
-from . import utils
-from .test_projects.c import new_c_project
+from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 @pytest.mark.parametrize(
@@ -13,8 +18,10 @@ from .test_projects.c import new_c_project
         "build",
     ],
 )
-def test_build_frontend_args(tmp_path, capfd, frontend_name):
-    project = new_c_project()
+def test_build_frontend_args(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str], frontend_name: str
+) -> None:
+    project = test_projects.new_c_project()
     project_dir = tmp_path / "project"
     project.generate(project_dir)
 

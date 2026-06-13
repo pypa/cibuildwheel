@@ -2,16 +2,25 @@
 These are utilities for the `/bin` scripts, not for the `cibuildwheel` program.
 """
 
+from __future__ import annotations
+
+__lazy_modules__ = {"io", "json", "urllib", "urllib.error", "urllib.request"}
+
 import json
 import time
 import typing
 import urllib.error
 import urllib.request
-from collections.abc import Mapping, Sequence
 from io import StringIO
-from typing import Any, NotRequired, Protocol
+from typing import NotRequired, Protocol
 
 from cibuildwheel import __version__ as cibw_version
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+    from typing import Any
+
 
 __all__ = ("Printable", "dump_python_configurations")
 
@@ -41,7 +50,7 @@ def dump_python_configurations(
 
 def _json_request(request: urllib.request.Request, timeout: int = 30) -> dict[str, Any]:
     with urllib.request.urlopen(request, timeout=timeout) as response:
-        return typing.cast(dict[str, Any], json.load(response))
+        return typing.cast("dict[str, Any]", json.load(response))
 
 
 def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
@@ -62,7 +71,7 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
             # pylint: disable=E1101
             if (
                 isinstance(e, urllib.error.HTTPError)
-                and (e.code == 403 or e.code == 429)
+                and (e.code in {403, 429})
                 and e.headers.get("x-ratelimit-remaining") == "0"
             ):
                 reset_time = int(e.headers.get("x-ratelimit-reset", 0))
@@ -83,6 +92,7 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
 
 class PyodideXBuildEnvRelease(typing.TypedDict):
     version: str
+    sha256: str
     python_version: str
     emscripten_version: str
     min_pyodide_build_version: NotRequired[str]
@@ -95,7 +105,7 @@ class PyodideXBuildEnvInfo(typing.TypedDict):
 
 def get_pyodide_xbuildenv_info() -> PyodideXBuildEnvInfo:
     xbuildenv_info_url = (
-        "https://pyodide.github.io/pyodide/api/pyodide-cross-build-environments.json"
+        "https://pyodide.github.io/pyodide/api/v2/pyodide-cross-build-environments.json"
     )
     with urllib.request.urlopen(xbuildenv_info_url) as response:
-        return typing.cast(PyodideXBuildEnvInfo, json.loads(response.read().decode("utf-8")))
+        return typing.cast("PyodideXBuildEnvInfo", json.loads(response.read().decode("utf-8")))

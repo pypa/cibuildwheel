@@ -1,10 +1,27 @@
+from __future__ import annotations
+
+__lazy_modules__ = {
+    "certifi",
+    "cibuildwheel.errors",
+    "hashlib",
+    "shutil",
+    "ssl",
+    "tarfile",
+    "typing",
+    "urllib",
+    "urllib.request",
+    "zipfile",
+}
+
+
+import hashlib
 import os
 import shutil
 import ssl
 import tarfile
 import time
 import urllib.request
-from collections.abc import Callable
+from contextlib import contextmanager
 from pathlib import Path, PurePath
 from typing import Final
 from zipfile import ZipFile
@@ -12,12 +29,32 @@ from zipfile import ZipFile
 import certifi
 from platformdirs import user_cache_path
 
-from ..errors import FatalError
+from cibuildwheel.errors import FatalError
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Callable, Generator
 
 DEFAULT_CIBW_CACHE_PATH: Final[Path] = user_cache_path(appname="cibuildwheel", appauthor="pypa")
 CIBW_CACHE_PATH: Final[Path] = Path(
     os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)
 ).resolve()
+
+
+@contextmanager
+def remove_on_error(path: Path) -> Generator[None, None, None]:
+    try:
+        yield
+    except BaseException as original_exception:
+        try:
+            if path.is_dir() and not path.is_symlink():
+                shutil.rmtree(path)
+            elif path.exists() or path.is_symlink():
+                path.unlink()
+        except BaseException as cleanup_exception:
+            msg = f"Failed to remove {path}. Please remove it manually."
+            raise BaseExceptionGroup(msg, [original_exception, cleanup_exception]) from None
+        raise
 
 
 def ensure_cache_sentinel(cache_path: Path) -> None:
@@ -40,7 +77,7 @@ def ensure_cache_sentinel(cache_path: Path) -> None:
             )
 
 
-def download(url: str, dest: Path) -> None:
+def download(url: str, dest: Path, *, sha256: str | None = None) -> None:
     print(f"+ Download {url} to {dest}")
     dest_dir = dest.parent
     dest_dir.mkdir(parents=True, exist_ok=True)
@@ -54,12 +91,20 @@ def download(url: str, dest: Path) -> None:
         try:
             with urllib.request.urlopen(url, context=context) as response:
                 dest.write_bytes(response.read())
-                return
+                break
 
         except OSError:
             if i == repeat_num - 1:
                 raise
             time.sleep(3)
+
+    if sha256:
+        with dest.open("rb") as f:
+            computed = hashlib.file_digest(f, "sha256").hexdigest()
+        if computed != sha256:
+            dest.unlink(missing_ok=True)
+            msg = f"SHA256 mismatch for {url}: expected {sha256!r}, got {computed!r}"
+            raise FatalError(msg)
 
 
 def extract_zip(zip_src: Path, dest: Path) -> None:
@@ -86,6 +131,8 @@ def extract_tar(tar_src: Path, dest: Path) -> None:
     See: https://docs.python.org/3/library/tarfile.html#tarfile.tar_filter for filter details
     """
     with tarfile.open(tar_src) as tar_:
+        # getattr shim needed while Python 3.11.0-3.11.3 are supported;
+        # once the minimum is 3.11.4+/3.12, replace with: tar_.extractall(dest, filter="tar")
         tar_.extraction_filter = getattr(tarfile, "tar_filter", (lambda member, _: member))
         tar_.extractall(dest)
 

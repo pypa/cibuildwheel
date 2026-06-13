@@ -6,7 +6,7 @@ from cibuildwheel.extra import Printable, dump_python_configurations
 from cibuildwheel.util import resources
 
 
-def test_compare_configs():
+def test_compare_configs() -> None:
     txt = resources.BUILD_PLATFORMS.read_text()
 
     with resources.BUILD_PLATFORMS.open("rb") as f2:
@@ -18,7 +18,7 @@ def test_compare_configs():
     assert new_txt == txt
 
 
-def test_dump_with_Version():
+def test_dump_with_Version() -> None:
     # MyPy doesn't understand deeply nested dicts correctly
     example: dict[str, dict[str, list[dict[str, Printable]]]] = {
         "windows": {

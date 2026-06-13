@@ -1,5 +1,6 @@
 ---
 title: Configuring a CI service
+ref: ci-services
 ---
 
 ## Configuring a CI service
@@ -23,7 +24,9 @@ To build Linux, macOS, and Windows wheels using GitHub Actions, create a `.githu
 
     Use `env:` to pass [build options](options.md) and `with:` to set
     `package-dir: .`, `output-dir: wheelhouse` and `config-file: ''`
-    locations (those values are the defaults).
+    locations (those values are the defaults). You can also pass a
+    comma-separated list of extras to install additional packages.
+    For example, `extras: "uv"` to install UV into the virtual environment.
 
 !!! tab "pipx"
     The GitHub Actions runners have pipx installed, so you can easily build in
@@ -70,22 +73,6 @@ Commit this file, enable building of your repo on Azure Pipelines, and push.
 
 Wheels will be stored for you and available through the Pipelines interface. For more info on this file, check out the [docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
 
-### Travis CI [linux/windows] {: #travis-ci}
-
-To build Linux and Windows wheels on Travis CI, create a `.travis.yml` file in your repo.
-
-> .travis.yml
-
-```yaml
-{% include "../examples/travis-ci-minimal.yml" %}
-```
-
-Commit this file, enable building of your repo on Travis CI, and push.
-
-Then setup a deployment method by following the [Travis CI deployment docs](https://docs.travis-ci.com/user/deployment/), or see [Delivering to PyPI](deliver-to-pypi.md). For more info on `.travis.yml`, check out the [docs](https://docs.travis-ci.com/).
-
-[`examples/travis-ci-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/travis-ci-deploy.yml) extends this minimal example with a demonstration of how to automatically upload the built wheels to PyPI.
-
 ### CircleCI [linux/mac] {: #circleci}
 
 To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
@@ -117,20 +104,6 @@ Commit this file, and push to Gitlab. The pipeline should start automatically.
 
 Gitlab will store the built wheels for you - you can access them from the Pipelines view. Check out the Gitlab [docs](https://docs.gitlab.com/ee/ci/yaml/) for more info on this config file.
 
-### Cirrus CI [linux/mac/windows] {: #cirrus-ci}
-
-To build Linux, Mac, and Windows wheels on Cirrus CI, create a `.cirrus.yml` file in your repo,
-
-> .cirrus.yml
-
-```yaml
-{% include "../examples/cirrus-ci-minimal.yml" %}
-```
-
-Commit this file, enable building of your repo on Cirrus CI, and push.
-
-Cirrus CI will store the built wheels for you - you can access them from the individual task view. Check out the Cirrus CI [docs](https://cirrus-ci.org/guide/writing-tasks/) for more info on this config file.
-
 > ⚠️ Got an error? Check the [FAQ](faq.md).
 
 ### Other CI services
@@ -138,6 +111,10 @@ Cirrus CI will store the built wheels for you - you can access them from the ind
 #### AppVeyor {: #appveyor}
 
 Appveyor official support was dropped in cibuildwheel v3.0, due to a lack of CI credits. However, it can probably still be used as-is. Check the Appveyor example from the cibuildwheel v2.0 branch: [appveyor-minimal.yml](https://github.com/pypa/cibuildwheel/blob/v2.23.3/examples/appveyor-minimal.yml).
+
+### Cirrus CI [linux/mac/windows] {: #cirrus-ci}
+
+Due to Cirrus CI [end-of-life](https://cirruslabs.org) on June 1, 2026, we no longer officially support this service.
 
 ## Next steps
 

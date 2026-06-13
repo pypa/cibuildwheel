@@ -1,3 +1,8 @@
+---
+title: Configuration
+ref: configuration
+---
+
 # Configuration methods
 
 cibuildwheel can either be configured using environment variables, or from
@@ -30,17 +35,6 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
       CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
-!!! tab "Travis CI"
-
-    > .travis.yml ([docs](https://docs.travis-ci.com/user/environment-variables/))
-
-    ```yaml
-    env:
-      global:
-        - CIBW_TEST_REQUIRES=pytest
-        - CIBW_TEST_COMMAND="pytest {project}/tests"
-    ```
-
 !!! tab "CircleCI"
 
     > .circleci/config.yml ([docs](https://circleci.com/docs/2.0/configuration-reference/#environment))
@@ -64,26 +58,18 @@ cibuildwheel to run tests, add the following YAML to your CI config file:
         CIBW_TEST_COMMAND: "pytest {project}/tests"
     ```
 
-!!! tab "Cirrus CI"
-
-    > .cirrus.yml ([docs](https://cirrus-ci.org/guide/writing-tasks/#environment-variables))
-
-    ```yaml
-    env:
-      CIBW_TEST_REQUIRES: pytest
-      CIBW_TEST_COMMAND: "pytest {project}/tests"
-    ```
-
 ## Configuration file {: #configuration-file}
 
 You can configure cibuildwheel with a config file, such as `pyproject.toml`.
 Options have the same names as the environment variable overrides, but are
 placed in `[tool.cibuildwheel]` and are lower case, with dashes, following
-common [TOML](https://toml.io) practice. Anything placed in subsections `linux`, `windows`,
-`macos`, or `pyodide` will only affect those platforms. Lists can be used
-instead of strings for items that are naturally a list. Multiline strings also
-work just like in the environment variables. Environment variables will take
-precedence if defined.
+common [TOML](https://toml.io) practice. Anything placed in subsections
+named after a platform will only affect those platforms. Platform-specific
+values replace the corresponding global value for that platform; table options
+are not merged key by key. Lists can be used instead of strings for items that
+are naturally a list. Multiline strings also work just like in the environment
+variables. Environment variable overrides, such as `CIBW_TEST_COMMAND` and
+`CIBW_TEST_COMMAND_LINUX`, will take precedence if defined.
 
 The example above using environment variables could have been written like this:
 
@@ -153,17 +139,17 @@ which means it can be given multiple times.
 manylinux-x86_64-image = "manylinux_2_34"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp38-*"
+select = "cp39-*"
 manylinux-x86_64-image = "manylinux2014"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp3{9,10}-*"
+select = "cp3{10,11}-*"
 manylinux-x86_64-image = "manylinux_2_28"
 ```
 
-This example will build CPython 3.8 wheels on manylinux2014, CPython 3.9-3.10
+This example will build CPython 3.9 wheels on manylinux2014, CPython 3.10-3.11
 wheels on manylinux_2_28, and manylinux_2_34 wheels for any newer Python
-(like 3.10).
+(like 3.14).
 
 ```toml
 [tool.cibuildwheel]
@@ -194,7 +180,7 @@ on Python 3.11, and will have `environment = {FOO="BAZ", "PYTHON"="MONTY", "HAM"
 In the TOML configuration, you can choose how tables and lists are inherited.
 By default, all values are overridden completely (`"none"`) but sometimes you'd
 rather `"append"` or `"prepend"` to an existing list or table. You can do this
-with the `inherit` table in overrides.  For example, if you want to add an environment
+with the `inherit` table in overrides. For example, if you want to add an environment
 variable for CPython 3.11, without `inherit` you'd have to repeat all the
 original environment variables in the override. With `inherit`, it's just:
 

@@ -1,4 +1,11 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+
+# /// script
+# dependencies = [
+#   "packaging",
+#   "requests",
+# ]
+# ///
 
 import configparser
 import dataclasses
@@ -71,6 +78,8 @@ images = [
             "pypy_aarch64",
         ],
     ),
+    # manylinux_2_35 images
+    PyPAImage("manylinux_2_35", ["armv7l"]),
     # manylinux_2_39 images
     PyPAImage("manylinux_2_39", ["riscv64"]),
     # musllinux_1_2 images

@@ -1,12 +1,20 @@
+from __future__ import annotations
+
+__lazy_modules__ = {"bracex", "fnmatch", "itertools", "packaging", "packaging.version"}
+
 import dataclasses
 import itertools
 from enum import StrEnum
 from fnmatch import fnmatch
-from typing import Any
 
 import bracex
-from packaging.specifiers import SpecifierSet
 from packaging.version import Version
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from typing import Self
+
+    from packaging.specifiers import SpecifierSet
 
 
 def selector_matches(patterns: str, string: str) -> bool:
@@ -29,20 +37,19 @@ class EnableGroup(StrEnum):
     Groups of build selectors that are not enabled by default.
     """
 
-    CPythonExperimentalRiscV64 = "cpython-experimental-riscv64"
-    CPythonFreeThreading = "cpython-freethreading"
     CPythonPrerelease = "cpython-prerelease"
     GraalPy = "graalpy"
     PyPy = "pypy"
     PyPyEoL = "pypy-eol"
+    PyodideEoL = "pyodide-eol"
     PyodidePrerelease = "pyodide-prerelease"
 
     @classmethod
-    def all_groups(cls) -> frozenset["EnableGroup"]:
-        return frozenset(set(cls) - {cls.CPythonExperimentalRiscV64})
+    def all_groups(cls) -> frozenset[Self]:
+        return frozenset(cls)
 
     @classmethod
-    def parse_option_value(cls, value: str) -> frozenset["EnableGroup"]:
+    def parse_option_value(cls, value: str) -> frozenset[Self]:
         """
         Parses a string of space-separated values into a set of EnableGroup
         members. The string may contain group names or "all".
@@ -76,7 +83,7 @@ class BuildSelector:
     def __call__(self, build_id: str) -> bool:
         # Filter build selectors by python_requires if set
         if self.requires_python is not None:
-            py_ver_str = build_id.split("-")[0].split("_")[0]
+            py_ver_str = build_id.split("-", maxsplit=1)[0].split("_", maxsplit=1)[0]
             py_ver_str = py_ver_str.removesuffix("t")
             major = int(py_ver_str[2])
             minor = int(py_ver_str[3:])
@@ -85,8 +92,6 @@ class BuildSelector:
                 return False
 
         # filter out groups that are not enabled
-        if EnableGroup.CPythonFreeThreading not in self.enable and fnmatch(build_id, "cp313t-*"):
-            return False
         if EnableGroup.CPythonPrerelease not in self.enable and fnmatch(build_id, "cp315*"):
             return False
         is_pypy_eol = fnmatch(build_id, "pp3?-*") or fnmatch(build_id, "pp310-*")
@@ -97,15 +102,19 @@ class BuildSelector:
             return False
         if EnableGroup.GraalPy not in self.enable and fnmatch(build_id, "gp*"):
             return False
-        # TODO: Re-enable this when we have Pyodide prereleases again (e.g., 0.29.0a1+)
-        # Python 3.13 support became stable in Pyodide 0.28.0, so it no longer needs a prerelease
-        # flag.
-        # Also update Pyodide tests in unit_test/build_selector_test.py accordingly.
-        # When re-enabling, update the pattern to match the experimental Python version in case
-        # it is bumped to Python 3.14 (likely cp314-pyodide_* but could remain as 3.13 as well).
+        if EnableGroup.PyodideEoL not in self.enable and fnmatch(build_id, "cp312-pyodide_*"):
+            return False
+        # NOTE: Re-enable this when we have a new Pyodide prerelease (e.g., 315.0.0a1+)
+        # When doing this, also:
+        #   1. update Pyodide tests in unit_test/build_selector_test.py and unit_test/options_test.py accordingly.
+        #   2. update Python versions for Pyodide identifiers in cibuildwheel/selector.py.
+        #   3. update constraints as necessary via bin/generate_pyodide_constraints.py and add/delete
+        #      Pyodide constraints files in cibuildwheel/resources/constraints/ as necessary.
+        # When re-enabling, update the pattern to match the experimental Python version when
+        # it is bumped to Python 3.15 (likely cp315-pyodide_*).
         # This depends on the CPython version being used in the Pyodide runtime at the time.
         # if EnableGroup.PyodidePrerelease not in self.enable and fnmatch(
-        #     build_id, "cp313-pyodide_*"
+        #     build_id, "cp315-pyodide_*"
         # ):
         #     return False
 
@@ -114,7 +123,7 @@ class BuildSelector:
 
         return should_build and not should_skip
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> dict[str, str | list[str]]:
         return {
             "build_config": self.build_config,
             "skip_config": self.skip_config,
@@ -135,5 +144,5 @@ class TestSelector:
         should_skip = selector_matches(self.skip_config, build_id)
         return not should_skip
 
-    def options_summary(self) -> Any:
+    def options_summary(self) -> dict[str, str]:
         return {"skip_config": self.skip_config}

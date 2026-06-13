@@ -8,6 +8,76 @@ import pytest
 from . import test_projects, utils
 
 basic_project = test_projects.new_c_project()
+missing_dll_project = test_projects.new_c_project_with_missing_dll()
+
+
+def test_delvewheel_runs_by_default(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
+    if utils.get_platform() != "windows":
+        pytest.skip("This test is only relevant to Windows")
+
+    skip_if_no_msvc()
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    utils.cibuildwheel_run(project_dir, add_args=["--archs", "native"], single_python=True)
+
+    captured = capfd.readouterr()
+    assert "Repairing wheel" in captured.out
+
+
+def test_delvewheel_disabled_by_empty_repair_command(
+    tmp_path: Path, capfd: pytest.CaptureFixture[str]
+) -> None:
+    if utils.get_platform() != "windows":
+        pytest.skip("This test is only relevant to Windows")
+
+    skip_if_no_msvc()
+
+    project_dir = tmp_path / "project"
+    basic_project.generate(project_dir)
+
+    utils.cibuildwheel_run(
+        project_dir,
+        add_args=["--archs", "native"],
+        add_env={"CIBW_REPAIR_WHEEL_COMMAND_WINDOWS": ""},
+        single_python=True,
+    )
+
+    captured = capfd.readouterr()
+    assert "Repairing wheel" not in captured.out
+
+
+def test_delvewheel_fails_when_dll_is_missing(tmp_path: Path) -> None:
+    if utils.get_platform() != "windows":
+        pytest.skip("This test is only relevant to Windows")
+
+    skip_if_no_msvc()
+
+    project_dir = tmp_path / "project"
+    missing_dll_project.generate(project_dir)
+
+    with pytest.raises(subprocess.CalledProcessError):
+        utils.cibuildwheel_run(project_dir, add_args=["--archs", "native"], single_python=True)
+
+
+def test_delvewheel_disabled_allows_build_with_missing_dll(tmp_path: Path) -> None:
+    if utils.get_platform() != "windows":
+        pytest.skip("This test is only relevant to Windows")
+
+    skip_if_no_msvc()
+
+    project_dir = tmp_path / "project"
+    missing_dll_project.generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_args=["--archs", "native"],
+        add_env={"CIBW_REPAIR_WHEEL_COMMAND_WINDOWS": ""},
+        single_python=True,
+    )
+
+    assert len(actual_wheels) == 1
 
 
 def skip_if_no_msvc(arm64: bool = False) -> None:
@@ -38,7 +108,9 @@ def skip_if_no_msvc(arm64: bool = False) -> None:
 
 
 @pytest.mark.parametrize("use_pyproject_toml", [True, False])
-def test_wheel_tag_is_correct_when_using_windows_cross_compile(tmp_path, use_pyproject_toml):
+def test_wheel_tag_is_correct_when_using_windows_cross_compile(
+    tmp_path: Path, use_pyproject_toml: bool
+) -> None:
     if utils.get_platform() != "windows":
         pytest.skip("This test is only relevant to Windows")
 

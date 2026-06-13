@@ -1,15 +1,41 @@
-import csv
-import hashlib
+from __future__ import annotations
+
+__lazy_modules__ = {
+    "build",
+    "build.env",
+    "cibuildwheel.architecture",
+    "cibuildwheel.audit",
+    "cibuildwheel.frontend",
+    "cibuildwheel.logger",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.file",
+    "cibuildwheel.util.helpers",
+    "cibuildwheel.util.packaging",
+    "cibuildwheel.util.python_build_standalone",
+    "cibuildwheel.venv",
+    "filelock",
+    "packaging",
+    "packaging.utils",
+    "pathlib",
+    "platform",
+    "pprint",
+    "re",
+    "runpy",
+    "shlex",
+    "shutil",
+    "subprocess",
+    "textwrap",
+    "typing",
+}
+
 import os
 import platform
 import re
 import shlex
 import shutil
 import subprocess
-import sysconfig
-from collections.abc import Iterable, Iterator
+import sys
 from dataclasses import dataclass
-from os.path import relpath
 from pathlib import Path
 from pprint import pprint
 from runpy import run_path
@@ -18,30 +44,43 @@ from typing import Any
 
 from build import ProjectBuilder
 from build.env import IsolatedEnv
-from elftools.common.exceptions import ELFError
-from elftools.elf.elffile import ELFFile
 from filelock import FileLock
+from packaging.utils import canonicalize_name
 
-from .. import errors, platforms  # pylint: disable=cyclic-import
-from ..architecture import Architecture, arch_synonym
-from ..frontend import get_build_frontend_extra_flags, parse_config_settings
-from ..logger import log
-from ..options import BuildOptions, Options
-from ..selector import BuildSelector
-from ..util import resources
-from ..util.cmd import call, shell
-from ..util.file import CIBW_CACHE_PATH, copy_test_sources, download, move_file
-from ..util.helpers import prepare_command
-from ..util.packaging import find_compatible_wheel
-from ..util.python_build_standalone import create_python_build_standalone_environment
-from ..venv import constraint_flags, virtualenv
+from cibuildwheel import errors, platforms  # pylint: disable=cyclic-import
+from cibuildwheel.architecture import Architecture, arch_synonym
+from cibuildwheel.audit import run_audit
+from cibuildwheel.frontend import (
+    get_build_frontend_extra_flags,
+    parse_config_settings,
+    prepare_config_settings,
+)
+from cibuildwheel.logger import log
+from cibuildwheel.util import resources
+from cibuildwheel.util.cmd import call, shell
+from cibuildwheel.util.file import (
+    CIBW_CACHE_PATH,
+    copy_test_sources,
+    download,
+    move_file,
+    remove_on_error,
+)
+from cibuildwheel.util.helpers import prepare_command
+from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
+from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from cibuildwheel.options import BuildOptions, Options
+    from cibuildwheel.selector import BuildSelector
+    from cibuildwheel.typing import PathOrStr
 
-def android_triplet(identifier: str) -> str:
-    return {
-        "arm64_v8a": "aarch64-linux-android",
-        "x86_64": "x86_64-linux-android",
-    }[parse_identifier(identifier)[1]]
+RESOURCES_ANDROID = resources.PATH / "android"
+ANDROID_TRIPLET = {
+    "arm64_v8a": "aarch64-linux-android",
+    "x86_64": "x86_64-linux-android",
+}
 
 
 def parse_identifier(identifier: str) -> tuple[str, str]:
@@ -53,11 +92,16 @@ def parse_identifier(identifier: str) -> tuple[str, str]:
     return (f"{major}.{minor}", arch)
 
 
+def android_triplet(identifier: str) -> str:
+    return ANDROID_TRIPLET[parse_identifier(identifier)[1]]
+
+
 @dataclass(frozen=True)
 class PythonConfiguration:
     version: str
     identifier: str
     url: str
+    sha256: str
 
     @property
     def arch(self) -> str:
@@ -131,9 +175,11 @@ def build(options: Options, tmp_path: Path) -> None:
             build_path.mkdir()
             python_dir = setup_target_python(config, build_path)
             build_env, android_env = setup_env(config, build_options, build_path, python_dir)
+
             state = BuildState(
                 config, build_options, build_path, python_dir, build_env, android_env
             )
+            setup_xbuild_files(state)
 
             compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
             if compatible_wheel:
@@ -146,6 +192,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 before_build(state)
                 built_wheel = build_wheel(state)
                 repaired_wheel = repair_wheel(state, built_wheel)
+                run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
 
             test_wheel(state, repaired_wheel)
 
@@ -169,11 +216,22 @@ def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
     python_tgz = CIBW_CACHE_PATH / config.url.rpartition("/")[-1]
     with FileLock(f"{python_tgz}.lock"):
         if not python_tgz.exists():
-            download(config.url, python_tgz)
+            with remove_on_error(python_tgz):
+                download(config.url, python_tgz, sha256=config.sha256)
 
     python_dir = build_path / "python"
     python_dir.mkdir()
     shutil.unpack_archive(python_tgz, python_dir)
+
+    # Patch a testbed bug. This code and the patch file can both be removed once we've
+    # updated to Python versions that include the fix.
+    call("patch", "-p1", "-i", RESOURCES_ANDROID / "android.patch", cwd=python_dir)
+
+    # Work around https://github.com/python/cpython/issues/138800. This can be removed
+    # once we've updated to Python versions that include the fix.
+    pc_path = python_dir / f"prefix/lib/pkgconfig/python-{config.version}.pc"
+    pc_path.write_text(pc_path.read_text().replace("$(BLDLIBRARY)", f"-lpython{config.version}"))
+
     return python_dir
 
 
@@ -187,6 +245,7 @@ def setup_env(
     * android_env, which uses the environment while simulating running on Android.
     """
     log.step("Setting up build environment...")
+    use_uv, pip = find_pip(build_options)
 
     # Create virtual environment
     python_exe = create_python_build_standalone_environment(
@@ -197,14 +256,18 @@ def setup_env(
         version=config.version, tmp_dir=build_path
     )
     build_env = virtualenv(
-        config.version, python_exe, venv_dir, dependency_constraint, use_uv=False
+        config.version, python_exe, venv_dir, dependency_constraint, use_uv=use_uv
     )
     create_cmake_toolchain(config, build_path, python_dir, build_env)
 
+    # See platforms.md for the reason why we use this default API level.
+    build_env.setdefault("ANDROID_API_LEVEL", "24")
+
     # Apply custom environment variables, and check environment is still valid
     build_env = build_options.environment.as_dictionary(build_env)
+    build_env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
     build_env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-    for command in ["python", "pip"]:
+    for command in ["python"] if use_uv else ["python", "pip"]:
         command_path = call("which", command, env=build_env, capture_stdout=True).strip()
         if command_path != f"{venv_dir}/bin/{command}":
             msg = (
@@ -213,17 +276,19 @@ def setup_env(
                 f"or insert {command} above it."
             )
             raise errors.FatalError(msg)
-        call(command, "--version", env=build_env)
-
-    # Construct an altered environment which simulates running on Android.
-    android_env = setup_android_env(config, python_dir, venv_dir, build_env)
+        if command == "python":
+            call(command, "-V", "-V", env=build_env)
+        else:
+            call(command, "--version", env=build_env)
 
     # Install build tools
-    build_frontend = build_options.build_frontend
-    if build_frontend.name != "build":
-        msg = "Android requires the build frontend to be 'build'"
-        raise errors.FatalError(msg)
-    call("pip", "install", "build", *constraint_flags(dependency_constraint), env=build_env)
+    tools = ["auditwheel", "patchelf", "pkgconf"]
+    if build_options.build_frontend.name in {"build", "build[uv]"}:
+        tools.append("build")
+    call(*pip, "install", *tools, *constraint_flags(dependency_constraint), env=build_env)
+
+    # Construct an altered environment which simulates running on Android.
+    android_env = setup_android_env(config, python_dir, build_env)
 
     # Build-time requirements must be queried within android_env, because
     # `get_requires_for_build` can run arbitrary code in setup.py scripts, which may be
@@ -243,13 +308,18 @@ def setup_env(
 
     pb = ProjectBuilder.from_isolated_env(AndroidEnv(), build_options.package_dir)
     if pb.build_system_requires:
-        call("pip", "install", *pb.build_system_requires, env=build_env)
+        call(*pip, "install", *pb.build_system_requires, env=build_env)
 
     requires_for_build = pb.get_requires_for_build(
-        "wheel", parse_config_settings(build_options.config_settings)
+        "wheel",
+        parse_config_settings(
+            prepare_config_settings(
+                build_options.config_settings, project=".", package=build_options.package_dir
+            )
+        ),
     )
     if requires_for_build:
-        call("pip", "install", *requires_for_build, env=build_env)
+        call(*pip, "install", *requires_for_build, env=build_env)
 
     return build_env, android_env
 
@@ -314,8 +384,11 @@ def localized_vars(
             final = final.replace(orig_prefix, str(prefix))
 
         if key == "ANDROID_API_LEVEL":
-            if api_level := build_env.get(key):
-                final = int(api_level)
+            try:
+                final = int(build_env[key])
+            except ValueError as e:
+                msg = f"ANDROID_API_LEVEL: {e}. This variable must be an integer."
+                raise errors.FatalError(msg) from e
 
         # Build systems vary in whether FLAGS variables are read from sysconfig, and if so,
         # whether they're replaced by environment variables or combined with them. Even
@@ -338,15 +411,15 @@ def localized_vars(
 
 
 def setup_android_env(
-    config: PythonConfiguration, python_dir: Path, venv_dir: Path, build_env: dict[str, str]
+    config: PythonConfiguration, python_dir: Path, build_env: dict[str, str]
 ) -> dict[str, str]:
-    site_packages = next(venv_dir.glob("lib/python*/site-packages"))
+    site_packages = find_site_packages(build_env)
     for suffix in ["pth", "py"]:
-        shutil.copy(resources.PATH / f"_cross_venv.{suffix}", site_packages)
+        shutil.copy(RESOURCES_ANDROID / f"_cross_venv.{suffix}", site_packages)
 
     sysconfigdata_path = Path(
         shutil.copy(
-            next(python_dir.glob("prefix/lib/python*/_sysconfigdata_*.py")),
+            glob1(python_dir, "prefix/lib/python*/_sysconfigdata_*.py"),
             site_packages,
         )
     )
@@ -365,10 +438,14 @@ def setup_android_env(
     #   * a key=value string, without quotes
     for i, token in enumerate(shlex.split(env_output)):
         if i % 2 == 0:
-            assert token == "export", token
+            if token != "export":
+                msg = f"Unexpected output from android.py env: expected 'export', got {token!r}"
+                raise errors.FatalError(msg)
         else:
             key, sep, value = token.partition("=")
-            assert sep == "=", token
+            if sep != "=":
+                msg = f"Unexpected output from android.py env: expected 'key=value', got {token!r}"
+                raise errors.FatalError(msg)
             android_env[key] = value
 
     # localized_vars cleared the CFLAGS and CXXFLAGS in the sysconfigdata, but most
@@ -382,6 +459,20 @@ def setup_android_env(
     for key in ["CFLAGS", "CXXFLAGS"]:
         android_env[key] += " " + opt
 
+    # Cargo target linker needs to be specified after CC is set
+    setup_rust(config, python_dir, android_env)
+
+    # Create shims which install additional build tools on first use.
+    setup_fortran(android_env)
+
+    # `android.py env` returns PKG_CONFIG="pkg-config --define-prefix", but some build
+    # systems can't handle arguments in that variable. Since we have a known version
+    # of pkgconf, it's safe to use PKG_CONFIG_RELOCATE_PATHS instead.
+    android_env["PKG_CONFIG"] = call(
+        "which", "pkgconf-pypi", env=build_env, capture_stdout=True
+    ).strip()
+    android_env["PKG_CONFIG_RELOCATE_PATHS"] = "1"
+
     # Format the environment so it can be pasted into a shell when debugging.
     for key, value in sorted(android_env.items()):
         if os.environ.get(key) != value:
@@ -390,42 +481,161 @@ def setup_android_env(
     return android_env
 
 
+def setup_rust(config: PythonConfiguration, python_dir: Path, env: dict[str, str]) -> None:
+    cargo_target = android_triplet(config.identifier)
+
+    # CARGO_BUILD_TARGET is the variable used by Cargo and setuptools_rust
+    env["CARGO_BUILD_TARGET"] = cargo_target
+
+    # The linker needs to be specified after CC is set by android-env.sh
+    cargo_target_linker_env_name = f"CARGO_TARGET_{cargo_target.upper().replace('-', '_')}_LINKER"
+    # CC has already been set by calling android.py (it calls android-env.sh)
+    env[cargo_target_linker_env_name] = env["CC"]
+
+    # All Python extension modules must be explicitly linked against libpython3.x.so when building for Android.
+    # See: https://peps.python.org/pep-0738/#linkage
+    # For projects using PyO3, this requires setting PYO3_CROSS_LIB_DIR to the directory containing libpython3.x.so.
+    # See: https://pyo3.rs/v0.27.1/building-and-distribution.html#cross-compiling
+    env["PYO3_CROSS_LIB_DIR"] = str(python_dir / "prefix" / "lib")
+
+    venv_bin = Path(env["VIRTUAL_ENV"]) / "bin"
+    for tool in ["cargo", "rustup"]:
+        shim_path = venv_bin / tool
+        shutil.copy(RESOURCES_ANDROID / "rust_shim.py", shim_path)
+        shim_path.chmod(0o755)
+
+
+def setup_fortran(env: dict[str, str]) -> None:
+    # In case there's any autodetection based on the executable name, use the same name
+    # as the real executable (see fortran_shim.run_flang)
+    shim_in = RESOURCES_ANDROID / "fortran_shim.py"
+    shim_out = Path(env["VIRTUAL_ENV"]) / "bin/flang-new"
+
+    # The hashbang line runs the shim in cibuildwheel's own virtual environment, so it
+    # has access to utility functions for downloading and caching files.
+    shim_out.write_text(f"#!{sys.executable}\n\n" + shim_in.read_text())
+    shim_out.chmod(0o755)
+    env["FC"] = str(shim_out)
+
+
+def setup_xbuild_files(state: BuildState) -> None:
+    _, pip = find_pip(state.options)
+    xbf_dir = state.build_path / "xbuild_files"
+    xbf_dir.mkdir()
+
+    for requirement in call(*pip, "freeze", env=state.build_env, capture_stdout=True).splitlines():
+        name, _, _ = requirement.strip().partition("==")
+        xbuild_files = state.options.xbuild_files.get(canonicalize_name(name), [])
+        if xbuild_files:
+            log.step(f"Installing xbuild-files for {name}...")
+            pip_install_android(state, xbf_dir, "--no-deps", requirement)
+            for xbf in xbuild_files:
+                if (xbf_dir / xbf).exists():
+                    shutil.copy(
+                        xbf_dir / xbf,
+                        find_site_packages(state.build_env) / xbf,
+                    )
+                else:
+                    log.warning(f"{xbf_dir / xbf} does not exist")
+
+
+def pip_install_android(state: BuildState, target: Path, *args: PathOrStr) -> None:
+    use_uv, pip = find_pip(state.options)
+    call(
+        *pip,
+        "install",
+        "--only-binary=:all:",
+        *(["--python-platform", android_triplet(state.config.identifier)] if use_uv else []),
+        "--target",
+        target,
+        *args,
+        env=state.android_env,
+    )
+
+
+def find_site_packages(env: dict[str, str]) -> Path:
+    return glob1(Path(env["VIRTUAL_ENV"]), "lib/python*/site-packages")
+
+
+def glob1(base: Path, pattern: str) -> Path:
+    results = list(base.glob(pattern))
+    if len(results) != 1:
+        msg = f"{base} contains {len(results)} paths matching '{pattern}'; expected 1"
+        raise errors.FatalError(msg)
+    return results[0]
+
+
+def find_pip(build_options: BuildOptions) -> tuple[bool, list[str]]:
+    use_uv = build_options.build_frontend.name in {"build[uv]", "uv"}
+    uv_path = find_uv()
+    if use_uv and uv_path is None:
+        msg = "uv not found"
+        raise AssertionError(msg)
+    pip = ["pip"] if not use_uv else [str(uv_path), "pip"]
+    return use_uv, pip
+
+
 def before_build(state: BuildState) -> None:
     if state.options.before_build:
         log.step("Running before_build...")
         shell_prepared(
             state.options.before_build,
             build_options=state.options,
-            env=state.build_env,
+            env=state.android_env,
         )
 
 
 def build_wheel(state: BuildState) -> Path:
     log.step("Building wheel...")
     built_wheel_dir = state.build_path / "built_wheel"
-    call(
-        "python",
-        "-m",
-        "build",
-        state.options.package_dir,
-        "--wheel",
-        "--no-isolation",
-        "--skip-dependency-check",
-        f"--outdir={built_wheel_dir}",
-        *get_build_frontend_extra_flags(
-            state.options.build_frontend,
-            state.options.build_verbosity,
-            state.options.config_settings,
-        ),
-        env=state.android_env,
-    )
+    match state.options.build_frontend.name:
+        case "build" | "build[uv]":
+            call(
+                "python",
+                "-m",
+                "build",
+                state.options.package_dir,
+                "--wheel",
+                "--no-isolation",
+                "--skip-dependency-check",
+                f"--outdir={built_wheel_dir}",
+                *get_build_frontend_extra_flags(
+                    state.options.build_frontend,
+                    state.options.build_verbosity,
+                    prepare_config_settings(
+                        state.options.config_settings,
+                        project=".",
+                        package=state.options.package_dir,
+                    ),
+                ),
+                env=state.android_env,
+            )
+        case "uv":
+            uv_path = find_uv()
+            assert uv_path is not None
+            call(
+                uv_path,
+                "build",
+                state.options.package_dir,
+                "--wheel",
+                "--no-build-isolation",
+                f"--out-dir={built_wheel_dir}",
+                *get_build_frontend_extra_flags(
+                    state.options.build_frontend,
+                    state.options.build_verbosity,
+                    prepare_config_settings(
+                        state.options.config_settings,
+                        project=".",
+                        package=state.options.package_dir,
+                    ),
+                ),
+                env=state.android_env,
+            )
+        case x:
+            msg = f"Android requires the build frontend to be 'build' or 'uv', not {x!r}"
+            raise errors.FatalError(msg)
 
-    built_wheels = list(built_wheel_dir.glob("*.whl"))
-    if len(built_wheels) != 1:
-        msg = f"{built_wheel_dir} contains {len(built_wheels)} wheels; expected 1"
-        raise errors.FatalError(msg)
-    built_wheel = built_wheels[0]
-
+    built_wheel = glob1(built_wheel_dir, "*.whl")
     if built_wheel.name.endswith("none-any.whl"):
         raise errors.NonPlatformWheelError()
     return built_wheel
@@ -437,126 +647,42 @@ def repair_wheel(state: BuildState, built_wheel: Path) -> Path:
     repaired_wheel_dir.mkdir()
 
     if state.options.repair_command:
+        # Tell auditwheel the locations of compiler libraries.
+        toolchain = Path(state.android_env["CC"]).parent.parent
+        triplet = android_triplet(state.config.identifier)
+        ldpaths = ":".join(
+            str(glob1(toolchain, pattern))
+            for pattern in [
+                f"lib/clang/*/lib/linux/{triplet.split('-')[0]}",  # libomp
+                f"sysroot/usr/lib/{triplet}",  # libc++_shared
+            ]
+        )
         shell(
             prepare_command(
-                state.options.repair_command, wheel=built_wheel, dest_dir=repaired_wheel_dir
+                state.options.repair_command,
+                ldpaths=ldpaths,
+                wheel=built_wheel,
+                dest_dir=repaired_wheel_dir,
+                package=state.options.package_dir,
+                project=".",
             ),
             env=state.build_env,
         )
     else:
-        repair_default(state.android_env, built_wheel, repaired_wheel_dir)
+        shutil.move(built_wheel, repaired_wheel_dir)
 
     repaired_wheels = list(repaired_wheel_dir.glob("*.whl"))
     if len(repaired_wheels) == 0:
         raise errors.RepairStepProducedNoWheelError()
     if len(repaired_wheels) != 1:
-        msg = f"{repaired_wheel_dir} contains {len(repaired_wheels)} wheels; expected 1"
-        raise errors.FatalError(msg)
+        raise errors.RepairStepProducedMultipleWheelsError(
+            [rw.name for rw in repaired_wheels],
+        )
     repaired_wheel = repaired_wheels[0]
 
     if repaired_wheel.name.endswith("none-any.whl"):
         raise errors.NonPlatformWheelError()
     return repaired_wheel
-
-
-def repair_default(
-    android_env: dict[str, str], built_wheel: Path, repaired_wheel_dir: Path
-) -> None:
-    """
-    Adds libc++ to the wheel if anything links against it. In the future this should be
-    moved to auditwheel and generalized to support more libraries.
-    """
-    if (match := re.search(r"^(.+?)-", built_wheel.name)) is None:
-        msg = f"Failed to parse wheel filename: {built_wheel.name}"
-        raise errors.FatalError(msg)
-    wheel_name = match[1]
-
-    unpacked_dir = repaired_wheel_dir / "unpacked"
-    unpacked_dir.mkdir()
-    shutil.unpack_archive(built_wheel, unpacked_dir, format="zip")
-
-    # Some build systems are inconsistent about name normalization, so don't assume the
-    # dist-info name is identical to the wheel name.
-    record_paths = list(unpacked_dir.glob("*.dist-info/RECORD"))
-    if len(record_paths) != 1:
-        msg = f"{built_wheel.name} contains {len(record_paths)} dist-info/RECORD files; expected 1"
-        raise errors.FatalError(msg)
-
-    old_soname = "libc++_shared.so"
-    paths_to_patch = []
-    for path, elffile in elf_file_filter(
-        unpacked_dir / filename
-        for filename, *_ in csv.reader(record_paths[0].read_text().splitlines())
-    ):
-        if (dynamic := elffile.get_section_by_name(".dynamic")) and any(  # type: ignore[no-untyped-call]
-            tag.entry.d_tag == "DT_NEEDED" and tag.needed == old_soname
-            for tag in dynamic.iter_tags()
-        ):
-            paths_to_patch.append(path)
-
-    if not paths_to_patch:
-        shutil.copyfile(built_wheel, repaired_wheel_dir / built_wheel.name)
-    else:
-        # Android doesn't support DT_RPATH, but supports DT_RUNPATH since API level 24
-        # (https://github.com/aosp-mirror/platform_bionic/blob/master/android-changes-for-ndk-developers.md).
-        if int(sysconfig_print('get_config_vars()["ANDROID_API_LEVEL"]', android_env)) < 24:
-            msg = f"Adding {old_soname} requires ANDROID_API_LEVEL to be at least 24"
-            raise errors.FatalError(msg)
-
-        toolchain = Path(android_env["CC"]).parent.parent
-        src_path = toolchain / f"sysroot/usr/lib/{android_env['CIBW_HOST_TRIPLET']}/{old_soname}"
-
-        # Use the same library location as auditwheel would.
-        libs_dir = unpacked_dir / (wheel_name + ".libs")
-        libs_dir.mkdir()
-        new_soname = soname_with_hash(src_path)
-        dst_path = libs_dir / new_soname
-        shutil.copyfile(src_path, dst_path)
-        call(which("patchelf"), "--set-soname", new_soname, dst_path)
-
-        for path in paths_to_patch:
-            call(which("patchelf"), "--replace-needed", old_soname, new_soname, path)
-            call(
-                which("patchelf"),
-                "--set-rpath",
-                f"${{ORIGIN}}/{relpath(libs_dir, path.parent)}",
-                path,
-            )
-        call(which("wheel"), "pack", unpacked_dir, "-d", repaired_wheel_dir)
-
-
-# If cibuildwheel was called without activating its environment, its scripts directory
-# will not be on the PATH.
-def which(cmd: str) -> str:
-    scripts_dir = sysconfig.get_path("scripts")
-    result = shutil.which(cmd, path=scripts_dir + os.pathsep + os.environ["PATH"])
-    if result is None:
-        msg = f"Couldn't find {cmd!r} in {scripts_dir} or on the PATH"
-        raise errors.FatalError(msg)
-    return result
-
-
-def elf_file_filter(paths: Iterable[Path]) -> Iterator[tuple[Path, ELFFile]]:
-    """Filter through an iterator of filenames and load up only ELF files"""
-    for path in paths:
-        if not path.name.endswith(".py"):
-            try:
-                with open(path, "rb") as f:
-                    candidate = ELFFile(f)  # type: ignore[no-untyped-call]
-                    yield path, candidate
-            except ELFError:
-                pass  # Not an ELF file
-
-
-def soname_with_hash(src_path: Path) -> str:
-    """Return the same library filename as auditwheel would"""
-    shorthash = hashlib.sha256(src_path.read_bytes()).hexdigest()[:8]
-    src_name = src_path.name
-    base, ext = src_name.split(".", 1)
-    if not base.endswith(f"-{shorthash}"):
-        return f"{base}-{shorthash}.{ext}"
-    else:
-        return src_name
 
 
 def test_wheel(state: BuildState, wheel: Path) -> None:
@@ -577,23 +703,17 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         shell_prepared(
             state.options.before_test,
             build_options=state.options,
-            env=state.build_env,
+            env=state.android_env,
         )
 
     # Install the wheel and test-requires.
     site_packages_dir = state.build_path / "site-packages"
     site_packages_dir.mkdir()
-    call(
-        "pip",
-        "install",
-        "--only-binary=:all:",
-        "--platform",
-        sysconfig_print("get_platform()", state.android_env).replace("-", "_"),
-        "--target",
+    pip_install_android(
+        state,
         site_packages_dir,
         f"{wheel}{state.options.test_extras}",
         *state.options.test_requires,
-        env=state.android_env,
     )
 
     # Copy test-sources.
@@ -607,7 +727,7 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
         )
 
     # Android doesn't support placeholders in the test command.
-    if any(("{" + placeholder + "}") in test_command for placeholder in ["project", "package"]):
+    if any(("{" + placeholder + "}") in test_command for placeholder in ("project", "package")):
         msg = (
             f"Test command {test_command!r} with a "
             "'{project}' or '{package}' placeholder is not supported on Android, "
@@ -617,9 +737,12 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
 
     # Parse test-command.
     test_args = shlex.split(test_command)
-    if test_args[:2] in [["python", "-c"], ["python", "-m"]]:
-        test_args[:3] = [test_args[1], test_args[2], "--"]
-    elif test_args[0] in ["pytest"]:
+    if test_args[0] in {"python", "python3"} and any(arg in test_args for arg in ("-c", "-m")):
+        # Forward the args to the CPython testbed script. We require '-c' or '-m'
+        # to be in the command, because without those flags, the testbed script
+        # will prepend '-m test', which will run Python's own test suite.
+        del test_args[0]
+    elif test_args[0] == "pytest":
         # We transform some commands into the `python -m` form, but this is deprecated.
         msg = (
             f"Test command {test_command!r} is not supported on Android. "
@@ -627,35 +750,36 @@ def test_wheel(state: BuildState, wheel: Path) -> None:
             "If this works, all you need to do is add that to your test command."
         )
         log.warning(msg)
-        test_args[:1] = ["-m", test_args[0], "--"]
+        test_args.insert(0, "-m")
     else:
         msg = (
             f"Test command {test_command!r} is not supported on Android. "
-            f"Supported commands are 'python -m' and 'python -c'."
+            f"Command must begin with 'python' or 'python3', and contain '-m' or '-c'."
         )
         raise errors.FatalError(msg)
+
+    # By default, run on a testbed managed emulator running the newest supported
+    # Android version. However, if the user specifies a --managed or --connected
+    # test execution argument, that argument takes precedence.
+    test_runtime_args = state.options.test_runtime.args
+
+    if any(arg.startswith(("--managed", "--connected")) for arg in test_runtime_args):
+        emulator_args = []
+    else:
+        emulator_args = ["--managed", "maxVersion"]
 
     # Run the test app.
     call(
         state.python_dir / "android.py",
         "test",
-        "--managed",
-        "maxVersion",
         "--site-packages",
         site_packages_dir,
         "--cwd",
         cwd_dir,
+        *emulator_args,
         *(["-v"] if state.options.build_verbosity > 0 else []),
+        *test_runtime_args,
+        "--",
         *test_args,
         env=state.build_env,
-    )
-
-
-def sysconfig_print(method_call: str, env: dict[str, str]) -> str:
-    return call(
-        "python",
-        "-c",
-        f'import sysconfig; print(sysconfig.{method_call}, end="")',
-        env=env,
-        capture_stdout=True,
     )

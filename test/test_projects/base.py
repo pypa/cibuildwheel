@@ -1,7 +1,12 @@
-from pathlib import Path
+from __future__ import annotations
+
 from typing import Any, Self
 
 import jinja2
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 FilesDict = dict[str, str | jinja2.Template]
 TemplateContext = dict[str, Any]

@@ -7,7 +7,7 @@ from cibuildwheel.environment import parse_environment
 PYTHON_ECHO = f"'{sys.executable}' -c \"import sys; print(*sys.argv[1:])\""
 
 
-def test_basic_parsing():
+def test_basic_parsing() -> None:
     environment_recipe = parse_environment("VAR=1 VBR=2")
 
     environment_dict = environment_recipe.as_dictionary(prev_environment={})
@@ -15,7 +15,7 @@ def test_basic_parsing():
     assert environment_dict == {"VAR": "1", "VBR": "2"}
 
 
-def test_quotes():
+def test_quotes() -> None:
     environment_recipe = parse_environment("A=1 VAR=\"1 NOT_A_VAR=2\" VBR='vbr'")
 
     environment_dict = environment_recipe.as_dictionary(prev_environment={})
@@ -23,7 +23,7 @@ def test_quotes():
     assert environment_dict == {"A": "1", "VAR": "1 NOT_A_VAR=2", "VBR": "vbr"}
 
 
-def test_inheritance():
+def test_inheritance() -> None:
     environment_recipe = parse_environment("PATH=$PATH:/usr/local/bin")
 
     environment_dict = environment_recipe.as_dictionary(prev_environment={"PATH": "/usr/bin"})
@@ -31,7 +31,7 @@ def test_inheritance():
     assert environment_dict == {"PATH": "/usr/bin:/usr/local/bin"}
 
 
-def test_shell_eval():
+def test_shell_eval() -> None:
     environment_recipe = parse_environment(f'VAR="$({PYTHON_ECHO} "a   test" string)"')
 
     env_copy = os.environ.copy()
@@ -42,7 +42,7 @@ def test_shell_eval():
     assert environment_dict["VAR"] == "a   test string"
 
 
-def test_shell_eval_and_env():
+def test_shell_eval_and_env() -> None:
     environment_recipe = parse_environment(f'VAR="$({PYTHON_ECHO} "$PREV_VAR" string)"')
 
     prev_environment = {**os.environ, "PREV_VAR": "1 2 3"}
@@ -51,7 +51,7 @@ def test_shell_eval_and_env():
     assert environment_dict == {**prev_environment, "VAR": "1 2 3 string"}
 
 
-def test_empty_var():
+def test_empty_var() -> None:
     environment_recipe = parse_environment("CFLAGS=")
 
     environment_dict = environment_recipe.as_dictionary(prev_environment={"CFLAGS": "-Wall"})
@@ -59,7 +59,7 @@ def test_empty_var():
     assert environment_dict == {"CFLAGS": ""}
 
 
-def test_no_vars():
+def test_no_vars() -> None:
     environment_recipe = parse_environment("")
 
     environment_dict = environment_recipe.as_dictionary(prev_environment={})
@@ -67,7 +67,7 @@ def test_no_vars():
     assert environment_dict == {}
 
 
-def test_no_vars_pass_through():
+def test_no_vars_pass_through() -> None:
     environment_recipe = parse_environment("")
 
     environment_dict = environment_recipe.as_dictionary(
@@ -77,7 +77,7 @@ def test_no_vars_pass_through():
     assert environment_dict == {"CIBUILDWHEEL": "awesome"}
 
 
-def test_operators_inside_eval():
+def test_operators_inside_eval() -> None:
     environment_recipe = parse_environment(
         f'SOMETHING="$({PYTHON_ECHO} a; {PYTHON_ECHO} b; {PYTHON_ECHO} c)"'
     )
@@ -88,7 +88,7 @@ def test_operators_inside_eval():
     assert environment_dict.get("SOMETHING") == "a\nb\nc"
 
 
-def test_substitution_with_backslash():
+def test_substitution_with_backslash() -> None:
     environment_recipe = parse_environment('PATH2="somewhere_else;$PATH1"')
 
     environment_dict = environment_recipe.as_dictionary(prev_environment={"PATH1": "c:\\folder\\"})
@@ -96,7 +96,7 @@ def test_substitution_with_backslash():
     assert environment_dict.get("PATH2") == "somewhere_else;c:\\folder\\"
 
 
-def test_awkwardly_quoted_variable():
+def test_awkwardly_quoted_variable() -> None:
     environment_recipe = parse_environment(
         f'VAR2=something"like this""$VAR1"$VAR1$({PYTHON_ECHO} "there is more")"$({PYTHON_ECHO} "and more!")"'
     )

@@ -4,14 +4,15 @@ Utility functions used by the cibuildwheel tests.
 This file is added to the PYTHONPATH in the test runner at bin/run_test.py.
 """
 
+from __future__ import annotations
+
 import os
 import platform as pm
 import subprocess
 import sys
-from collections.abc import Generator, Mapping, Sequence
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Final
+from typing import Final
 
 import pytest
 
@@ -20,18 +21,25 @@ from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.selector import EnableGroup
 from cibuildwheel.util.file import CIBW_CACHE_PATH
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Generator, Mapping, Sequence
+
 EMULATED_ARCHS: Final[list[str]] = sorted(
     arch.value for arch in (Architecture.all_archs("linux") - Architecture.auto_archs("linux"))
 )
 PYPY_ARCHS = ["x86_64", "i686", "AMD64", "aarch64", "arm64"]
 GRAALPY_ARCHS = ["x86_64", "AMD64", "aarch64", "arm64"]
 
-SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 12)
+SINGLE_PYTHON_VERSION: Final[tuple[int, int]] = (3, 14)
+
+# temporary workaround: set by build_frontend_env fixture to skip graalpy
+# when uv is the build frontend (compatibility issue between graalpy and uv)
+include_graalpy_in_expected_wheels: bool = True
 
 _AARCH64_CAN_RUN_ARMV7: Final[bool] = Architecture.aarch64.value not in EMULATED_ARCHS and {
     None: Architecture.armv7l.value not in EMULATED_ARCHS,
     CIProvider.travis_ci: False,
-    CIProvider.cirrus_ci: False,
 }.get(detect_ci_provider(), True)
 
 
@@ -51,7 +59,7 @@ def get_platform() -> str:
         raise Exception(msg)
 
 
-DEFAULT_CIBW_ENABLE = "cpython-freethreading cpython-prerelease"
+DEFAULT_CIBW_ENABLE = "cpython-prerelease"
 
 
 def get_enable_groups() -> frozenset[EnableGroup]:
@@ -169,6 +177,7 @@ def expected_wheels(
     musllinux_versions: list[str] | None = None,
     macosx_deployment_target: str | None = None,
     iphoneos_deployment_target: str | None = None,
+    android_api_level: int | None = None,
     machine_arch: str | None = None,
     platform: str | None = None,
     python_abi_tags: list[str] | None = None,
@@ -192,6 +201,9 @@ def expected_wheels(
 
     if iphoneos_deployment_target is None:
         iphoneos_deployment_target = os.environ.get("IPHONEOS_DEPLOYMENT_TARGET", "13.0")
+
+    if android_api_level is None:
+        android_api_level = int(os.environ.get("ANDROID_API_LEVEL", "24"))
 
     architectures = [machine_arch]
     if not single_arch:
@@ -218,6 +230,7 @@ def expected_wheels(
             musllinux_versions=musllinux_versions,
             macosx_deployment_target=macosx_deployment_target,
             iphoneos_deployment_target=iphoneos_deployment_target,
+            android_api_level=android_api_level,
             platform=platform,
             python_abi_tags=python_abi_tags,
             include_universal2=include_universal2,
@@ -234,6 +247,7 @@ def _expected_wheels(
     musllinux_versions: list[str] | None,
     macosx_deployment_target: str,
     iphoneos_deployment_target: str,
+    android_api_level: int,
     platform: str,
     python_abi_tags: list[str] | None,
     include_universal2: bool,
@@ -260,24 +274,24 @@ def _expected_wheels(
     if musllinux_versions is None:
         musllinux_versions = ["musllinux_1_2"]
 
+    enable_groups = get_enable_groups()
+
+    # To be kept in sync with Python versions for Pyodide identifiers in cibuildwheel/selector.py.
     if platform == "pyodide" and python_abi_tags is None:
-        python_abi_tags = [
-            "cp312-cp312",
-            "cp313-cp313",
-        ]
-    elif platform == "android" and python_abi_tags is None:  # noqa: SIM114
-        python_abi_tags = [
-            "cp313-cp313",
-            "cp314-cp314",
-        ]
-    elif platform == "ios" and python_abi_tags is None:
+        python_abi_tags = ["cp313-cp313", "cp314-cp314"]
+        if EnableGroup.PyodideEoL in enable_groups:
+            python_abi_tags.insert(0, "cp312-cp312")
+    elif (platform == "android" and python_abi_tags is None) or (
+        platform == "ios" and python_abi_tags is None
+    ):
         python_abi_tags = [
             "cp313-cp313",
             "cp314-cp314",
         ]
+        if EnableGroup.CPythonPrerelease in enable_groups:
+            python_abi_tags += ["cp315-cp315"]
     elif python_abi_tags is None:
         python_abi_tags = [
-            "cp38-cp38",
             "cp39-cp39",
             "cp310-cp310",
             "cp311-cp311",
@@ -287,16 +301,14 @@ def _expected_wheels(
             "cp314-cp314t",
         ]
 
-        enable_groups = get_enable_groups()
-        if EnableGroup.CPythonFreeThreading in enable_groups:
-            python_abi_tags.append("cp313-cp313t")
-
         if EnableGroup.CPythonPrerelease in enable_groups:
-            ...  # Add cp315 here when available
+            python_abi_tags += [
+                "cp315-cp315",
+                "cp315-cp315t",
+            ]
 
         if EnableGroup.PyPyEoL in enable_groups:
             python_abi_tags += [
-                "pp38-pypy38_pp73",
                 "pp39-pypy39_pp73",
                 "pp310-pypy310_pp73",
             ]
@@ -305,15 +317,10 @@ def _expected_wheels(
                 "pp311-pypy311_pp73",
             ]
 
-        if EnableGroup.GraalPy in enable_groups:
+        if EnableGroup.GraalPy in enable_groups and include_graalpy_in_expected_wheels:
             python_abi_tags += [
-                "graalpy311-graalpy242_311_native",
                 "graalpy312-graalpy250_312_native",
             ]
-
-    if machine_arch == "ARM64" and platform == "windows":
-        # no CPython 3.8 on Windows ARM64
-        python_abi_tags = [t for t in python_abi_tags if not t.startswith("cp38")]
 
     if machine_arch not in PYPY_ARCHS:
         python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("pp")]
@@ -359,20 +366,16 @@ def _expected_wheels(
 
         elif platform == "macos":
             if python_abi_tag.startswith("pp"):
-                if python_abi_tag.startswith("pp38"):
+                min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
+            elif python_abi_tag.startswith("cp"):
+                if python_abi_tag.startswith(("cp39", "cp310", "cp311")):
                     min_macosx = macosx_deployment_target
+                elif python_abi_tag.startswith(("cp312", "cp313")):
+                    min_macosx = _floor_macosx(macosx_deployment_target, "10.13")
                 else:
                     min_macosx = _floor_macosx(macosx_deployment_target, "10.15")
-            elif python_abi_tag.startswith("cp"):
-                if python_abi_tag.startswith(("cp38", "cp39", "cp310", "cp311")):
-                    min_macosx = macosx_deployment_target
-                else:
-                    min_macosx = _floor_macosx(macosx_deployment_target, "10.13")
             elif python_abi_tag.startswith("graalpy"):
-                if python_abi_tag.startswith("graalpy311"):
-                    min_macosx = macosx_deployment_target
-                else:
-                    min_macosx = _floor_macosx(macosx_deployment_target, "10.13")
+                min_macosx = _floor_macosx(macosx_deployment_target, "10.13")
             else:
                 min_macosx = macosx_deployment_target
 
@@ -386,11 +389,7 @@ def _expected_wheels(
                 platform_tags.append(f"macosx_{min_macosx.replace('.', '_')}_universal2")
 
         elif platform == "android":
-            api_level = {
-                "cp313-cp313": 21,
-                "cp314-cp314": 24,
-            }[python_abi_tag]
-            platform_tags = [f"android_{api_level}_{machine_arch}"]
+            platform_tags = [f"android_{android_api_level}_{machine_arch}"]
 
         elif platform == "ios":
             if machine_arch == "x86_64":
@@ -409,13 +408,14 @@ def _expected_wheels(
         elif platform == "pyodide":
             platform_tags = {
                 "cp312-cp312": ["pyodide_2024_0_wasm32"],
-                "cp313-cp313": ["pyodide_2025_0_wasm32"],
+                "cp313-cp313": ["pyemscripten_2025_0_wasm32"],
+                "cp314-cp314": ["pyemscripten_2026_0_wasm32"],
             }.get(python_abi_tag, [])
 
             if not platform_tags:
-                # for example if the python tag is `none` or `abi3`, all
-                # platform tags are built with that python tag
-                platform_tags = ["pyodide_2024_0_wasm32"]
+                # for example if the python tag is `none` or `abi3`, the wheel
+                # is built by the latest stable cp314 Python version
+                platform_tags = ["pyemscripten_2026_0_wasm32"]
 
         else:
             msg = f"Unsupported platform {platform!r}"
@@ -452,7 +452,7 @@ def get_xcode_version() -> tuple[int, int]:
     return (int(version_parts[0]), int(version_parts[1]))
 
 
-def skip_if_pyodide(reason: str) -> Any:
+def skip_if_pyodide(reason: str) -> pytest.MarkDecorator:
     return pytest.mark.skipif(get_platform() == "pyodide", reason=reason)
 
 

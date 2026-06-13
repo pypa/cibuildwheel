@@ -1,4 +1,17 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
+
+# /// script
+# dependencies = [
+#   "click",
+#   "pygithub",
+#   "pyyaml",
+#   "rich",
+#   "cibuildwheel",
+# ]
+#
+# [tool.uv.sources]
+# cibuildwheel = { path = ".." }
+# ///
 
 """
 Check known projects for usage of requires-python.
@@ -11,8 +24,9 @@ This will cache the results to all_known_setup.yaml; you can reprint
 the results without the `--online` setting.
 """
 
+from __future__ import annotations
+
 import ast
-from collections.abc import Iterable, Iterator
 from pathlib import Path
 
 import click
@@ -21,6 +35,10 @@ from github import Github, GithubException
 from rich import print
 
 from cibuildwheel.projectfiles import Analyzer
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Iterator
 
 DIR = Path(__file__).parent.resolve()
 

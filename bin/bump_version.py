@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run --script
 
 # /// script
-# dependencies = ["click", "packaging"]
+# dependencies = ["click", "packaging", "prek"]
 # ///
 
 
@@ -68,8 +68,8 @@ def bump_version() -> None:
         sys.exit(1)
 
     # fmt: off
-    print(              'Current version:', current_version)
-    new_version = input('    New version: ').strip()
+    print(              "Current version:", current_version)
+    new_version = input("    New version: ").strip()
     # fmt: on
 
     try:
@@ -139,7 +139,7 @@ def bump_version() -> None:
     # run pre-commit to update the README changelog
     subprocess.run(
         [
-            "pre-commit",
+            "prek",
             "run",
             "--files=docs/changelog.md",
         ],
@@ -149,7 +149,7 @@ def bump_version() -> None:
     # run pre-commit to check that no errors occurred on the second run
     subprocess.run(
         [
-            "pre-commit",
+            "prek",
             "run",
             "--files=docs/changelog.md",
         ],

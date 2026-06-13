@@ -1,5 +1,6 @@
 ---
 title: Delivering to PyPI
+ref: deliver-to-pypi
 ---
 
 # Delivering to PyPI
@@ -29,10 +30,11 @@ GitHub actions has pipx in all the runners as a supported package manager, as we
     name: Make SDist
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0  # Optional, use if you use setuptools_scm
         submodules: true  # Optional, use if you have submodules
+        persist-credentials: false # Highly recommended as a good security practice to not store credentials in disk, unless you need this for your specific use case
 
     - name: Build SDist
       run: pipx run build --sdist
@@ -70,12 +72,6 @@ See
 for an example configuration that automatically uploads wheels to PyPI. Also see
 [scikit-hep.org/developer/gha_wheels](https://scikit-hep.org/developer/gha_wheels)
 for a complete guide.
-
-### TravisCI
-
-See
-[`examples/travis-ci-deploy.yml`](https://github.com/pypa/cibuildwheel/blob/main/examples/travis-ci-deploy.yml)
-for an example configuration.
 
 ## Manual method
 

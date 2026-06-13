@@ -1,3 +1,17 @@
+from __future__ import annotations
+
+__lazy_modules__ = {
+    "cibuildwheel.ci",
+    "contextlib",
+    "functools",
+    "hashlib",
+    "humanize",
+    "io",
+    "pathlib",
+    "re",
+    "textwrap",
+}
+
 import codecs
 import contextlib
 import dataclasses
@@ -9,18 +23,21 @@ import re
 import sys
 import textwrap
 import time
-from collections.abc import Generator
 from pathlib import Path
-from typing import IO, TYPE_CHECKING, AnyStr, Final, Literal
 
 import humanize
 
-from .ci import CIProvider, detect_ci_provider, filter_ansi_codes
+from cibuildwheel.ci import CIProvider, detect_ci_provider, filter_ansi_codes
 
+TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from .options import Options
+    from collections.abc import Generator
+    from typing import IO, AnyStr, Final, Literal
 
-FoldPattern = tuple[str, str]
+    from cibuildwheel.options import Options
+
+    FoldPattern = tuple[str, str]
+
 DEFAULT_FOLD_PATTERN: Final[FoldPattern] = ("{name}", "")
 FOLD_PATTERNS: Final[dict[str, FoldPattern]] = {
     "azure": ("##[group]{name}", "##[endgroup]"),
@@ -234,7 +251,7 @@ class Logger:
             print(f"cibuildwheel: {c.bright_red}error{c.end}: {error}\n", file=sys.stderr)
 
     @contextlib.contextmanager
-    def print_summary(self, *, options: "Options") -> Generator[None, None, None]:
+    def print_summary(self, *, options: Options) -> Generator[None, None, None]:
         start = time.time()
         yield
         duration = time.time() - start
@@ -292,7 +309,7 @@ class Logger:
         # lowercase, shorten
         return identifier.lower()[:20]
 
-    def _github_step_summary(self, duration: float, options: "Options") -> str:
+    def _github_step_summary(self, duration: float, options: Options) -> str:
         """
         Returns the GitHub step summary, in markdown format.
         """
@@ -358,11 +375,11 @@ class Logger:
         out.write("\n")
         return out.getvalue()
 
-    @property
+    @functools.cached_property
     def colors(self) -> Colors:
         return Colors(enabled=self.colors_enabled)
 
-    @property
+    @functools.cached_property
     def symbols(self) -> Symbols:
         return Symbols(unicode=self.unicode_enabled)
 

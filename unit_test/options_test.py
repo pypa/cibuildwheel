@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import platform as platform_module
 import textwrap
@@ -9,7 +11,13 @@ import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.bashlex_eval import local_environment_executor
-from cibuildwheel.frontend import BuildFrontendConfig, get_build_frontend_extra_flags
+from cibuildwheel.frontend import (
+    BuildFrontendConfig,
+    _split_config_settings,
+    get_build_frontend_extra_flags,
+    parse_config_settings,
+    prepare_config_settings,
+)
 from cibuildwheel.logger import Logger
 from cibuildwheel.options import (
     CommandLineArguments,
@@ -17,9 +25,12 @@ from cibuildwheel.options import (
     _get_pinned_container_images,
 )
 from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
-from cibuildwheel.selector import EnableGroup
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -35,7 +46,7 @@ manylinux-x86_64-image = "manylinux_2_28"
 
 environment-pass = ["EXAMPLE_ENV"]
 
-pyodide-version = "0.28.0"
+pyodide-version = "0.29.4"
 
 [tool.cibuildwheel.macos]
 test-requires = "else"
@@ -47,7 +58,7 @@ manylinux-x86_64-image = "manylinux_2_34"
 """
 
 
-def test_options_1(tmp_path, monkeypatch):
+def test_options_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     with tmp_path.joinpath("pyproject.toml").open("w") as f:
         f.write(PYPROJECT_1)
 
@@ -92,10 +103,10 @@ def test_options_1(tmp_path, monkeypatch):
     assert local.manylinux_images["x86_64"] == pinned_x86_64_container_image["manylinux_2_34"]
 
     local = options.build_options("cp312-pyodide_wasm32")
-    assert local.pyodide_version == "0.28.0"
+    assert local.pyodide_version == "0.29.4"
 
 
-def test_passthrough(tmp_path, monkeypatch):
+def test_passthrough(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     with tmp_path.joinpath("pyproject.toml").open("w") as f:
         f.write(PYPROJECT_1)
 
@@ -125,7 +136,9 @@ def test_passthrough(tmp_path, monkeypatch):
         "a trailing backslash \\",
     ],
 )
-def test_passthrough_evil(tmp_path, monkeypatch, env_var_value):
+def test_passthrough_evil(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, env_var_value: str
+) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -156,7 +169,7 @@ xfail_env_parse = pytest.mark.xfail(
         pytest.param("a trailing backslash \\", marks=[xfail_env_parse]),
     ],
 )
-def test_toml_environment_evil(tmp_path, env_var_value):
+def test_toml_environment_evil(tmp_path: Path, env_var_value: str) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -295,7 +308,7 @@ def test_container_engine_option(
     assert parsed_container_engine.disable_host_mount == result_disable_host_mount
 
 
-def test_environment_pass_references():
+def test_environment_pass_references() -> None:
     options = Options(
         platform="linux",
         command_line_arguments=CommandLineArguments.defaults(),
@@ -325,6 +338,11 @@ def test_environment_pass_references():
         (
             'build-frontend = "build"',
             "build",
+            [],
+        ),
+        (
+            'build-frontend = "uv"',
+            "uv",
             [],
         ),
         (
@@ -439,50 +457,6 @@ def test_override_inherit_environment_with_references(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
-    ("toml_assignment", "env", "enable_args", "expected_result"),
-    [
-        ("", {}, [], False),
-        ("enable = ['cpython-freethreading']", {}, [], True),
-        ("enable = []", {}, [], False),
-        ("", {}, ["cpython-freethreading"], True),
-        ("", {}, ["cpython-freethreading", "pypy"], True),
-        ("", {"CIBW_ENABLE": "pypy"}, [], False),
-        ("", {"CIBW_ENABLE": "cpython-freethreading"}, [], True),
-        ("enable = []", {"CIBW_ENABLE": "cpython-freethreading"}, [], True),
-        ("enable = ['cpython-freethreading']", {"CIBW_ENABLE": "pypy"}, [], True),
-        ("enable = ['cpython-freethreading']", {}, ["pypy"], True),
-        ("enable = ['cpython-freethreading']", {"CIBW_ENABLE": ""}, [], True),
-        ("enable = []", {"CIBW_ENABLE": ""}, [], False),
-    ],
-)
-def test_free_threaded_support(
-    tmp_path: Path,
-    toml_assignment: str,
-    env: dict[str, str],
-    enable_args: list[str],
-    expected_result: bool,
-) -> None:
-    args = CommandLineArguments.defaults()
-    args.package_dir = tmp_path
-    args.enable = enable_args
-
-    pyproject_toml: Path = tmp_path / "pyproject.toml"
-    pyproject_toml.write_text(
-        textwrap.dedent(
-            f"""\
-            [tool.cibuildwheel]
-            {toml_assignment}
-            """
-        )
-    )
-    options = Options(platform="linux", command_line_arguments=args, env=env)
-    if expected_result:
-        assert EnableGroup.CPythonFreeThreading in options.globals.build_selector.enable
-    else:
-        assert EnableGroup.CPythonFreeThreading not in options.globals.build_selector.enable
-
-
-@pytest.mark.parametrize(
     ("toml_assignment", "base_file_path", "packages"),
     [
         ("", resources.CONSTRAINTS, []),
@@ -588,11 +562,15 @@ def test_deprecated_image(
         ("pip", 3, ["-Ca", "-Cb", "-1", "-vvv"]),
         ("pip", 2, ["-Ca", "-Cb", "-1", "-vv"]),
         ("pip", -1, ["-Ca", "-Cb", "-1", "-q"]),
+        ("uv", -1, ["-Ca", "-Cb", "-1", "-q"]),
+        ("build", -1, ["-Ca", "-Cb", "-1", "-q"]),
+        ("build[uv]", -1, ["-Ca", "-Cb", "-1", "-q"]),
         ("build", 0, ["-Ca", "-Cb", "-1"]),
         ("build", 1, ["-Ca", "-Cb", "-1"]),
         ("build", 2, ["-Ca", "-Cb", "-1", "-v"]),
         ("build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
         ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("uv", 3, ["-Ca", "-Cb", "-1", "-vv"]),
     ],
 )
 def test_get_build_frontend_extra_flags(
@@ -612,18 +590,80 @@ def test_get_build_frontend_extra_flags(
     mock_warning.assert_not_called()
 
 
-@pytest.mark.parametrize("frontend", ["build", "build[uv]"])
-def test_get_build_frontend_extra_flags_warning(
-    frontend: Literal["build", "build[uv]"], monkeypatch: pytest.MonkeyPatch
-) -> None:
-    mock_warning = unittest.mock.MagicMock()
-    monkeypatch.setattr(Logger, "warning", mock_warning)
-    build_frontend = BuildFrontendConfig(frontend, ["-1"])
-    args = get_build_frontend_extra_flags(
-        build_frontend=build_frontend, verbosity_level=-1, config_settings="a b"
+@pytest.mark.parametrize(
+    ("config_settings", "expected"),
+    [
+        (
+            "setup-args=--cross-file={project}/meson_cross_files/windows-386.ini",
+            "setup-args=--cross-file=C:/project/meson_cross_files/windows-386.ini",
+        ),
+        (
+            "setup-args=--cross-file={package}/meson_cross_files/windows-386.ini",
+            "setup-args=--cross-file=C:/project/pkg/meson_cross_files/windows-386.ini",
+        ),
+    ],
+)
+def test_prepare_config_settings(config_settings: str, expected: str) -> None:
+    assert (
+        prepare_config_settings(config_settings, project="C:/project", package="C:/project/pkg")
+        == expected
     )
-    assert args == ["-Ca", "-Cb", "-1"]
-    mock_warning.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    ("project", "package"),
+    [
+        (R"C:\Users\John Doe\project", R"C:\Users\John Doe\project\pkg"),
+        ("/home/me/my project", "/home/me/my project/pkg"),
+    ],
+)
+def test_prepare_config_settings_special_chars(project: str, package: str) -> None:
+    # Paths with spaces or backslashes must survive the round-trip through the
+    # downstream shlex.split intact (regression test for the {package}/{project}
+    # substitution being mangled by re-parsing).
+    config_settings = "setup-args=--cross-file={package}/cross.ini other-setting={project}"
+    prepared = prepare_config_settings(config_settings, project=project, package=package)
+    assert _split_config_settings(prepared) == [
+        f"-Csetup-args=--cross-file={package}/cross.ini",
+        f"-Cother-setting={project}",
+    ]
+    assert parse_config_settings(prepared) == {
+        "setup-args": f"--cross-file={package}/cross.ini",
+        "other-setting": project,
+    }
+
+
+@pytest.mark.parametrize(
+    ("definition", "expected_args"),
+    [
+        ("", ()),
+        ('test-runtime = ""', ()),
+        ("test-runtime = {}", ()),
+        ('test-runtime = {args = ""}', []),
+        ('test-runtime = "args: --simulator foo"', ["--simulator", "foo"]),
+        ('test-runtime = {args = ["--simulator", "foo"]}', ["--simulator", "foo"]),
+    ],
+)
+def test_test_runtime_handling(
+    tmp_path: Path, definition: str, expected_args: Sequence[str] | None
+) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {definition}
+            """
+        )
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+
+    local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
+    assert local.test_runtime.args == expected_args
 
 
 @pytest.mark.parametrize(
@@ -652,3 +692,51 @@ def test_xbuild_tools_handling(tmp_path: Path, definition: str, expected: list[s
 
     local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
     assert local.xbuild_tools == expected
+
+
+DEFAULT_XBUILD_FILES = {
+    "numpy": [
+        "numpy/_core/include/numpy/_numpyconfig.h",
+        "numpy/_core/include/numpy/numpyconfig.h",
+        "numpy/_core/lib/libnpymath.a",
+        "numpy/random/lib/libnpyrandom.a",
+    ]
+}
+
+
+@pytest.mark.parametrize(
+    ("definition", "expected"),
+    [
+        ("", DEFAULT_XBUILD_FILES),
+        ('xbuild-files = ""', {}),
+        ('xbuild-files = "package1: file1"', {"package1": ["file1"]}),
+        (
+            "xbuild-files = \"package1: 'file1 with space'; package2: file2a file2b\"",
+            {"package1": ["file1 with space"], "package2": ["file2a", "file2b"]},
+        ),
+    ],
+)
+def test_xbuild_files(tmp_path: Path, definition: str, expected: dict[str, list[str]]) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            {definition}
+            """
+        )
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+    assert options.build_options(None).xbuild_files == expected
+
+    pyproject_toml.write_text(
+        "[tool.cibuildwheel.xbuild-files]\n"
+        + "\n".join(f"{package} = {files}" for package, files in expected.items())
+    )
+
+    options = Options(platform="ios", command_line_arguments=args, env={})
+    assert options.build_options(None).xbuild_files == expected

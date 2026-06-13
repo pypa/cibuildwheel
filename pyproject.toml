@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "3.2.0"
+version = "4.1.0"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -19,7 +19,6 @@ keywords = [
     "macos",
     "packaging",
     "pypi",
-    "travis",
     "wheel",
     "windows",
 ]
@@ -33,6 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
     "Programming Language :: Python :: Implementation :: CPython",
     "Topic :: Software Development :: Build Tools",
 ]
@@ -45,11 +45,7 @@ dependencies = [
     "filelock",
     "humanize",
     "packaging>=20.9",
-    # patchelf is used for Android
-    "patchelf; (sys_platform == 'linux' or sys_platform == 'darwin') and (platform_machine == 'x86_64' or platform_machine == 'arm64' or platform_machine == 'aarch64')",
     "platformdirs",
-    "pyelftools>=0.29",
-    "wheel>=0.33.6",
 ]
 
 [project.optional-dependencies]
@@ -67,25 +63,14 @@ Documentation = "https://cibuildwheel.pypa.io"
 Homepage = "https://github.com/pypa/cibuildwheel"
 
 [dependency-groups]
-bin = [
-    "click",
-    "packaging>=21.0",
-    "pip-tools",
-    "pygithub",
-    "pyyaml",
-    "requests",
-    "rich>=9.6",
-]
 docs = [
     "jinja2>=3.1.2",
-    "mkdocs-include-markdown-plugin==6.2.2",
-    "mkdocs-macros-plugin",
+    "mkdocs-include-markdown-plugin==7.1.8",
+    "mkdocs-intersphinx>=0.1.1; python_version >= '3.12'",
+    "mkdocs-macros-plugin>=1.4.1",
     "mkdocs==1.6.1",
     "pymdown-extensions",
     "rich",
-    # transitive dep of mkdocs-macros-plugin
-    # https://github.com/fralau/mkdocs-macros-plugin/issues/269
-    "requests",
 ]
 test = [
     "build",
@@ -94,32 +79,32 @@ test = [
     "pytest-timeout",
     "pytest-xdist",
     "pytest-rerunfailures!=16.0",
-    "pytest>=6",
+    "pytest>=9",
     "setuptools",
     "tomli_w",
     "validate-pyproject",
     "xdoctest",
 ]
 dev = [
-    {include-group = "bin"},
     {include-group = "docs"},
     {include-group = "test"},
 ]
 
 
-[tool.pytest.ini_options]
-minversion = "6.0"
-addopts = ["-ra", "--showlocals", "--strict-markers", "--strict-config", "--xdoctest", "--ignore-glob=*venv*"]
+[tool.pytest]
+minversion = "9.0"
+addopts = ["-ra", "--showlocals", "--xdoctest", "--ignore-glob=*venv*"]
+strict = true
 junit_family = "xunit2"
-xfail_strict = true
 filterwarnings = ["error"]
-log_cli_level = "INFO"
+log_level = "INFO"
 markers = [
     "serial: tests that must *not* be run in parallel (deselect with '-m \"not serial\"')",
     "ios: tests that run on iOS",
     "android: tests that run on Android",
     "pyodide: tests that run on Pyodide",
 ]
+required_plugins = ["pytest-rerunfailures"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -131,16 +116,9 @@ files = [
     "noxfile.py",
 ]
 warn_unused_configs = true
-
 strict = true
-disallow_untyped_defs = false
-
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 warn_unreachable = false
-
-[[tool.mypy.overrides]]
-module = "cibuildwheel.*"
-disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -148,7 +126,6 @@ module = [
     "setuptools._distutils.util",
     "bashlex",
     "bashlex.*",
-    "importlib_resources",
 ]
 ignore_missing_imports = true
 
@@ -193,6 +170,7 @@ messages_control.disable = [
 ]
 
 [tool.ruff]
+show-fixes = true
 line-length = 100
 
 [tool.ruff.lint]
@@ -200,6 +178,7 @@ extend-select = [
   "B",           # flake8-bugbear
   "I",           # isort
   "ARG",         # flake8-unused-arguments
+  "ANN",         # flake8-annotations
   "C4",          # flake8-comprehensions
   "EM",          # flake8-errmsg
   "ICN",         # flake8-import-conventions
@@ -214,22 +193,35 @@ extend-select = [
   "RUF",         # Ruff-specific
   "SIM",         # flake8-simplify
   "TID251",      # flake8-tidy-imports.banned-api
+  "TID252",      # flake8-tidy-imports.relative-imports
   "UP",          # pyupgrade
   "YTT",         # flake8-2020
   "EXE",         # flake8-executable
   "PYI",         # flake8-pyi
   "PERF101", "PERF102", "PERF401", "PERF402", "PERF403",  # A selection of perflint codes
+  "DTZ",         # flake8-datetimez
+  "FA",          # flake8-future-annotations
+  "FLY",         # flynt
+  "FURB",        # refurb
+  "LOG",         # flake8-logging
+  "Q",           # flake8-quotes
+  "SLOT",        # flake8-slots
+  "T10",         # flake8-debugger
+  "TC",          # flake8-type-checking
 ]
 ignore = [
-  "PLR",     # Design related pylint codes
+  "PLR09",   # Design related pylint codes
+  "PLR2004", # Magic value in comparison
   "RET504", "RET505", "RET508",  # else after control flow
   "PT007",   # Lists of tuples in Pytest
   "PYI025",  # Set as AbstractSet
-  "ISC001",  # Conflicts with formatter
-  "EXE003",  # Ruff doesn't like uv?
   "PTH123",  # open -> Path.open
 ]
 flake8-unused-arguments.ignore-variadic-names = true
+flake8-tidy-imports.ban-relative-imports = "all"
+flake8-annotations.allow-star-arg-any = true
+flake8-annotations.mypy-init-return = true
+future-annotations = true
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "typing.Mapping".msg = "Use collections.abc.Mapping instead."
@@ -237,9 +229,11 @@ flake8-unused-arguments.ignore-variadic-names = true
 "typing.Iterator".msg = "Use collections.abc.Iterator instead."
 "typing.Sequence".msg = "Use collections.abc.Sequence instead."
 "typing.Set".msg = "Use collections.abc.Set instead."
+"typing.TYPE_CHECKING".msg = "Use TYPE_CHECKING=False instead"
 
 [tool.ruff.lint.per-file-ignores]
-"unit_test/*" = ["PLC1901"]
+"unit_test/*" = ["PLC1901", "TID252"]
+"test/*" = ["TID252"]
 "bin/*" = ["TID251"]
 "cibuildwheel/resources/install_certifi.py" = ["PTH"]
 
@@ -247,12 +241,16 @@ flake8-unused-arguments.ignore-variadic-names = true
 ignore = ["PC170", "PP303"]
 
 [tool.check-wheel-contents]
-ignore = ["W002"]  # constraints-*.txt are allowed to be duplicates of one another
+ignore = [
+  "W002",  # constraints-*.txt are allowed to be duplicates of one another
+  "W004",  # "-" is fine for our iOS support files for now
+]
 
 [tool.codespell]
 ignore-words-list = [
     "sur",
     "assertin",
+    "Fo",
 ]
 skip = [
     '^docs/working-examples\.md',

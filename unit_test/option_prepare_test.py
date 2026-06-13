@@ -3,7 +3,7 @@ import subprocess
 import sys
 import typing
 from contextlib import contextmanager
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
 from unittest import mock
 
 import pytest
@@ -13,24 +13,24 @@ from cibuildwheel.__main__ import main
 from cibuildwheel.oci_container import OCIPlatform
 from cibuildwheel.util import file
 
-DEFAULT_IDS = {"cp38", "cp39", "cp310", "cp311", "cp312", "cp313", "cp314", "cp314t"}
-ALL_IDS = DEFAULT_IDS | {"cp313t", "pp38", "pp39", "pp310", "pp311", "gp311_242", "gp312_250"}
+DEFAULT_IDS = {"cp39", "cp310", "cp311", "cp312", "cp313", "cp314", "cp314t"}
+ALL_IDS = DEFAULT_IDS | {"pp39", "pp310", "pp311", "gp312_250"}
 
 
 @pytest.fixture
-def mock_build_container(monkeypatch):
-    def fail_on_call(*args, **kwargs):
+def mock_build_container(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_on_call(*args: object, **kwargs: object) -> None:
         msg = "This should never be called"
         raise RuntimeError(msg)
 
-    def ignore_call(*args, **kwargs):
+    def ignore_call(*args: object, **kwargs: object) -> None:
         pass
 
     @contextmanager
-    def nullcontext(enter_result=None):
+    def nullcontext(enter_result: object = None) -> typing.Generator[object, None, None]:
         yield enter_result
 
-    def ignore_context_call(*args, **kwargs):
+    def ignore_context_call(*args: object, **kwargs: object) -> typing.ContextManager[object]:
         return nullcontext(kwargs)
 
     monkeypatch.setenv("CIBW_PLATFORM", "linux")
@@ -49,14 +49,14 @@ def mock_build_container(monkeypatch):
 
 
 @pytest.mark.usefixtures("mock_build_container", "fake_package_dir")
-def test_build_default_launches(monkeypatch):
+def test_build_default_launches(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "argv", [*sys.argv, "--platform=linux"])
     monkeypatch.setenv("CIBW_ARCHS", "auto64 auto32")
     monkeypatch.delenv("CIBW_ENABLE", raising=False)
 
     main()
 
-    build_in_container = typing.cast(mock.Mock, platforms.linux.build_in_container)
+    build_in_container = typing.cast("mock.Mock", platforms.linux.build_in_container)
 
     assert build_in_container.call_count == 4
 
@@ -95,7 +95,7 @@ def test_build_default_launches(monkeypatch):
 
 
 @pytest.mark.usefixtures("mock_build_container")
-def test_build_with_override_launches(monkeypatch, tmp_path):
+def test_build_with_override_launches(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     pkg_dir = tmp_path / "cibw_package"
     pkg_dir.mkdir()
 
@@ -105,17 +105,17 @@ def test_build_with_override_launches(monkeypatch, tmp_path):
 [tool.cibuildwheel]
 manylinux-x86_64-image = "manylinux_2_28"
 musllinux-x86_64-image = "musllinux_1_2"
-enable = ["pypy", "pypy-eol", "graalpy", "cpython-freethreading"]
+enable = ["pypy", "pypy-eol", "graalpy"]
 archs = ["auto64", "auto32"]
 
 # Before Python 3.10, use manylinux2014
 [[tool.cibuildwheel.overrides]]
-select = "cp3?-*"
+select = "cp3?-* cp310-*"
 manylinux-x86_64-image = "manylinux2014"
 manylinux-i686-image = "manylinux2014"
 
 [[tool.cibuildwheel.overrides]]
-select = "cp38-manylinux_x86_64"
+select = "cp39-manylinux_x86_64"
 before-all = "true"
 """
     )
@@ -126,7 +126,7 @@ before-all = "true"
 
     main()
 
-    build_in_container = typing.cast(mock.Mock, platforms.linux.build_in_container)
+    build_in_container = typing.cast("mock.Mock", platforms.linux.build_in_container)
 
     assert build_in_container.call_count == 7
 
@@ -136,8 +136,8 @@ before-all = "true"
     assert kwargs["container"]["oci_platform"] == OCIPlatform.AMD64
 
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {"cp38-manylinux_x86_64"}
-    assert kwargs["options"].build_options("cp38-manylinux_x86_64").before_all == "true"
+    assert identifiers == {"cp39-manylinux_x86_64"}
+    assert kwargs["options"].build_options("cp39-manylinux_x86_64").before_all == "true"
 
     kwargs = build_in_container.call_args_list[1][1]
     assert "quay.io/pypa/manylinux2014_x86_64" in kwargs["container"]["image"]
@@ -149,23 +149,19 @@ before-all = "true"
         f"{x}-manylinux_x86_64"
         for x in ALL_IDS
         - {
-            "cp38",
-            "cp310",
+            "cp39",
             "cp311",
             "cp312",
             "cp313",
-            "cp313t",
             "cp314",
             "cp314t",
-            "pp38",
             "pp39",
             "pp310",
             "pp311",
-            "gp311_242",
             "gp312_250",
         }
     }
-    assert kwargs["options"].build_options("cp39-manylinux_x86_64").before_all == ""
+    assert kwargs["options"].build_options("cp310-manylinux_x86_64").before_all == ""
 
     kwargs = build_in_container.call_args_list[2][1]
     assert "quay.io/pypa/manylinux_2_28_x86_64" in kwargs["container"]["image"]
@@ -175,18 +171,14 @@ before-all = "true"
     assert identifiers == {
         f"{x}-manylinux_x86_64"
         for x in [
-            "cp310",
             "cp311",
             "cp312",
             "cp313",
-            "cp313t",
             "cp314",
             "cp314t",
-            "pp38",
             "pp39",
             "pp310",
             "pp311",
-            "gp311_242",
             "gp312_250",
         ]
     }
@@ -196,7 +188,7 @@ before-all = "true"
     assert kwargs["container"]["cwd"] == PurePosixPath("/project")
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
-    assert identifiers == {"cp38-manylinux_i686", "cp39-manylinux_i686"}
+    assert identifiers == {"cp39-manylinux_i686", "cp310-manylinux_i686"}
 
     kwargs = build_in_container.call_args_list[4][1]
     assert "quay.io/pypa/manylinux_2_28_i686" in kwargs["container"]["image"]
@@ -204,7 +196,7 @@ before-all = "true"
     assert kwargs["container"]["oci_platform"] == OCIPlatform.i386
     identifiers = {x.identifier for x in kwargs["platform_configs"]}
     assert identifiers == {
-        f"{x}-manylinux_i686" for x in ALL_IDS - {"cp38", "cp39"} if "gp" not in x
+        f"{x}-manylinux_i686" for x in ALL_IDS - {"cp39", "cp310"} if "gp" not in x
     }
 
     kwargs = build_in_container.call_args_list[5][1]

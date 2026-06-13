@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import subprocess
 import textwrap
 
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # pyodide does not support building without isolation, need to check the base_prefix
 SYS_PREFIX = f"sys.{'base_' if utils.get_platform() == 'pyodide' else ''}prefix"
@@ -36,7 +42,7 @@ project_with_before_build_asserts = test_projects.new_c_project(
 )
 
 
-def test(tmp_path):
+def test(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     project_with_before_build_asserts.generate(project_dir)
 
@@ -65,7 +71,7 @@ def test(tmp_path):
     assert set(actual_wheels) == set(expected_wheels)
 
 
-def test_failing_command(tmp_path):
+def test_failing_command(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     test_projects.new_c_project().generate(project_dir)
 
@@ -79,7 +85,7 @@ def test_failing_command(tmp_path):
         )
 
 
-def test_cwd(tmp_path):
+def test_cwd(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     test_projects.new_c_project().generate(project_dir)
 

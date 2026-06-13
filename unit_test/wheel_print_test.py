@@ -9,7 +9,7 @@ OPTIONS_DEFAULTS = Options("linux", CommandLineArguments.defaults(), {}, default
 FILE = Path(__file__)
 
 
-def test_printout_wheels(capsys):
+def test_printout_wheels(capsys: pytest.CaptureFixture[str]) -> None:
     log = Logger()
     log.fold_mode = "disabled"
     log.colors_enabled = False
@@ -32,7 +32,7 @@ def test_printout_wheels(capsys):
     assert "SHA256=" in captured.out
 
 
-def test_no_printout_on_error(capsys):
+def test_no_printout_on_error(capsys: pytest.CaptureFixture[str]) -> None:
     log = Logger()
     with pytest.raises(RuntimeError), log.print_summary(options=OPTIONS_DEFAULTS):
         raise RuntimeError()

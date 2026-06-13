@@ -1,3 +1,24 @@
+from __future__ import annotations
+
+__lazy_modules__ = {
+    "cibuildwheel.ci",
+    "cibuildwheel.errors",
+    "cibuildwheel.logger",
+    "cibuildwheel.util",
+    "cibuildwheel.util.cmd",
+    "cibuildwheel.util.helpers",
+    "contextlib",
+    "io",
+    "json",
+    "platform",
+    "shlex",
+    "shutil",
+    "subprocess",
+    "textwrap",
+    "uuid",
+}
+
+import contextlib
 import dataclasses
 import io
 import json
@@ -10,18 +31,24 @@ import sys
 import textwrap
 import typing
 import uuid
-from collections.abc import Mapping, Sequence
 from enum import Enum
-from pathlib import Path, PurePath, PurePosixPath
-from types import TracebackType
-from typing import IO, Literal, Self, assert_never
+from pathlib import PurePosixPath
+from typing import Literal, assert_never
 
-from .ci import CIProvider, detect_ci_provider
-from .errors import OCIEngineTooOldError
-from .logger import log
-from .typing import PathOrStr
-from .util.cmd import call
-from .util.helpers import FlexibleVersion, parse_key_value_string, strtobool
+from cibuildwheel.ci import CIProvider, detect_ci_provider
+from cibuildwheel.errors import OCIEngineTooOldError
+from cibuildwheel.logger import log
+from cibuildwheel.util.cmd import call
+from cibuildwheel.util.helpers import FlexibleVersion, parse_key_value_string, strtobool
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from collections.abc import Mapping, Sequence
+    from pathlib import Path, PurePath
+    from types import TracebackType
+    from typing import IO, Self
+
+    from cibuildwheel.typing import PathOrStr
 
 ContainerEngineName = Literal["docker", "podman"]
 
@@ -37,7 +64,7 @@ class OCIPlatform(Enum):
     S390X = "linux/s390x"
 
     @classmethod
-    def native(cls) -> "OCIPlatform":
+    def native(cls) -> Self:
         """Return the current OCI platform, or raise ValueError if unknown."""
         arch = platform.machine().lower()
         mapping = {
@@ -78,7 +105,7 @@ class OCIContainerEngineConfig:
             msg = f"unknown container engine {name}"
             raise ValueError(msg)
 
-        name = typing.cast(ContainerEngineName, name)
+        name = typing.cast("ContainerEngineName", name)
         # some flexibility in the option names to cope with TOML conventions
         create_args = config_dict.get("create_args") or config_dict.get("create-args") or []
         disable_host_mount_options = (
@@ -116,11 +143,14 @@ DEFAULT_ENGINE = OCIContainerEngineConfig("docker")
 def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
     try:
         version_string = call(engine.name, "version", "-f", "{{json .}}", capture_stdout=True)
-        version_info = json.loads(version_string.strip())
+        # We are using lowercase keys for all dicts so we are not affected by casing of keys
+        version_info = json.loads(
+            version_string.strip(), object_pairs_hook=lambda inp: {k.lower(): v for k, v in inp}
+        )
         match engine.name:
             case "docker":
-                client_api_version = FlexibleVersion(version_info["Client"]["ApiVersion"])
-                server_api_version = FlexibleVersion(version_info["Server"]["ApiVersion"])
+                client_api_version = FlexibleVersion(version_info["client"]["apiversion"])
+                server_api_version = FlexibleVersion(version_info["server"]["apiversion"])
                 # --platform support was introduced in 1.32 as experimental, 1.41 removed the experimental flag
                 version = min(client_api_version, server_api_version)
                 minimum_version = FlexibleVersion("1.41")
@@ -135,9 +165,9 @@ def _check_engine_version(engine: OCIContainerEngineConfig) -> None:
                 )
             case "podman":
                 # podman uses the same version string for "Version" & "ApiVersion"
-                client_version = FlexibleVersion(version_info["Client"]["Version"])
-                if "Server" in version_info:
-                    server_version = FlexibleVersion(version_info["Server"]["Version"])
+                client_version = FlexibleVersion(version_info["client"]["version"])
+                if "server" in version_info:
+                    server_version = FlexibleVersion(version_info["server"]["version"])
                 else:
                     server_version = client_version
                 # --platform support was introduced in v3
@@ -195,7 +225,6 @@ class OCIContainer:
 
     UTILITY_PYTHON = "/opt/python/cp39-cp39/bin/python"
 
-    process: subprocess.Popen[bytes]
     bash_stdin: IO[bytes]
     bash_stdout: IO[bytes]
 
@@ -215,6 +244,7 @@ class OCIContainer:
         self.oci_platform = oci_platform
         self.cwd = cwd
         self.name: str | None = None
+        self.process: subprocess.Popen[bytes] | None = None
         self.engine = engine
         self.host_tar_format = ""
         if sys.platform.startswith("darwin"):
@@ -246,10 +276,12 @@ class OCIContainer:
                 # this allows to run local only images
                 pull = "never"
         except subprocess.CalledProcessError:
+            # silently fallback to "--pull=always"
             pass
         return f"--platform={oci_platform.value}", f"--pull={pull}"
 
     def __enter__(self) -> Self:
+        assert self.process is None
         self.name = f"cibuildwheel-{uuid.uuid4()}"
 
         _check_engine_version(self.engine)
@@ -285,7 +317,17 @@ class OCIContainer:
                     ).strip()
                 else:
                     raise
-            simulate_32_bit = container_machine not in {"i686", "armv7l", "armv8l"}
+            if container_machine not in {"i686", "armv7l", "armv8l"}:
+                simulate_32_bit = True
+                # sanity check to ensure no deadlock waiting for container to start
+                call(
+                    *run_cmd,
+                    *platform_args,
+                    self.image,
+                    "linux32",
+                    "/bin/true",
+                    capture_stdout=True,
+                )
 
         shell_args = ["linux32", "/bin/bash"] if simulate_32_bit else ["/bin/bash"]
 
@@ -307,32 +349,41 @@ class OCIContainer:
             check=True,
         )
 
-        self.process = subprocess.Popen(
-            [
-                self.engine.name,
-                "start",
-                "--attach",
-                "--interactive",
-                self.name,
-            ],
-            stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE,
-        )
+        try:
+            self.process = subprocess.Popen(
+                [
+                    self.engine.name,
+                    "start",
+                    "--attach",
+                    "--interactive",
+                    self.name,
+                ],
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+            )
 
-        assert self.process.stdin
-        assert self.process.stdout
-        self.bash_stdin = self.process.stdin
-        self.bash_stdout = self.process.stdout
+            assert self.process.stdin
+            assert self.process.stdout
+            self.bash_stdin = self.process.stdin
+            self.bash_stdout = self.process.stdout
 
-        # run a noop command to block until the container is responding
-        self.call(["/bin/true"], cwd="/")
+            # run a noop command to block until the container is responding
+            self.call(["/bin/true"], cwd="/")
 
-        if self.cwd:
-            # Although `docker create -w` does create the working dir if it
-            # does not exist, podman does not. There does not seem to be a way
-            # to setup a workdir for a container running in podman.
-            self.call(["mkdir", "-p", os.fspath(self.cwd)], cwd="/")
-
+            if self.cwd:
+                # Although `docker create -w` does create the working dir if it
+                # does not exist, podman does not. There does not seem to be a way
+                # to setup a workdir for a container running in podman.
+                self.call(["mkdir", "-p", os.fspath(self.cwd)], cwd="/")
+        except BaseException:
+            # clean-up
+            if self.process is not None:
+                if self.process.poll() is None:
+                    self.process.kill()
+                self.process.communicate()
+            self.process = None
+            self._remove_container()
+            raise
         return self
 
     def __exit__(
@@ -341,29 +392,52 @@ class OCIContainer:
         exc_val: BaseException | None,
         exc_tb: TracebackType | None,
     ) -> None:
-        self.bash_stdin.write(b"exit 0\n")
-        self.bash_stdin.flush()
-        self.process.wait(timeout=30)
-        self.bash_stdin.close()
-        self.bash_stdout.close()
+        assert self.process is not None
+        try:
+            # Ask bash to exit cleanly and wait for the `start` process to finish.
+            # If the container/bash has already died, the write raises
+            # BrokenPipeError; if bash refuses to exit, `wait` raises
+            # TimeoutExpired. Both are handled below so we always reach the
+            # cleanup in `finally` rather than leaking the process or container.
+            self.bash_stdin.write(b"exit 0\n")
+            self.bash_stdin.flush()
+            self.process.wait(timeout=30)
 
-        if self.engine.name == "podman":
-            # This works around what seems to be a race condition in the podman
-            # backend. The full reason is not understood. See PR #966 for a
-            # discussion on possible causes and attempts to remove this line.
-            # For now, this seems to work "well enough".
-            self.process.wait()
+            if self.engine.name == "podman":
+                # This works around what seems to be a race condition in the
+                # podman backend. The full reason is not understood. See PR #966
+                # for a discussion on possible causes and attempts to remove this
+                # line. For now, this seems to work "well enough".
+                self.process.wait()
+        except (OSError, subprocess.TimeoutExpired):
+            # bash didn't shut down cleanly; force the process down so it isn't
+            # leaked, then continue to cleanup.
+            if self.process.poll() is None:
+                self.process.kill()
+                self.process.wait()
+        finally:
+            with contextlib.suppress(OSError):
+                self.bash_stdin.close()
+            with contextlib.suppress(OSError):
+                self.bash_stdout.close()
+            self.process = None
 
-        assert isinstance(self.name, str)
+            keep_container = strtobool(os.environ.get("CIBW_DEBUG_KEEP_CONTAINER", ""))
+            if not keep_container:
+                self._remove_container()
 
-        keep_container = strtobool(os.environ.get("CIBW_DEBUG_KEEP_CONTAINER", ""))
-        if not keep_container:
-            subprocess.run(
-                [self.engine.name, "rm", "--force", "-v", self.name],
-                stdout=subprocess.DEVNULL,
-                check=False,
-            )
-            self.name = None
+    def _remove_container(self) -> None:
+        assert self.name is not None
+        result = subprocess.run(
+            [self.engine.name, "rm", "--force", "-v", self.name],
+            stdout=subprocess.DEVNULL,
+            check=False,
+        )
+        # only warn when not running in CI
+        if result.returncode != 0 and detect_ci_provider() is None:
+            msg = f"Failed to remove {self.name!r} container."
+            log.warning(msg)
+        self.name = None
 
     def copy_into(self, from_path: Path, to_path: PurePath) -> None:
         if from_path.is_dir():
@@ -515,20 +589,19 @@ class OCIContainer:
                 capture_output=True,
             )
         )
-        return typing.cast(dict[str, str], env)
+        return typing.cast("dict[str, str]", env)
 
     def environment_executor(self, command: Sequence[str], environment: dict[str, str]) -> str:
         # used as an EnvironmentExecutor to evaluate commands and capture output
         return self.call(command, env=environment, capture_output=True)
 
     def debug_info(self) -> str:
+        command = [self.engine.name, "info"]
         if self.engine.name == "podman":
-            command = f"{self.engine.name} info --debug"
-        else:
-            command = f"{self.engine.name} info"
+            command.append("--debug")
+
         completed = subprocess.run(
             command,
-            shell=True,
             check=True,
             cwd=self.cwd,
             stdin=subprocess.PIPE,

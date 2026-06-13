@@ -1,9 +1,15 @@
+from __future__ import annotations
+
 import platform
 import textwrap
 
 import pytest
 
 from . import test_projects, utils
+
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
 
 # TODO: specify these at runtime according to manylinux_image
 project_with_manylinux_symbols = test_projects.new_c_project(
@@ -61,7 +67,7 @@ project_with_manylinux_symbols = test_projects.new_c_project(
     ],
 )
 @pytest.mark.usefixtures("docker_cleanup")
-def test(manylinux_image, tmp_path):
+def test(manylinux_image: str, tmp_path: Path) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the container image test is only relevant to the linux build")
 
@@ -84,7 +90,7 @@ def test(manylinux_image, tmp_path):
         "CIBW_MANYLINUX_PYPY_I686_IMAGE": manylinux_image,
     }
     if platform.machine() == "aarch64":
-        # We just have a manylinux_2_31 image for armv7l
+        # We just have a manylinux_2_31/manylinux_2_35 image for armv7l
         add_env["CIBW_ARCHS"] = "aarch64"
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
@@ -100,7 +106,7 @@ def test(manylinux_image, tmp_path):
     )
 
     if platform.machine() == "aarch64":
-        # We just have a manylinux_2_31 image for armv7l
+        # We just have a manylinux_2_31/manylinux_2_35 image for armv7l
         expected_wheels = [w for w in expected_wheels if "armv7l" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)

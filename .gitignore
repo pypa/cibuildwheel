@@ -112,3 +112,13 @@ site/
 
 # PyCharm
 .idea/
+
+# Lockfiles
+*.lock
+*.pylock
+
+# OS files
+.DS_Store
+
+# This file should be a symlink or contain "See @AGENTS.md"
+CLAUDE.md
