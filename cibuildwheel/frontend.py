@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 
     from cibuildwheel.typing import PathOrStr
 
-BuildFrontendName = Literal["pip", "build", "build[uv]", "uv"]
+BuildFrontendName = Literal["pip", "build", "build[uv]", "uv", "pyodide-build"]
 
 
 @dataclasses.dataclass(frozen=True)
