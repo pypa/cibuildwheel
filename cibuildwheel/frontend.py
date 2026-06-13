@@ -46,6 +46,11 @@ class BuildFrontendConfig:
 
 
 def _get_verbosity_flags(level: int, frontend: BuildFrontendName) -> list[str]:
+    if frontend == "pyodide-build":
+        if level > 0:
+            return ["-" + min(level, 2) * "v"]
+        return []
+
     if level < 0:
         return ["-" + -level * "q"]
 
