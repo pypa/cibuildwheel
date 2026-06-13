@@ -388,6 +388,19 @@ def test_build_frontend_option(
         assert parsed_build_frontend.args == ()
 
 
+def test_pyodide_build_frontend_default(tmp_path: Path) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text("[tool.cibuildwheel]\n")
+
+    options = Options(platform="pyodide", command_line_arguments=args, env={})
+    build_frontend = options.build_options(identifier=None).build_frontend
+
+    assert build_frontend.name == "pyodide-build"
+    assert build_frontend.args == ()
+
+
 def test_override_inherit_environment(tmp_path: Path) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
