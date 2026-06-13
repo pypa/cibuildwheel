@@ -32,6 +32,8 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from cibuildwheel.typing import PlatformName
+
 PYPROJECT_1 = """
 [tool.cibuildwheel]
 build = ["cp38-*", "cp313-*"]
@@ -419,6 +421,40 @@ def test_pyodide_build_frontend_args(tmp_path: Path) -> None:
 
     assert build_frontend.name == "pyodide-build"
     assert build_frontend.args == ["--exports=whole_archive"]
+
+
+@pytest.mark.parametrize(
+    ("platform", "build_frontend_str"),
+    [
+        ("pyodide", "pip"),
+        ("pyodide", "build"),
+        ("pyodide", "build[uv]"),
+        ("pyodide", "uv"),
+        ("linux", "pyodide-build"),
+        ("macos", "pyodide-build"),
+        ("windows", "pyodide-build"),
+        ("android", "pyodide-build"),
+        ("ios", "pyodide-build"),
+    ],
+)
+def test_build_frontend_platform_mismatch(
+    tmp_path: Path, platform: PlatformName, build_frontend_str: str
+) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            build-frontend = "{build_frontend_str}"
+            """
+        )
+    )
+
+    options = Options(platform=platform, command_line_arguments=args, env={})
+    with pytest.raises(errors.ConfigurationError):
+        options.build_options(identifier=None)
 
 
 def test_override_inherit_environment(tmp_path: Path) -> None:
