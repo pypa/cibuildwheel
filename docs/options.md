@@ -1913,7 +1913,7 @@ downloading dependencies. The settings are:
 | 0 (default) |       |        |       |               | default for build tool                 |
 | 1           |       | `-v`   |       | `-v`          | print backend output                   |
 | 2           | `-v`  | `-vv`  | `-v`  | `-vv`         | print log messages e.g. resolving info |
-| 3           | `-vv` | `-vvv` | `-vv` | `-vv`         | print even more debug info             |
+| 3           | `-vv` | `-vvv` | `-vv` |               | print even more debug info             |
 
 Settings that are not supported for a specific frontend will log a warning.
 The default build frontend is `build`, which does show build backend output by
