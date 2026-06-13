@@ -833,9 +833,11 @@ class Options:
                     msg = f"Failed to parse test runtime config. {e}"
                     raise errors.ConfigurationError(msg) from e
 
-            test_requires = self.reader.get(
-                "test-requires", option_format=ListFormat(sep=" ")
-            ).split()
+            test_requires = shlex.split(
+                self.reader.get(
+                    "test-requires", option_format=ListFormat(sep=" ", quote=shlex.quote)
+                )
+            )
             test_extras = self.reader.get("test-extras", option_format=ListFormat(sep=","))
             test_groups_str = self.reader.get("test-groups", option_format=ListFormat(sep=" "))
             test_groups = [x for x in test_groups_str.split() if x]
@@ -932,9 +934,11 @@ class Options:
             )
             audit_command = audit_command_str.split(" && ") if audit_command_str else []
 
-            audit_requires = self.reader.get(
-                "audit-requires", option_format=ListFormat(sep=" ")
-            ).split()
+            audit_requires = shlex.split(
+                self.reader.get(
+                    "audit-requires", option_format=ListFormat(sep=" ", quote=shlex.quote)
+                )
+            )
 
             return BuildOptions(
                 globals=self.globals,
