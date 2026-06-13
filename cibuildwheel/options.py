@@ -1124,6 +1124,6 @@ def _get_pinned_container_images() -> Mapping[str, Mapping[str, str]]:
       'pypy_x86_64': {'manylinux2010': '...' }
       ... }
     """
-    all_pinned_images = configparser.ConfigParser()
+    all_pinned_images = configparser.ConfigParser(inline_comment_prefixes="#")
     all_pinned_images.read(resources.PINNED_DOCKER_IMAGES)
     return all_pinned_images

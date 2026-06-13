@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import json
 import os
 import subprocess
@@ -74,7 +75,19 @@ def pytest_configure(config: pytest.Config) -> None:
         os.environ["CIBW_PLATFORM"] = flag_platform
 
 
-def docker_warmup(request: pytest.FixtureRequest) -> None:
+@dataclasses.dataclass(frozen=True)
+class DockerWarmUpImage:
+    source_name: str
+    cached_name: str
+
+
+@dataclasses.dataclass(frozen=True)
+class DockerWarmUpConfig:
+    images: list[DockerWarmUpImage]
+    env: dict[str, str]
+
+
+def get_docker_warmup_config(request: pytest.FixtureRequest) -> DockerWarmUpConfig | None:
     machine = request.config.getoption("--run-emulation", default=None)
     if machine is None:
         archs = {arch.value for arch in Architecture.auto_archs("linux")}
@@ -86,7 +99,7 @@ def docker_warmup(request: pytest.FixtureRequest) -> None:
     # Only include architectures where there are missing pre-installed interpreters
     archs &= {"x86_64", "i686", "aarch64"}
     if not archs:
-        return
+        return None
 
     options = Options(
         platform="linux",
@@ -97,16 +110,35 @@ def docker_warmup(request: pytest.FixtureRequest) -> None:
     build_options = options.build_options(None)
     assert build_options.manylinux_images is not None
     assert build_options.musllinux_images is not None
-    images = [build_options.manylinux_images[arch] for arch in archs] + [
-        build_options.musllinux_images[arch] for arch in archs
-    ]
+    images: list[DockerWarmUpImage] = []
+    env: dict[str, str] = {}
+    for kind, pinned_images in [
+        ("MUSLLINUX", build_options.musllinux_images),
+        ("MANYLINUX", build_options.manylinux_images),
+    ]:
+        for arch in archs:
+            source_name = pinned_images[arch]
+            cached_name = source_name
+            if "@sha256:" in source_name:
+                cached_name = source_name.rsplit("@sha256:", 1)[0] + ":cibw_cache_fixture"
+                # we change the image name, we will monkeypatch the corresponding environment
+                # variable
+                for arch_prefix in ["", "PYPY_"]:
+                    env[f"CIBW_{kind}_{arch_prefix}{arch.upper()}_IMAGE"] = cached_name
+            images.append(DockerWarmUpImage(source_name, cached_name))
+    if images:
+        return DockerWarmUpConfig(images, env)
+    return None
+
+
+def docker_warmup(config: DockerWarmUpConfig) -> None:
     command = (
         "manylinux-interpreters ensure-all &&"
         "cpython3.13 -m pip download -d /tmp setuptools wheel pytest"
     )
-    for image in images:
+    for image in config.images:
         container_id = subprocess.run(
-            ["docker", "create", image, "bash", "-c", command],
+            ["docker", "create", image.source_name, "bash", "-c", command],
             text=True,
             check=True,
             stdout=subprocess.PIPE,
@@ -118,7 +150,9 @@ def docker_warmup(request: pytest.FixtureRequest) -> None:
             ).stdout.strip()
             assert exit_code == "0"
             subprocess.run(
-                ["docker", "commit", container_id, image], check=True, stdout=subprocess.DEVNULL
+                ["docker", "commit", container_id, image.cached_name],
+                check=True,
+                stdout=subprocess.DEVNULL,
             )
         finally:
             subprocess.run(["docker", "rm", container_id], check=True, stdout=subprocess.DEVNULL)
@@ -127,28 +161,37 @@ def docker_warmup(request: pytest.FixtureRequest) -> None:
 @pytest.fixture(scope="session", autouse=True)
 def docker_warmup_fixture(
     request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory, worker_id: str
-) -> None:
+) -> Generator[None, None, None]:
     # if we're in CI testing linux, let's warm-up docker images
     if detect_ci_provider() is None or get_platform() != "linux":
-        return None
-    if request.config.getoption("--run-emulation", default=None) is not None:
+        config = None
+    elif request.config.getoption("--run-emulation", default=None) is not None:
         # emulation tests only run one test in CI, caching the image only slows down the test
-        return None
+        config = None
+    else:
+        config = get_docker_warmup_config(request)
+    if config is None:
+        yield None
+        return
 
     if worker_id == "master":
         # not executing with multiple workers
         # it might be unsafe to write to tmp_path_factory.getbasetemp().parent
-        return docker_warmup(request)
+        docker_warmup(config)
+    else:
+        # get the temp directory shared by all workers
+        root_tmp_dir = tmp_path_factory.getbasetemp().parent
 
-    # get the temp directory shared by all workers
-    root_tmp_dir = tmp_path_factory.getbasetemp().parent
+        fn = root_tmp_dir / "warmup.done"
+        with FileLock(str(fn) + ".lock"):
+            if not fn.is_file():
+                docker_warmup(config)
+                fn.write_text("done")
 
-    fn = root_tmp_dir / "warmup.done"
-    with FileLock(str(fn) + ".lock"):
-        if not fn.is_file():
-            docker_warmup(request)
-            fn.write_text("done")
-    return None
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        for key, value in config.env.items():
+            monkeypatch.setenv(key, value)
+        yield None
 
 
 @pytest.fixture(params=["pip", "build"])
