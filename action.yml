@@ -2,7 +2,7 @@ name: cibuildwheel
 description: 'Installs and runs cibuildwheel on the current runner'
 inputs:
   package-dir:
-    description: 'Input directory, defaults to "."'
+    description: 'Path to the package to build, defaults to ".". Can be a directory or an sdist.'
     required: false
     default: .
   output-dir:
