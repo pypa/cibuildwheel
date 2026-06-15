@@ -37,7 +37,6 @@ repos:
       - dependency-groups>=1.2
       - humanize
       - nox>=2025.2.9
-      - orjson
       - packaging
       - pygithub
       - pytest
