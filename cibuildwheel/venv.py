@@ -189,6 +189,8 @@ def virtualenv(
             python,
             venv_path,
         )
+    if not _IS_WIN:
+        _symlink_python_config_scripts(python, venv_path / "bin")
     venv_env = activate_virtualenv(venv_path, env=env)
     if not use_uv and pip_version == "embed":
         call(
@@ -203,6 +205,32 @@ def virtualenv(
             cwd=venv_path,
         )
     return venv_env
+
+
+def _symlink_python_config_scripts(base_python: Path, venv_bin: Path) -> None:
+    """
+    Symlink the base interpreter's ``python*-config`` scripts into the venv's
+    bin directory.
+
+    Virtualenvs do not ship a ``python3-config`` (or versioned
+    ``python{X.Y}-config``) script, so extensions that call it (e.g. to get
+    include dirs or link flags) would otherwise pick up an unrelated
+    ``python3-config`` from elsewhere on PATH -- typically the system or
+    Homebrew Python. This is most relevant for the python.org framework builds
+    on macOS, which do ship these scripts next to the base interpreter.
+
+    Interpreters that don't ship a config script (e.g. PyPy, GraalPy, or some
+    uv-managed builds) are handled gracefully: nothing is linked and the build
+    is not failed.
+    """
+    # The config scripts live next to the base interpreter, e.g.
+    # `python3-config` and `python3.12-config`.
+    for config_script in sorted(base_python.parent.glob("python*-config")):
+        target = venv_bin / config_script.name
+        if target.exists() or target.is_symlink():
+            continue
+        with contextlib.suppress(OSError):
+            target.symlink_to(config_script)
 
 
 def activate_virtualenv(
