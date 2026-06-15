@@ -455,6 +455,24 @@ def setup_python(
     return base_python, env
 
 
+def rosetta_arch_prefix(*, machine_arch: str, target_arch: Literal["x86_64", "arm64"]) -> list[str]:
+    """
+    Return the command prefix needed to run a command targeting ``target_arch``
+    on a host running ``machine_arch``.
+
+    On an arm64 host, running an x86_64 command requires the ``arch -x86_64``
+    prefix so that Rosetta 2 emulation kicks in and architecture-probing tooling
+    (``platform.machine()``, ``uname -m``, arch-specific compilers, ...) reports
+    x86_64 consistently. The native cases (and the unsupported
+    x86_64-host-targeting-arm64 case, which is handled separately) need no
+    prefix.
+    """
+    if machine_arch == "arm64" and target_arch == "x86_64":
+        # rosetta2 will provide the emulation with just the arch prefix.
+        return ["arch", "-x86_64"]
+    return []
+
+
 def build(options: Options, tmp_path: Path) -> None:
     python_configurations = get_python_configurations(
         options.globals.build_selector, options.globals.architectures
@@ -524,7 +542,20 @@ def build(options: Options, tmp_path: Path) -> None:
                     before_build_prepared = prepare_command(
                         build_options.before_build, project=".", package=build_options.package_dir
                     )
-                    shell(before_build_prepared, env=env)
+                    # For an x86_64 build on an arm64 host, run the hook under
+                    # Rosetta so that arch-probing tooling matches the wheel's
+                    # target arch, mirroring the test loop. universal2 builds
+                    # compile both arches in a single invocation (via ARCHFLAGS)
+                    # and have no single correct arch prefix, so they are left
+                    # unwrapped (native arm64).
+                    if not config_is_universal2 and not config_is_arm64:
+                        arch_prefix = rosetta_arch_prefix(
+                            machine_arch=platform.machine(), target_arch="x86_64"
+                        )
+                        shell_with_arch = functools.partial(call, *arch_prefix, "/bin/sh", "-c")
+                        shell_with_arch(before_build_prepared, env=env)
+                    else:
+                        shell(before_build_prepared, env=env)
 
                 log.step("Building wheel...")
                 built_wheel_dir.mkdir()
@@ -687,12 +718,12 @@ def build(options: Options, tmp_path: Path) -> None:
                         else f"Testing wheel on {testing_arch}..."
                     )
 
-                    arch_prefix = []
+                    arch_prefix = rosetta_arch_prefix(
+                        machine_arch=machine_arch, target_arch=testing_arch
+                    )
                     uv_arch_args = []
                     if testing_arch != machine_arch:
                         if machine_arch == "arm64" and testing_arch == "x86_64":
-                            # rosetta2 will provide the emulation with just the arch prefix.
-                            arch_prefix = ["arch", "-x86_64"]
                             uv_arch_args = ["--python-platform", "x86_64-apple-darwin"]
                         else:
                             msg = f"don't know how to emulate {testing_arch} on {machine_arch}"
