@@ -6,12 +6,16 @@ import pytest
 
 from cibuildwheel.venv import _symlink_python_config_scripts
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from pathlib import Path
+
 pytestmark = pytest.mark.skipif(
     sys.platform.startswith("win"), reason="config scripts are a POSIX concept"
 )
 
 
-def test_symlink_python_config_scripts(tmp_path):
+def test_symlink_python_config_scripts(tmp_path: Path) -> None:
     base_bin = tmp_path / "base" / "bin"
     base_bin.mkdir(parents=True)
     base_python = base_bin / "python3"
@@ -31,7 +35,7 @@ def test_symlink_python_config_scripts(tmp_path):
         assert linked.resolve() == (base_bin / name).resolve()
 
 
-def test_symlink_python_config_scripts_no_config(tmp_path):
+def test_symlink_python_config_scripts_no_config(tmp_path: Path) -> None:
     """Interpreters without a config script (PyPy, GraalPy, ...) must not fail."""
     base_bin = tmp_path / "base" / "bin"
     base_bin.mkdir(parents=True)
@@ -48,7 +52,7 @@ def test_symlink_python_config_scripts_no_config(tmp_path):
     assert list(venv_bin.iterdir()) == []
 
 
-def test_symlink_python_config_scripts_existing_not_overwritten(tmp_path):
+def test_symlink_python_config_scripts_existing_not_overwritten(tmp_path: Path) -> None:
     base_bin = tmp_path / "base" / "bin"
     base_bin.mkdir(parents=True)
     base_python = base_bin / "python3"
