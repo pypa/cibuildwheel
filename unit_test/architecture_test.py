@@ -7,6 +7,7 @@ import sys
 import pytest
 
 import cibuildwheel.architecture
+import cibuildwheel.errors
 from cibuildwheel.architecture import Architecture, arch_synonym
 
 TYPE_CHECKING = False
@@ -142,3 +143,33 @@ def test_arch_synonym(
     arch: str, from_platform: PlatformName, to_platform: PlatformName, expected: str | None
 ) -> None:
     assert arch_synonym(arch, from_platform, to_platform) == expected
+
+
+@pytest.mark.parametrize(
+    ("config", "platform", "expected"),
+    [
+        # Case-insensitive, platform-resolved names (issue #2373).
+        ("arm64", "windows", {Architecture.ARM64}),
+        ("ARM64", "windows", {Architecture.ARM64}),
+        ("amd64", "windows", {Architecture.AMD64}),
+        ("AMD64", "windows", {Architecture.AMD64}),
+        ("X86", "windows", {Architecture.x86}),
+        ("x86", "windows", {Architecture.x86}),
+        # macOS resolves the lowercase arm64 even when given uppercase.
+        ("ARM64", "macos", {Architecture.arm64}),
+        ("arm64", "macos", {Architecture.arm64}),
+        ("X86_64", "macos", {Architecture.x86_64}),
+        # Multiple, mixed-case archs in one config string.
+        ("arm64 amd64", "windows", {Architecture.ARM64, Architecture.AMD64}),
+    ],
+)
+def test_arch_parse_config_case_insensitive(
+    config: str, platform: PlatformName, expected: set[Architecture]
+) -> None:
+    assert Architecture.parse_config(config, platform) == expected
+
+
+@pytest.mark.parametrize("platform", ["windows", "macos", "linux"])
+def test_arch_parse_config_invalid(platform: PlatformName) -> None:
+    with pytest.raises(cibuildwheel.errors.ConfigurationError):
+        Architecture.parse_config("nonexistent", platform)
