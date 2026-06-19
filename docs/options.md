@@ -807,7 +807,7 @@ instead.
 ### `before-build` {: #before-build env-var toml}
 > Execute a shell command preparing each wheel's build
 
-A shell command to run before building the wheel. This option allows you to run a command in **each** Python environment before the `pip wheel` command. This is useful if you need to set up some dependency so it's available during the build.
+A shell command to run before building the wheel. This option allows you to run a command in **each** Python environment before the wheel is built. This is useful if you need to set up some dependency so it's available during the build.
 
 If dependencies are required to build your wheel (for example if you include a header from a Python module), instead of using this command, we recommend adding requirements to a `pyproject.toml` file's `build-system.requires` array instead. This is reproducible, and users who do not get your wheels (such as Alpine or ClearLinux users) will still benefit.
 
