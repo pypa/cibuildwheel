@@ -230,13 +230,12 @@ def validate_pyodide_target_python(
     ``pyodide-version = "3Y.0.0"`` (a Python 3.Y environment) while
     building ``cp3X-pyodide_wasm32``.
     """
-    xbuildenv_python = xbuildenv_info["python"]
     xbuildenv_version = xbuildenv_info["version"]
     identifier = python_configuration.identifier
     expected_version = python_configuration.version
     default_version = python_configuration.default_pyodide_version
-    if not xbuildenv_python.startswith(f"{expected_version}."):
-        xbuildenv_python_minor = ".".join(xbuildenv_python.split(".")[:2])
+    xbuildenv_python_minor = ".".join(xbuildenv_info["python"].split(".")[:2])
+    if xbuildenv_python_minor != expected_version:
         msg = unwrap_preserving_paragraphs(f"""
             The `pyodide-version` option is set to {xbuildenv_version}, which
             provides Python {xbuildenv_python_minor}, but the {identifier} build
