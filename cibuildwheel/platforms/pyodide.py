@@ -218,6 +218,37 @@ def validate_pyodide_build_version(
         raise errors.FatalError(msg)
 
 
+def validate_pyodide_target_python(
+    xbuildenv_info: PyodideXBuildEnvInfo, python_configuration: PythonConfiguration
+) -> None:
+    """
+    Validate that the resolved Pyodide xbuildenv targets the same Python version
+    as the identifier being built.
+
+    This is to catch the case where a global ``pyodide-version`` is applied to an
+    identifier whose Python version does not match, such as setting
+    ``pyodide-version = "3Y.0.0"`` (a Python 3.Y environment) while
+    building ``cp3X-pyodide_wasm32``.
+    """
+    xbuildenv_python = xbuildenv_info["python"]
+    xbuildenv_version = xbuildenv_info["version"]
+    identifier = python_configuration.identifier
+    expected_version = python_configuration.version
+    default_version = python_configuration.default_pyodide_version
+    if not xbuildenv_python.startswith(f"{expected_version}."):
+        xbuildenv_python_minor = ".".join(xbuildenv_python.split(".")[:2])
+        msg = unwrap_preserving_paragraphs(f"""
+            The `pyodide-version` option is set to {xbuildenv_version}, which
+            provides Python {xbuildenv_python_minor}, but the {identifier} build
+            needs Python {expected_version}.
+
+            Either remove `pyodide-version` so {identifier} uses its default
+            ({default_version}), or stop building {identifier} so that
+            `pyodide-version` only applies to an identifier it matches.
+        """)
+        raise errors.ConfigurationError(msg)
+
+
 def install_xbuildenv(env: dict[str, str], xbuildenv_cache_path: Path, pyodide_version: str) -> str:
     """Install a particular Pyodide xbuildenv version and set a path to the Pyodide root."""
     pyodide_root = xbuildenv_cache_path / pyodide_version / "xbuildenv" / "pyodide-root"
@@ -336,6 +367,10 @@ def setup_python(
     validate_pyodide_build_version(
         xbuildenv_info=xbuildenv_info,
         pyodide_build_version=pyodide_build_version,
+    )
+    validate_pyodide_target_python(
+        xbuildenv_info=xbuildenv_info,
+        python_configuration=python_configuration,
     )
 
     xbuildenv_cache_path = CIBW_CACHE_PATH / f"pyodide-build-{pyodide_build_version}"
