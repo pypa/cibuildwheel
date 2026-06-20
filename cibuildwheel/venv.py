@@ -210,18 +210,8 @@ def virtualenv(
 def _symlink_python_config_scripts(base_python: Path, venv_bin: Path) -> None:
     """
     Symlink the base interpreter's ``python*-config`` scripts into the venv's
-    bin directory.
-
-    Virtualenvs do not ship a ``python3-config`` (or versioned
-    ``python{X.Y}-config``) script, so extensions that call it (e.g. to get
-    include dirs or link flags) would otherwise pick up an unrelated
-    ``python3-config`` from elsewhere on PATH -- typically the system or
-    Homebrew Python. This is most relevant for the python.org framework builds
-    on macOS, which do ship these scripts next to the base interpreter.
-
-    Interpreters that don't ship a config script (e.g. PyPy, GraalPy, or some
-    uv-managed builds) are handled gracefully: nothing is linked and the build
-    is not failed.
+    bin directory if provided and not already linked (virtualenvs don't always
+    provide them).
     """
     # The config scripts live next to the base interpreter, e.g.
     # `python3-config` and `python3.12-config`.
