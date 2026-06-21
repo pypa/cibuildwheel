@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 import pytest
 
 from . import test_projects, utils
@@ -26,11 +24,7 @@ def test_podman(
         pytest.skip("needs --run-podman option to run")
 
     # we can't use images cached in the docker_warmup_fixture autouse fixture
-    for variable in os.environ:
-        if variable.startswith(("CIBW_MANYLINUX_", "CIBW_MUSLLINUX_")) and os.environ[
-            variable
-        ].endswith(":cibw_cache_fixture"):
-            monkeypatch.delenv(variable)
+    monkeypatch.delenv("CIBW_INTERNAL_PINNED_DOCKER_IMAGES", raising=False)
 
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)
