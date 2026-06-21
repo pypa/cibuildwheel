@@ -16,7 +16,7 @@ from cibuildwheel.typing import PLATFORMS
 from cibuildwheel.venv import find_uv
 
 from . import utils
-from .utils import DEFAULT_CIBW_ENABLE, EMULATED_ARCHS, get_platform
+from .utils import DEFAULT_CIBW_ENABLE, EMULATED_ARCHS, get_enable_groups, get_platform
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -88,6 +88,12 @@ class DockerWarmUpConfig:
 
 
 def get_docker_warmup_config(request: pytest.FixtureRequest) -> DockerWarmUpConfig | None:
+    enable_groups = get_enable_groups()
+    # Check missing pre-installed interpreters are needed
+    enable_groups &= {EnableGroup.GraalPy, EnableGroup.PyPyEoL}
+    if not enable_groups:
+        return None
+
     machine = request.config.getoption("--run-emulation", default=None)
     if machine is None:
         archs = {arch.value for arch in Architecture.auto_archs("linux")}
