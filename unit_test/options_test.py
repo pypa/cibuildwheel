@@ -39,6 +39,8 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
+    from cibuildwheel.typing import PlatformName
+
 PYPROJECT_1 = """
 [tool.cibuildwheel]
 build = ["cp38-*", "cp313-*"]
@@ -480,6 +482,73 @@ def test_build_frontend_option(
         assert parsed_build_frontend.args == ()
 
 
+def test_pyodide_build_frontend_default(tmp_path: Path) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text("[tool.cibuildwheel]\n")
+
+    options = Options(platform="pyodide", command_line_arguments=args, env={})
+    build_frontend = options.build_options(identifier=None).build_frontend
+
+    assert build_frontend.name == "pyodide-build"
+    assert build_frontend.args == []
+
+
+def test_pyodide_build_frontend_args(tmp_path: Path) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            """\
+            [tool.cibuildwheel.pyodide]
+            build-frontend = {name = "pyodide-build", args = ["--exports=whole_archive"]}
+            """
+        )
+    )
+
+    options = Options(platform="pyodide", command_line_arguments=args, env={})
+    build_frontend = options.build_options(identifier=None).build_frontend
+
+    assert build_frontend.name == "pyodide-build"
+    assert build_frontend.args == ["--exports=whole_archive"]
+
+
+@pytest.mark.parametrize(
+    ("platform", "build_frontend_str"),
+    [
+        ("pyodide", "pip"),
+        ("pyodide", "build"),
+        ("pyodide", "build[uv]"),
+        ("pyodide", "uv"),
+        ("linux", "pyodide-build"),
+        ("macos", "pyodide-build"),
+        ("windows", "pyodide-build"),
+        ("android", "pyodide-build"),
+        ("ios", "pyodide-build"),
+    ],
+)
+def test_build_frontend_platform_mismatch(
+    tmp_path: Path, platform: PlatformName, build_frontend_str: str
+) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            build-frontend = "{build_frontend_str}"
+            """
+        )
+    )
+
+    options = Options(platform=platform, command_line_arguments=args, env={})
+    with pytest.raises(errors.ConfigurationError):
+        options.build_options(identifier=None)
+
+
 def test_override_inherit_environment(tmp_path: Path) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
@@ -663,10 +732,15 @@ def test_deprecated_image(
         ("build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
         ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-vv"]),
         ("uv", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("pyodide-build", -1, ["-Ca", "-Cb", "-1"]),
+        ("pyodide-build", 0, ["-Ca", "-Cb", "-1"]),
+        ("pyodide-build", 1, ["-Ca", "-Cb", "-1", "-v"]),
+        ("pyodide-build", 2, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("pyodide-build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
     ],
 )
 def test_get_build_frontend_extra_flags(
-    frontend: Literal["pip", "build", "build[uv]"],
+    frontend: Literal["pip", "build", "build[uv]", "uv", "pyodide-build"],
     verbosity: int,
     result: list[str],
     monkeypatch: pytest.MonkeyPatch,

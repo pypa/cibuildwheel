@@ -393,6 +393,25 @@ for os_name, command in [
 
 del oses["linux"]["properties"]["dependency-versions"]
 
+oses["pyodide"]["properties"]["build-frontend"] = {
+    **schema["properties"]["build-frontend"],
+    "default": "pyodide-build",
+    "description": 'On the pyodide platform, the build frontend must be "pyodide-build"',
+    "oneOf": [
+        {"enum": ["pyodide-build"]},
+        {"type": "string", "pattern": "^pyodide-build; ?args:"},
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["name"],
+            "properties": {
+                "name": {"enum": ["pyodide-build"]},
+                "args": {"type": "array", "items": {"type": "string"}},
+            },
+        },
+    ],
+}
+
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses
 

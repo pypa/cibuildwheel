@@ -50,7 +50,7 @@ def test(tmp_path: Path) -> None:
         """python -c "import pathlib, sys; pathlib.Path('{project}/pythonversion_bb.txt').write_text(sys.version)" && """
         f'''python -c "import pathlib, sys; pathlib.Path('{{project}}/pythonprefix_bb.txt').write_text({SYS_PREFIX})"'''
     )
-    frontend = "build"
+    frontend = "pyodide-build" if utils.get_platform() == "pyodide" else "build"
     if utils.get_platform() != "pyodide":
         before_build = f"python -m pip install setuptools && {before_build}"
         frontend = f"{frontend};args: --no-isolation"

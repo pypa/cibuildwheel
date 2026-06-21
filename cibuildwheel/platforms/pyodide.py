@@ -426,10 +426,6 @@ def build(options: Options, tmp_path: Path) -> None:
             build_options = options.build_options(config.identifier)
             build_frontend = build_options.build_frontend
 
-            if build_frontend.name == "pip":
-                msg = "The pyodide platform doesn't support pip frontend"
-                raise errors.FatalError(msg)
-
             log.build_start(config.identifier)
 
             identifier_tmp_dir = tmp_path / config.identifier
