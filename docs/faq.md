@@ -269,24 +269,26 @@ Consider incorporating these into your package, for example, in `setup.py` using
 ### Building wheels with CUDA on Linux
 
 On Linux, you can build binary wheels with CUDA to take advantage of NVIDIA GPUs for hardware acceleration.
-Specify the custom Docker containers with CUDA Toolkit as follows:
+The [manylinux_cuda](https://quay.io/organization/manylinux_cuda) project ([source](https://github.com/gpu-ci-demo/manylinux-cuda-container)) publishes manylinux containers that bundle the CUDA Toolkit, and cibuildwheel ships pinned aliases for them. Just like `manylinux_2_28`, you can pass an alias to the `manylinux-*-image` options and cibuildwheel will expand it to a specific, pinned image:
 
 ```yaml
-CIBW_MANYLINUX_X86_64_IMAGE: >-
-  quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda13_1:latest
-CIBW_MANYLINUX_AARCH64_IMAGE: >-
-  quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda13_1:latest
+CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28_cuda13_1
+CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28_cuda13_1
 ```
-Currently, we support the following CUDA manylinux containers:
 
-* `quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda12_9:latest`
-* `quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda12_9:latest`
-* `quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda13_1:latest`
-* `quay.io/manylinux_cuda/manylinux_2_28_aarch64_cuda13_1:latest`
-* `quay.io/manylinux_cuda/manylinux_2_34_x86_64_cuda12_9:latest`
-* `quay.io/manylinux_cuda/manylinux_2_34_aarch64_cuda12_9:latest`
-* `quay.io/manylinux_cuda/manylinux_2_34_x86_64_cuda13_1:latest`
-* `quay.io/manylinux_cuda/manylinux_2_34_aarch64_cuda13_1:latest`
+The following CUDA aliases are available (for `x86_64` and `aarch64` only):
+
+* `manylinux_2_28_cuda12_9`
+* `manylinux_2_28_cuda13_1`
+* `manylinux_2_34_cuda12_9`
+* `manylinux_2_34_cuda13_1`
+
+These aliases resolve to images under `quay.io/manylinux_cuda/`, named
+`manylinux_<glibc>_<arch>_cuda<version>` (e.g.
+`quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda13_1`). If you want a CUDA/glibc/arch
+combination that isn't aliased above, or you'd rather track the latest build yourself, you
+can point at the repository directly with an explicit tag or digest, e.g.
+`quay.io/manylinux_cuda/manylinux_2_28_x86_64_cuda13_1:latest`.
 
 A typical GitHub Actions workflow will look like this:
 
@@ -312,10 +314,8 @@ jobs:
       - name: Build wheels
         uses: pypa/cibuildwheel@v3
         env:
-          CIBW_MANYLINUX_X86_64_IMAGE: >-
-            quay.io/manylinux_cuda/${{ matrix.manylinux-base }}_x86_64_cuda${{ matrix.cuda-version }}:latest
-          CIBW_MANYLINUX_AARCH64_IMAGE: >-
-            quay.io/manylinux_cuda/${{ matrix.manylinux-base }}_aarch64_cuda${{ matrix.cuda-version }}:latest
+          CIBW_MANYLINUX_X86_64_IMAGE: ${{ matrix.manylinux-base }}_cuda${{ matrix.cuda-version }}
+          CIBW_MANYLINUX_AARCH64_IMAGE: ${{ matrix.manylinux-base }}_cuda${{ matrix.cuda-version }}
           CIBW_BUILD: cp312-manylinux_${{ matrix.target.arch }}
 ```
 
