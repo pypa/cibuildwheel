@@ -188,6 +188,11 @@ repair-wheel-command = "pyodide auditwheel repair --libdir /path/to/libraries --
 
 The `--libdir` option specifies the directory containing cross-compiled shared libraries for WASM. You should not use the system library directories (e.g. `/usr/lib`), as those libraries are not built for WebAssembly.
 
+### Build frontend support {: #pyodide-build-frontend}
+
+The pyodide platform builds wheels by shelling out to `pyodide build`, via the `pyodide-build` [`build-frontend`](options.md#build-frontend), which itself is a meta build frontend and passes through commands to pypa/build with specialised handling. This is the only supported frontend for this platform, and is used by default.
+
+[`build-verbosity`](options.md#build-verbosity) is passed through to `pyodide build` as `-v`/`-vv`. It is capped at `-vv`. `pyodide build` has no `-vvv` flag.
 
 ## Android {: android}
 

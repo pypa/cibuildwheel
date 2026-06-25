@@ -79,3 +79,4 @@ repair-wheel-command = "auditwheel repair --ldpaths {ldpaths} -w {dest_dir} {whe
 
 [tool.cibuildwheel.pyodide]
 audit-command = ""
+build-frontend = "pyodide-build"

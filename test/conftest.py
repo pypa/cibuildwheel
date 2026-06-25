@@ -194,8 +194,8 @@ def build_frontend_env_nouv(request: pytest.FixtureRequest) -> dict[str, str]:
     marks = {m.name for m in request.node.iter_markers()}
 
     platform = "pyodide" if "pyodide" in marks else get_platform()
-    if platform == "pyodide" and frontend == "pip":
-        pytest.skip("Can't use pip as build frontend for pyodide platform")
+    if platform == "pyodide":
+        pytest.skip("pyodide only supports the pyodide-build frontend")
 
     return {"CIBW_BUILD_FRONTEND": frontend}
 
@@ -213,10 +213,10 @@ def build_frontend_env(request: pytest.FixtureRequest) -> Generator[dict[str, st
     else:
         platform = get_platform()
 
-    if platform in {"pyodide", "ios", "android"} and frontend == "pip":
+    if platform == "pyodide":
+        pytest.skip("pyodide only supports the pyodide-build frontend")
+    if platform in {"ios", "android"} and frontend == "pip":
         pytest.skip(f"Can't use pip as build frontend for {platform}")
-    if platform == "pyodide" and frontend in {"build[uv]", "uv"}:
-        pytest.skip("Can't use uv with pyodide yet")
     uv_path = find_uv()
     if uv_path is None and frontend in {"build[uv]", "uv"}:
         pytest.skip("Can't find uv, so skipping uv tests")

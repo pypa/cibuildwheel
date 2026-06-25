@@ -860,6 +860,13 @@ class Options:
                     msg = f"Failed to parse build frontend. {e}"
                     raise errors.ConfigurationError(msg) from e
 
+            if self.platform == "pyodide" and build_frontend.name != "pyodide-build":
+                msg = "The pyodide platform requires the 'pyodide-build' build frontend"
+                raise errors.ConfigurationError(msg)
+            if self.platform != "pyodide" and build_frontend.name == "pyodide-build":
+                msg = "The 'pyodide-build' build frontend is only supported on the pyodide platform"
+                raise errors.ConfigurationError(msg)
+
             try:
                 environment = parse_environment(environment_config)
             except (EnvironmentParseError, ValueError) as e:

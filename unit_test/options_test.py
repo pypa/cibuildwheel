@@ -25,12 +25,21 @@ from cibuildwheel.options import (
     _get_pinned_container_images,
 )
 from cibuildwheel.platforms import ALL_PLATFORM_MODULES, get_build_identifiers
+from cibuildwheel.platforms.pyodide import (
+    PyodideXBuildEnvInfo,
+    validate_pyodide_target_python,
+)
+from cibuildwheel.platforms.pyodide import (
+    PythonConfiguration as PyodidePythonConfiguration,
+)
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from collections.abc import Sequence
+    from collections.abc import Callable, Sequence
+
+    from cibuildwheel.typing import PlatformName
 
 PYPROJECT_1 = """
 [tool.cibuildwheel]
@@ -104,6 +113,62 @@ def test_options_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
 
     local = options.build_options("cp312-pyodide_wasm32")
     assert local.pyodide_version == "0.29.4"
+
+
+@pytest.fixture
+def make_pyodide_xbuildenv_info() -> Callable[[str, str], PyodideXBuildEnvInfo]:
+    def _make(version: str, python: str) -> PyodideXBuildEnvInfo:
+        return {
+            "version": version,
+            "python": python,
+            "emscripten": "5.0.3",
+            "pyodide_build": {"min": None, "max": None},
+            "compatible": True,
+        }
+
+    return _make
+
+
+@pytest.fixture
+def make_pyodide_python_configuration() -> Callable[[str, str], PyodidePythonConfiguration]:
+    def _make(identifier: str, version: str) -> PyodidePythonConfiguration:
+        return PyodidePythonConfiguration(
+            version=version,
+            identifier=identifier,
+            default_pyodide_version="0.0.0",
+            node_version="v22",
+        )
+
+    return _make
+
+
+def test_validate_pyodide_target_python_matching(
+    make_pyodide_xbuildenv_info: Callable[[str, str], PyodideXBuildEnvInfo],
+    make_pyodide_python_configuration: Callable[[str, str], PyodidePythonConfiguration],
+) -> None:
+    xbuildenv_info = make_pyodide_xbuildenv_info("314.0.0", "3.14.2")
+    config = make_pyodide_python_configuration("cp314-pyodide_wasm32", "3.14")
+    # should not raise
+    validate_pyodide_target_python(xbuildenv_info, config)
+
+
+def test_validate_pyodide_target_python_mismatch(
+    make_pyodide_xbuildenv_info: Callable[[str, str], PyodideXBuildEnvInfo],
+    make_pyodide_python_configuration: Callable[[str, str], PyodidePythonConfiguration],
+) -> None:
+    # a Python 3.14 xbuildenv applied to a cp313-pyodide_wasm32 build, when a global
+    # pyodide-version is set across mismatched targets
+    xbuildenv_info = make_pyodide_xbuildenv_info("314.0.0", "3.14.2")
+    config = make_pyodide_python_configuration("cp313-pyodide_wasm32", "3.13")
+
+    with pytest.raises(errors.ConfigurationError) as exc_info:
+        validate_pyodide_target_python(xbuildenv_info, config)
+
+    message = str(exc_info.value)
+    assert "cp313-pyodide_wasm32" in message
+    assert "314.0.0" in message
+    assert "3.13" in message
+    assert "3.14" in message
 
 
 def test_test_and_audit_requires_with_dependency_specifiers(tmp_path: Path) -> None:
@@ -417,6 +482,73 @@ def test_build_frontend_option(
         assert parsed_build_frontend.args == ()
 
 
+def test_pyodide_build_frontend_default(tmp_path: Path) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text("[tool.cibuildwheel]\n")
+
+    options = Options(platform="pyodide", command_line_arguments=args, env={})
+    build_frontend = options.build_options(identifier=None).build_frontend
+
+    assert build_frontend.name == "pyodide-build"
+    assert build_frontend.args == []
+
+
+def test_pyodide_build_frontend_args(tmp_path: Path) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            """\
+            [tool.cibuildwheel.pyodide]
+            build-frontend = {name = "pyodide-build", args = ["--exports=whole_archive"]}
+            """
+        )
+    )
+
+    options = Options(platform="pyodide", command_line_arguments=args, env={})
+    build_frontend = options.build_options(identifier=None).build_frontend
+
+    assert build_frontend.name == "pyodide-build"
+    assert build_frontend.args == ["--exports=whole_archive"]
+
+
+@pytest.mark.parametrize(
+    ("platform", "build_frontend_str"),
+    [
+        ("pyodide", "pip"),
+        ("pyodide", "build"),
+        ("pyodide", "build[uv]"),
+        ("pyodide", "uv"),
+        ("linux", "pyodide-build"),
+        ("macos", "pyodide-build"),
+        ("windows", "pyodide-build"),
+        ("android", "pyodide-build"),
+        ("ios", "pyodide-build"),
+    ],
+)
+def test_build_frontend_platform_mismatch(
+    tmp_path: Path, platform: PlatformName, build_frontend_str: str
+) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            build-frontend = "{build_frontend_str}"
+            """
+        )
+    )
+
+    options = Options(platform=platform, command_line_arguments=args, env={})
+    with pytest.raises(errors.ConfigurationError):
+        options.build_options(identifier=None)
+
+
 def test_override_inherit_environment(tmp_path: Path) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
@@ -600,10 +732,15 @@ def test_deprecated_image(
         ("build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
         ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-vv"]),
         ("uv", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("pyodide-build", -1, ["-Ca", "-Cb", "-1"]),
+        ("pyodide-build", 0, ["-Ca", "-Cb", "-1"]),
+        ("pyodide-build", 1, ["-Ca", "-Cb", "-1", "-v"]),
+        ("pyodide-build", 2, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("pyodide-build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
     ],
 )
 def test_get_build_frontend_extra_flags(
-    frontend: Literal["pip", "build", "build[uv]"],
+    frontend: Literal["pip", "build", "build[uv]", "uv", "pyodide-build"],
     verbosity: int,
     result: list[str],
     monkeypatch: pytest.MonkeyPatch,

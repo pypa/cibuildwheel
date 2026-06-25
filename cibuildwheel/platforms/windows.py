@@ -401,6 +401,9 @@ def setup_python(
                 *constraint_flags(dependency_constraint),
                 env=env,
             )
+        case "pyodide-build":
+            msg = "The 'pyodide-build' build frontend is not supported on this platform"
+            raise errors.FatalError(msg)
         case _:
             assert_never(build_frontend)
 
@@ -539,6 +542,9 @@ def build(options: Options, tmp_path: Path) -> None:
                             *extra_flags,
                             env=env,
                         )
+                    case "pyodide-build":
+                        msg = "The 'pyodide-build' build frontend is not supported on this platform"
+                        raise errors.FatalError(msg)
                     case _:
                         assert_never(build_frontend)
 

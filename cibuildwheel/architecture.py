@@ -107,12 +107,28 @@ class Architecture(StrEnum):
                 case "auto32":
                     result |= cls.bitness_archs(platform=platform, bitness="32")
                 case _:
-                    try:
-                        result.add(cls(arch_str))
-                    except ValueError as e:
+                    if arch := cls._parse_arch_name(arch_str, platform=platform):
+                        result.add(arch)
+                    else:
                         msg = f"Invalid architecture '{arch_str}'"
-                        raise errors.ConfigurationError(msg) from e
+                        raise errors.ConfigurationError(msg)
         return result
+
+    @classmethod
+    def _parse_arch_name(cls, arch_str: str, platform: PlatformName) -> Self | None:
+        """Resolve an architecture name case-insensitively.
+
+        The same value (e.g. "arm64"/"ARM64") can map to different members
+        depending on the platform, so prefer a member valid for ``platform``
+        before falling back to any case-insensitive match.
+        """
+        for arch in cls.all_archs(platform):
+            if arch.value.lower() == arch_str.lower():
+                return arch
+        for arch in cls:
+            if arch.value.lower() == arch_str.lower():
+                return arch
+        return None
 
     @classmethod
     def native_arch(cls, platform: PlatformName) -> Self | None:
