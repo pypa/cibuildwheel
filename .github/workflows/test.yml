@@ -168,6 +168,9 @@ jobs:
           if [[ -n "$GITHUB_PR_LABEL_CI_GRAALPY" ]]; then
             CIBW_ENABLE+=" graalpy"
           fi
+          if [[ -n "$GITHUB_PR_LABEL_CI_PYPY_EOL" ]]; then
+            CIBW_ENABLE+=" pypy-eol"
+          fi
         fi
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
 
