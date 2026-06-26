@@ -37,7 +37,6 @@ runs:
     - id: cibw
       run: |
         # Install cibuildwheel and build the command line
-        "$PYTHON" -u << "EOF"
         import os
         import shlex
         import shutil
@@ -116,10 +115,8 @@ runs:
             f.write(f"cmd-pwsh={cmd_pwsh}\n")
 
         print("::endgroup::")
-        EOF
-      shell: bash
+      shell: ${{ steps.python.outputs.python-path }} -u {0}
       env:
-        PYTHON: ${{ steps.python.outputs.python-path }}
         INPUT_PACKAGE_DIR: ${{ inputs.package-dir }}
         INPUT_OUTPUT_DIR: ${{ inputs.output-dir }}
         INPUT_CONFIG_FILE: ${{ inputs.config-file }}
