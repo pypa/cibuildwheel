@@ -226,8 +226,8 @@ python_configurations = [
   { identifier = "cp313-android_x86_64", version = "3.13", url = "https://repo.maven.apache.org/maven2/com/chaquo/python/python/3.13.14/python-3.13.14-x86_64-linux-android.tar.gz", sha256 = "9d96f7e077677b6651b2e756034ed41ab4479f5f8bf3168a814f458bc2ac137e" },
   { identifier = "cp314-android_arm64_v8a", version = "3.14", url = "https://www.python.org/ftp/python/3.14.6/python-3.14.6-aarch64-linux-android.tar.gz", sha256 = "38bbe77d3167b5cd554e03b1021324926f09f3825202b065951dd7638e9c37e5" },
   { identifier = "cp314-android_x86_64", version = "3.14", url = "https://www.python.org/ftp/python/3.14.6/python-3.14.6-x86_64-linux-android.tar.gz", sha256 = "e04eb26607627e68d148f89de793372f54a345c91b13628567f24abcdd3bfa3e" },
-  { identifier = "cp315-android_arm64_v8a", version = "3.15", url = "https://www.python.org/ftp/python/3.15.0/python-3.15.0b3-aarch64-linux-android.tar.gz", sha256 = "ac208c19d376a5b443e22f8eb6c7145d13c117a6e420f4577d4f15a82adbaac2" },
-  { identifier = "cp315-android_x86_64", version = "3.15", url = "https://www.python.org/ftp/python/3.15.0/python-3.15.0b3-x86_64-linux-android.tar.gz", sha256 = "d5a0b349eda76d83533324d9579524daa5e2b97b19d42becdaf79a46cb65b399" },
+  { identifier = "cp315-android_arm64_v8a", version = "3.15", url = "https://www.python.org/ftp/python/3.15.0/python-3.15.0b2-aarch64-linux-android.tar.gz", sha256 = "de5e36ffc3c33b63a1ed53fe83db4dee16b003a3180ac35e5c4c203d3750e076" },
+  { identifier = "cp315-android_x86_64", version = "3.15", url = "https://www.python.org/ftp/python/3.15.0/python-3.15.0b2-x86_64-linux-android.tar.gz", sha256 = "e05ef9c142ea83b41b194b16014ffe2249d27783313c3b00b97f6c93d9a56b92" },
 ]
 
 [ios]
