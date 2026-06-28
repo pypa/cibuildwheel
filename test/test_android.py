@@ -690,7 +690,7 @@ def test_xbuild_files(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None
         add_env={
             **cp313_env,
             # TODO: remove this once there are official Android NumPy wheels on PyPI.
-            "PIP_EXTRA_INDEX_URL": "https://chaquo.com/pypi-test",
+            "PIP_EXTRA_INDEX_URL": "https://chaquo.com/pypi-upstream",
             "CIBW_ARCHS": "all",  # Include both native and non-native archs.
             "CIBW_TEST_COMMAND": f"python -c '{script}'",
         },
