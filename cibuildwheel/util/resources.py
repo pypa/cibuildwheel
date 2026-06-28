@@ -3,6 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = {"tomllib"}
 
 import functools
+import os
 import tomllib
 from pathlib import Path
 
@@ -18,7 +19,9 @@ FREE_THREAD_ENABLE_314: Final[Path] = PATH / "free-threaded-enable-314.xml"
 FREE_THREAD_ENABLE_315: Final[Path] = PATH / "free-threaded-enable-315.xml"
 NODEJS: Final[Path] = PATH / "nodejs.toml"
 DEFAULTS: Final[Path] = PATH / "defaults.toml"
-PINNED_DOCKER_IMAGES: Final[Path] = PATH / "pinned_docker_images.cfg"
+PINNED_DOCKER_IMAGES: Final[Path] = Path(
+    os.environ.get("CIBW_INTERNAL_PINNED_DOCKER_IMAGES", str(PATH / "pinned_docker_images.cfg"))
+)
 BUILD_PLATFORMS: Final[Path] = PATH / "build-platforms.toml"
 CONSTRAINTS: Final[Path] = PATH / "constraints.txt"
 VIRTUALENV: Final[Path] = PATH / "virtualenv.toml"
