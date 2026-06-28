@@ -9,6 +9,7 @@
 
 import configparser
 import dataclasses
+from functools import cache
 from pathlib import Path
 
 import requests
@@ -33,7 +34,7 @@ class PyPAImage(Image):
         super().__init__(manylinux_version, platforms, image_name, tag, True)
 
 
-images = [
+IMAGES = [
     # manylinux2014 images
     PyPAImage(
         "manylinux2014",
@@ -88,49 +89,71 @@ images = [
     ),
 ]
 
-config = configparser.ConfigParser()
 
-for image in images:
-    # get the tag name whose digest matches 'latest'
-    if image.tag is not None:
-        # image has been pinned, do not update
-        tag_name = image.tag
-    elif image.image_name.startswith("quay.io/"):
-        _, _, repository_name = image.image_name.partition("/")
-        response = requests.get(
-            f"https://quay.io/api/v1/repository/{repository_name}?includeTags=true"
-        )
-        response.raise_for_status()
-        repo_info = response.json()
-        tags_dict = repo_info["tags"]
-
-        latest_tag = tags_dict.pop("latest")
+@cache
+def quay_lookup(image_name: str, tag_name: str) -> tuple[str, str]:
+    _, _, repository_name = image_name.partition("/")
+    if tag_name == "latest":
+        url = f"https://quay.io/api/v1/repository/{repository_name}?includeTags=true"
+    else:
+        url = f"https://quay.io/api/v1/repository/{repository_name}/tag?specificTag={tag_name}"
+    response = requests.get(url)
+    response.raise_for_status()
+    info = response.json()
+    if tag_name == "latest":
+        tags_dict = info["tags"]
+        tag_info = tags_dict.pop(tag_name)
         # find the tag whose manifest matches 'latest'
-        tag_name = next(
-            name
+        tag_name, digest = next(
+            (name, info["manifest_digest"])
             for (name, info) in tags_dict.items()
-            if info["manifest_digest"] == latest_tag["manifest_digest"]
+            if info["manifest_digest"] == tag_info["manifest_digest"]
         )
-    elif image.image_name.startswith("ghcr.io/"):
-        repository = image.image_name[8:]
-        response = requests.get(
-            "https://ghcr.io/token", params={"scope": f"repository:{repository}:pull"}
-        )
-        response.raise_for_status()
-        token = response.json()["token"]
+    else:
+        tags_list = info["tags"]
+        tag_info = next(tag for tag in tags_list if tag["name"] == tag_name)
+        digest = tag_info["manifest_digest"]
+
+    return tag_name, digest
+
+
+@cache
+def ghcr_lookup(image_name: str, tag_name: str) -> tuple[str, str]:
+    repository = image_name[8:]
+    response = requests.get(
+        "https://ghcr.io/token", params={"scope": f"repository:{repository}:pull"}
+    )
+    response.raise_for_status()
+    token = response.json()["token"]
+    if tag_name == "latest":
         response = requests.get(
             f"https://ghcr.io/v2/{repository}/tags/list",
             headers={"Authorization": f"Bearer {token}"},
         )
         response.raise_for_status()
-        ghcr_tags = [(Version(tag), tag) for tag in response.json()["tags"] if tag != "latest"]
+        info = response.json()
+        ghcr_tags = [(Version(tag), tag) for tag in info["tags"] if tag != "latest"]
         ghcr_tags.sort(reverse=True)
         tag_name = ghcr_tags[0][1]
-    else:
-        response = requests.get(f"https://hub.docker.com/v2/repositories/{image.image_name}/tags")
-        response.raise_for_status()
-        tags = response.json()["results"]
 
+    response = requests.head(
+        f"https://ghcr.io/v2/{repository}/manifests/{tag_name}",
+        headers={
+            "Authorization": f"Bearer {token}",
+            "Accept": "application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json, application/vnd.oci.image.manifest.v1+json, application/vnd.oci.image.index.v1+json, application/vnd.oci.artifact.manifest.v1+json",
+        },
+    )
+    response.raise_for_status()
+    digest = response.headers["Docker-Content-Digest"]
+    return tag_name, digest
+
+
+@cache
+def dockerhub_lookup(image_name: str, tag_name: str) -> tuple[str, str]:
+    response = requests.get(f"https://hub.docker.com/v2/repositories/{image_name}/tags")
+    response.raise_for_status()
+    tags = response.json()["results"]
+    if tag_name == "latest":
         latest_tag = next(tag for tag in tags if tag["name"] == "latest")
         # i don't know what it would mean to have multiple images per tag
         assert len(latest_tag["images"]) == 1
@@ -139,15 +162,40 @@ for image in images:
         pinned_tag = next(
             tag for tag in tags if tag != latest_tag and tag["images"][0]["digest"] == digest
         )
-        tag_name = pinned_tag["name"]
+    else:
+        pinned_tag = next(tag for tag in tags if tag["name"] == tag_name)
+        digest = pinned_tag["images"][0]["digest"]
+    tag_name = pinned_tag["name"]
+    return tag_name, digest
 
-    for platform in image.platforms:
-        if not config.has_section(platform):
-            config[platform] = {}
-        suffix = ""
-        if image.use_platform_suffix:
-            suffix = f"_{platform.removeprefix('pypy_')}"
-        config[platform][image.manylinux_version] = f"{image.image_name}{suffix}:{tag_name}"
 
-with open(RESOURCES / "pinned_docker_images.cfg", "w") as f:
-    config.write(f)
+def main() -> None:
+    config = configparser.ConfigParser()
+    for image in IMAGES:
+        # get the tag name whose digest matches 'latest'
+        # if image has been pinned, do not update
+        search_tag = image.tag or "latest"
+        if image.image_name.startswith("quay.io/"):
+            lookup = quay_lookup
+        elif image.image_name.startswith("ghcr.io/"):
+            lookup = ghcr_lookup
+        else:
+            lookup = dockerhub_lookup
+
+        tag_name, digest = lookup(image.image_name, search_tag)
+        for platform in image.platforms:
+            if not config.has_section(platform):
+                config[platform] = {}
+            image_name = image.image_name
+            if image.use_platform_suffix:
+                image_name = f"{image_name}_{platform.removeprefix('pypy_')}"
+                _, digest = lookup(image_name, tag_name)
+            assert digest.startswith("sha256:")
+            config[platform][image.manylinux_version] = f"{image_name}@{digest}  # {tag_name}"
+
+    with open(RESOURCES / "pinned_docker_images.cfg", "w") as f:
+        config.write(f)
+
+
+if __name__ == "__main__":
+    main()
