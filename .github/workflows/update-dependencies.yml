@@ -69,4 +69,5 @@ jobs:
         labels: |
           CI: GraalPy
           CI: PyPy
+          CI: PyPy EoL
           dependencies
