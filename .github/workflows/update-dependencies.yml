@@ -11,6 +11,11 @@ on:
       - 'docs/data/projects.yml'
       - 'noxfile.py'
   workflow_dispatch:
+    inputs:
+      ignore-cooldown:
+        description: 'Ignore the cooldown window and pick up the very latest releases'
+        type: boolean
+        default: false
   schedule:
     - cron: '0 6 * * 1'  # "At 06:00 on Monday."
 
@@ -47,8 +52,12 @@ jobs:
 
     - name: "Run update: dependencies"
       run: uvx nox --force-color -s update_constraints
+      env:
+        CIBW_IGNORE_COOLDOWN: ${{ github.event.inputs.ignore-cooldown || 'false' }}
     - name: "Run update: python configs"
       run: uvx nox --force-color -s update_pins
+      env:
+        CIBW_IGNORE_COOLDOWN: ${{ github.event.inputs.ignore-cooldown || 'false' }}
     - name: "Run update: docs user projects"
       run: uvx nox --force-color -s update_proj -- --auth=${{ secrets.GITHUB_TOKEN }}
 

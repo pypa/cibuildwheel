@@ -95,6 +95,9 @@ class PyodideXBuildEnvRelease(typing.TypedDict):
     sha256: str
     python_version: str
     emscripten_version: str
+    published_at: str
+    url: NotRequired[str]
+    sha256: NotRequired[str]
     min_pyodide_build_version: NotRequired[str]
     max_pyodide_build_version: NotRequired[str]
 

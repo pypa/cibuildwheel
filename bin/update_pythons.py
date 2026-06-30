@@ -20,6 +20,8 @@ import logging
 import operator
 import re
 import tomllib
+from collections.abc import Mapping, MutableMapping
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any, Final, Literal, NotRequired, TypedDict
 from xml.etree import ElementTree as ET
@@ -27,12 +29,13 @@ from xml.etree import ElementTree as ET
 import click
 import requests
 import rich
+from _cooldown import COOLDOWN_DAYS, IGNORE_COOLDOWN
 from packaging.specifiers import Specifier
 from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
-from cibuildwheel.extra import dump_python_configurations, get_pyodide_xbuildenv_info
+from cibuildwheel.extra import dump_python_configurations
 from cibuildwheel.platforms.android import android_triplet
 
 TYPE_CHECKING = False
@@ -418,9 +421,17 @@ class CPythonIOSVersions:
 
 
 class PyodideVersions:
-    def __init__(self) -> None:
-        xbuildenv_info = get_pyodide_xbuildenv_info()
-        self.releases = xbuildenv_info["releases"]
+    def __init__(self, cutoff_date: date) -> None:
+        response = requests.get(
+            "https://pyodide.github.io/pyodide/api/v2/pyodide-cross-build-environments.json"
+        )
+        response.raise_for_status()
+        all_releases = response.json()["releases"]
+        self.releases = {
+            version_str: release
+            for version_str, release in all_releases.items()
+            if datetime.fromisoformat(release["published_at"]).date() <= cutoff_date
+        }
 
     def update_version_pyodide(
         self, identifier: str, version: Version, spec: Specifier, node_version: str
@@ -457,6 +468,12 @@ class PyodideVersions:
 
 class AllVersions:
     def __init__(self) -> None:
+        cutoff_date: date = (
+            date.max
+            if IGNORE_COOLDOWN
+            else (datetime.now(tz=UTC) - timedelta(days=COOLDOWN_DAYS)).date()
+        )
+
         self.windows_32 = WindowsVersions("32", False)
         self.windows_t_32 = WindowsVersions("32", True)
         self.windows_64 = WindowsVersions("64", False)
@@ -474,7 +491,7 @@ class AllVersions:
 
         self.graalpy = GraalPyVersions()
 
-        self.pyodide = PyodideVersions()
+        self.pyodide = PyodideVersions(cutoff_date)
 
     def _stream_sha256(self, url: str) -> str:
         """Download a file (streaming) and return its SHA256 hex digest."""
