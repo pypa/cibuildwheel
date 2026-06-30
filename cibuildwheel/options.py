@@ -50,7 +50,13 @@ from cibuildwheel.projectfiles import get_requires_python_str, resolve_dependenc
 from cibuildwheel.selector import BuildSelector, EnableGroup, TestSelector, selector_matches
 from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util import resources
-from cibuildwheel.util.helpers import format_safe, parse_key_value_string, strtobool, unwrap
+from cibuildwheel.util.helpers import (
+    format_safe,
+    parse_key_value_string,
+    parse_kw_string,
+    strtobool,
+    unwrap,
+)
 from cibuildwheel.util.packaging import DependencyConstraints
 
 TYPE_CHECKING = False
@@ -436,6 +442,28 @@ def _stringify_setting(
             return setting
 
 
+def parse_inherit(config: str | dict[str, str] | None) -> dict[str, InheritRule]:
+    inherit_dict: dict[str, str]
+
+    if config is None:
+        return {}
+
+    if isinstance(config, str):
+        parsed = parse_kw_string(config, default_kw_value="append")
+        inherit_dict = {k: "".join(v).upper() for k, v in parsed.items()}
+    elif isinstance(config, dict):
+        inherit_dict = config
+    else:
+        msg = "'inherit' must be a string or a table"
+        raise OptionsReaderError(msg)
+
+    if not all(v in {"none", "append", "prepend"} for v in inherit_dict.values()):
+        msg = "'inherit' must contain only {'none', 'append', 'prepend'} values"
+        raise OptionsReaderError(msg)
+
+    return {k: InheritRule[v.upper()] for k, v in inherit_dict.items()}
+
+
 class OptionsReader:
     """
     Gets options from the environment, config or defaults, optionally scoped
@@ -484,38 +512,11 @@ class OptionsReader:
             self._validate_platform_option(option_name)
 
         self.config_options = config_options
+        self.config_options_inherit = parse_inherit(config_options.get("inherit"))
         self.config_platform_options = config_platform_options
+        self.config_platform_options_inherit = parse_inherit(config_platform_options.get("inherit"))
 
-        self.overrides: list[Override] = []
         self.current_identifier: str | None = None
-
-        config_overrides = self.config_options.get("overrides")
-
-        if config_overrides is not None:
-            if not isinstance(config_overrides, list):
-                msg = "'tool.cibuildwheel.overrides' must be a list"
-                raise OptionsReaderError(msg)
-
-            for config_override in config_overrides:
-                select = config_override.pop("select", None)
-
-                if not select:
-                    msg = "'select' must be set in an override"
-                    raise OptionsReaderError(msg)
-
-                if isinstance(select, list):
-                    select = " ".join(select)
-
-                inherit = config_override.pop("inherit", {})
-                if not isinstance(inherit, dict) or not all(
-                    i in {"none", "append", "prepend"} for i in inherit.values()
-                ):
-                    msg = "'inherit' must be a dict containing only {'none', 'append', 'prepend'} values"
-                    raise OptionsReaderError(msg)
-
-                inherit_enum = {k: InheritRule[v.upper()] for k, v in inherit.items()}
-
-                self.overrides.append(Override(select, config_override, inherit_enum))
 
     def _validate_global_option(self, name: str) -> None:
         """
@@ -562,6 +563,56 @@ class OptionsReader:
 
         return global_options, platform_options
 
+    @functools.cached_property
+    def overrides(self) -> list[Override]:
+        config_overrides = self.config_options.get("overrides")
+        overrides: list[Override] = []
+
+        if config_overrides is not None:
+            if not isinstance(config_overrides, list):
+                msg = "'tool.cibuildwheel.overrides' must be a list"
+                raise OptionsReaderError(msg)
+
+            for config_override in config_overrides:
+                select = config_override.pop("select", None)
+
+                if not select:
+                    msg = "'select' must be set in an override"
+                    raise OptionsReaderError(msg)
+
+                if isinstance(select, list):
+                    select = " ".join(select)
+
+                inherit = config_override.pop("inherit", {})
+
+                overrides.append(Override(select, config_override, parse_inherit(inherit)))
+
+        return overrides
+
+    @functools.cached_property
+    def env_inherit(self) -> dict[str, InheritRule]:
+        env_inherit_str = self.env.get("CIBW_INHERIT", "")
+        try:
+            return parse_inherit(env_inherit_str)
+        except OptionsReaderError as e:
+            msg = f"Failed to parse CIBW_INHERIT environment variable. {e}"
+            raise errors.ConfigurationError(msg) from e
+
+    @functools.cached_property
+    def env_platform_inherit(self) -> dict[str, InheritRule]:
+        env_inherit = self.env_inherit
+
+        # find the rules which have -{platform} on the end of their key,
+        # remove the platform suffix from the key and return the resulting
+        # rule.
+        platform_suffix = f"-{self.platform}"
+
+        return {
+            key.removesuffix(platform_suffix): value
+            for key, value in env_inherit.items()
+            if key.endswith(platform_suffix)
+        }
+
     @property
     def active_config_overrides(self) -> list[Override]:
         if self.current_identifier is None:
@@ -585,7 +636,7 @@ class OptionsReader:
         env_plat: bool = True,
         option_format: OptionFormat | None = None,
         ignore_empty: bool = False,
-        env_rule: InheritRule = InheritRule.NONE,
+        default_env_rule: InheritRule = InheritRule.NONE,
     ) -> str:
         """
         Get and return the value for the named option from environment,
@@ -609,16 +660,37 @@ class OptionsReader:
         # get the option from the default, then the config file, then finally the environment.
         # platform-specific options are preferred, if they're allowed.
         return _resolve_cascade(
-            (self.default_options.get(name), InheritRule.NONE),
-            (self.default_platform_options.get(name), InheritRule.NONE),
-            (self.config_options.get(name), InheritRule.NONE),
-            (self.config_platform_options.get(name), InheritRule.NONE),
+            (
+                self.default_options.get(name),
+                InheritRule.NONE,
+            ),
+            (
+                self.default_platform_options.get(name),
+                InheritRule.NONE,
+            ),
+            (
+                self.config_options.get(name),
+                self.config_options_inherit.get(name, InheritRule.NONE),
+            ),
+            (
+                self.config_platform_options.get(name),
+                self.config_platform_options_inherit.get(name, InheritRule.NONE),
+            ),
             *[
-                (o.options.get(name), o.inherit.get(name, InheritRule.NONE))
+                (
+                    o.options.get(name),
+                    o.inherit.get(name, InheritRule.NONE),
+                )
                 for o in self.active_config_overrides
             ],
-            (self.env.get(envvar), env_rule),
-            (self.env.get(plat_envvar) if env_plat else None, env_rule),
+            (
+                self.env.get(envvar),
+                self.env_inherit.get(name, default_env_rule),
+            ),
+            (
+                self.env.get(plat_envvar) if env_plat else None,
+                self.env_platform_inherit.get(name, default_env_rule),
+            ),
             ignore_empty=ignore_empty,
             option_format=option_format,
         )
@@ -691,7 +763,10 @@ class Options:
         allow_empty = args.allow_empty or strtobool(self.env.get("CIBW_ALLOW_EMPTY", "0"))
 
         enable_groups = self.reader.get(
-            "enable", env_plat=False, option_format=ListFormat(sep=" "), env_rule=InheritRule.APPEND
+            "enable",
+            env_plat=False,
+            option_format=ListFormat(sep=" "),
+            default_env_rule=InheritRule.APPEND,
         )
         try:
             enable = {
@@ -797,12 +872,11 @@ class Options:
             if xbuild_tools == ["\u0000"]:
                 xbuild_tools = None
 
-            xbuild_files = parse_key_value_string(
+            xbuild_files = parse_kw_string(
                 self.reader.get(
                     "xbuild-files",
                     option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
                 ),
-                kw_arg_names=["*"],
             )
 
             test_sources = shlex.split(

@@ -12,6 +12,7 @@ from cibuildwheel.util.helpers import (
     FlexibleVersion,
     format_safe,
     parse_key_value_string,
+    parse_kw_string,
     prepare_command,
     unwrap,
     unwrap_preserving_paragraphs,
@@ -218,20 +219,57 @@ def test_parse_key_value_string_unknown_name() -> None:
     with pytest.raises(ValueError, match=r"Failed to parse 'key: value'. Unknown field name 'key'"):
         parse_key_value_string("key: value")
 
-    # Unknown fields can be enabled by passing "*".
-    assert parse_key_value_string(
-        "key: value",
-        kw_arg_names=["*"],
-    ) == {
-        "key": ["value"],
+
+def test_parse_kw_string_basic() -> None:
+    assert parse_kw_string("before-test: append; after-test: prepend") == {
+        "before-test": ["append"],
+        "after-test": ["prepend"],
     }
 
-    assert parse_key_value_string(
-        "key1: value1a value1b; key2: value2",
-        kw_arg_names=["*"],
-    ) == {
-        "key1": ["value1a", "value1b"],
-        "key2": ["value2"],
+
+def test_parse_kw_string_multiple_values() -> None:
+    assert parse_kw_string("package1: some/header.h some/library.a; package2: other/header.h") == {
+        "package1": ["some/header.h", "some/library.a"],
+        "package2": ["other/header.h"],
+    }
+
+
+def test_parse_kw_string_keys_without_values_default() -> None:
+    assert parse_kw_string("before-build; before-test: prepend", default_kw_value="append") == {
+        "before-build": ["append"],
+        "before-test": ["prepend"],
+    }
+
+
+def test_parse_kw_string_keys_without_values_no_default() -> None:
+    with pytest.raises(ValueError, match="No value specified"):
+        parse_kw_string("before-build")
+
+
+def test_parse_kw_string_empty() -> None:
+    assert parse_kw_string("") == {}
+
+
+def test_parse_kw_string_duplicate_keys() -> None:
+    assert parse_kw_string("key: val1; key: val2") == {
+        "key": ["val1", "val2"],
+    }
+
+
+def test_parse_kw_string_key_only_with_colon() -> None:
+    assert parse_kw_string("key:") == {"key": []}
+
+
+def test_parse_kw_string_quoted_values() -> None:
+    assert parse_kw_string('key: "hello world"') == {"key": ["hello world"]}
+
+
+def test_parse_kw_string_multiple_bare_keys_with_default() -> None:
+    """works, but should remain undocumented"""
+    assert parse_kw_string("a b c", default_kw_value="yes") == {
+        "a": ["yes"],
+        "b": ["yes"],
+        "c": ["yes"],
     }
 
 

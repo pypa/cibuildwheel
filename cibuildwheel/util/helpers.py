@@ -111,7 +111,7 @@ def parse_key_value_string(
     if kw_arg_names is None:
         kw_arg_names = []
 
-    all_field_names = None if ("*" in kw_arg_names) else [*positional_arg_names, *kw_arg_names]
+    all_field_names = [*positional_arg_names, *kw_arg_names]
 
     shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";")
     shlexer.commenters = ""
@@ -128,7 +128,7 @@ def parse_key_value_string(
         # check to see if the option name is specified
         field_name, sep, first_value = field[0].partition(":")
         if sep:
-            if (all_field_names is not None) and (field_name not in all_field_names):
+            if field_name not in all_field_names:
                 msg = f"Failed to parse {key_value_string!r}. Unknown field name {field_name!r}"
                 raise ValueError(msg)
 
@@ -143,6 +143,49 @@ def parse_key_value_string(
             values = field
 
         result[field_name] += values
+
+    return dict(result)
+
+
+def parse_kw_string(kw_string: str, default_kw_value: str | None = None) -> dict[str, list[str]]:
+    """
+    Parses a string like
+
+    "before-build; before-test: append; after-test: prepend"
+    or
+    "package1: some/header.h some/library.a; package2: other/header.h"
+
+    There are no restrictions on the keys than can be set.
+
+    No positional arguments are allowed. Words without a colon attached are
+    interpreted as keys. Keys without a value will be assigned the
+    default_kw_value if provided, otherwise an empty list.
+    """
+    shlexer = shlex.shlex(kw_string, posix=True, punctuation_chars=";")
+    shlexer.commenters = ""
+    shlexer.whitespace_split = True
+    parts = list(shlexer)
+    # parts now looks like
+    # ['before-build', ';', 'before-test:', 'append', ';', 'after-test:', 'prepend']
+
+    # split by semicolon
+    result: defaultdict[str, list[str]] = defaultdict(list)
+    fields = [list(group) for k, group in itertools.groupby(parts, lambda x: x == ";") if not k]
+    for field in fields:
+        # check to see if the option name is specified
+        field_name, sep, first_value = field[0].partition(":")
+        if sep:
+            # the colon was present, so the first value is the value after the colon
+            values = ([first_value] if first_value else []) + field[1:]
+            result[field_name] += values
+        else:
+            # no colon, so it's a key (or set of keys) without values
+            if default_kw_value is None:
+                msg = f"Failed to parse {kw_string!r}. No value specified for {field_name!r}. Expected ':' followed by a value."
+                raise ValueError(msg)
+
+            for key in field:
+                result[key].append(default_kw_value)
 
     return dict(result)
 
