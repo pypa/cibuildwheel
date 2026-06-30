@@ -189,8 +189,8 @@ Here are some repos that use cibuildwheel.
 |-----------------------------------|----|----|:------|
 | [scikit-learn][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | The machine learning library. A complex but clean config using many of cibuildwheel's features to build a large project with Cython and C++ extensions.  |
 | [duckdb][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | DuckDB is an analytical in-process SQL database management system |
-| [pytorch-fairseq][]               | ![github icon][] | ![apple icon][] ![linux icon][] | Facebook AI Research Sequence-to-Sequence Toolkit written in Python. |
 | [NumPy][]                         | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | The fundamental package for scientific computing with Python. |
+| [pytorch-fairseq][]               | ![github icon][] | ![apple icon][] ![linux icon][] | Facebook AI Research Sequence-to-Sequence Toolkit written in Python. |
 | [NCNN][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | ncnn is a high-performance neural network inference framework optimized for the mobile platform |
 | [Matplotlib][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | The venerable Matplotlib, a Python library with C++ portions |
 | [Tornado][]                       | ![github icon][] | ![linux icon][] ![apple icon][] ![windows icon][] | Tornado is a Python web framework and asynchronous networking library. Uses stable ABI for a small C extension. |
@@ -200,8 +200,8 @@ Here are some repos that use cibuildwheel.
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
 [duckdb]: https://github.com/duckdb/duckdb
-[pytorch-fairseq]: https://github.com/facebookresearch/fairseq
 [NumPy]: https://github.com/numpy/numpy
+[pytorch-fairseq]: https://github.com/facebookresearch/fairseq
 [NCNN]: https://github.com/Tencent/ncnn
 [Matplotlib]: https://github.com/matplotlib/matplotlib
 [Tornado]: https://github.com/tornadoweb/tornado
