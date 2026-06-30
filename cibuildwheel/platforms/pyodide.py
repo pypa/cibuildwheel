@@ -489,7 +489,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     build_options.build_verbosity,
                     prepare_config_settings(
                         build_options.config_settings,
-                        project=".",
+                        project=Path.cwd(),
                         package=build_options.package_dir,
                     ),
                 )

@@ -310,7 +310,9 @@ def setup_env(
         "wheel",
         parse_config_settings(
             prepare_config_settings(
-                build_options.config_settings, project=".", package=build_options.package_dir
+                build_options.config_settings,
+                project=Path.cwd(),
+                package=build_options.package_dir,
             )
         ),
     )
@@ -600,7 +602,7 @@ def build_wheel(state: BuildState) -> Path:
                     state.options.build_verbosity,
                     prepare_config_settings(
                         state.options.config_settings,
-                        project=".",
+                        project=Path.cwd(),
                         package=state.options.package_dir,
                     ),
                 ),
@@ -621,7 +623,7 @@ def build_wheel(state: BuildState) -> Path:
                     state.options.build_verbosity,
                     prepare_config_settings(
                         state.options.config_settings,
-                        project=".",
+                        project=Path.cwd(),
                         package=state.options.package_dir,
                     ),
                 ),
