@@ -18,7 +18,7 @@ repos:
     exclude: ^cibuildwheel/resources/android/android.patch$
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: 0671d8ab202c4ac093b78433ae5baf74f3fc7246  # frozen: v0.15.15
+  rev: c59bba8fb259db0fec2bbb77ad8ba51ea7341b56  # frozen: v0.15.20
   hooks:
   - id: ruff-check
     args: ["--fix"]
@@ -77,7 +77,7 @@ repos:
     additional_dependencies: [cogapp>=3.5]
 
 - repo: https://github.com/henryiii/flake8-lazy
-  rev: 65b94e97b1091634368592d98072160842265fe4  # frozen: v0.8.2
+  rev: 5fed9a818f2583f0403aed779bf2b6c9aa8d25f4  # frozen: v0.8.5
   hooks:
   - id: flake8-lazy
     args: ["--apply=set"]
@@ -93,7 +93,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 943377262562a12b57292fc98fabd7dbf81451fe  # frozen: 0.37.2
+  rev: 1a4bb160cab6417b3045e1b37b6b72449243e658  # frozen: 0.37.4
   hooks:
     - id: check-dependabot
     - id: check-github-actions
