@@ -248,6 +248,18 @@ def test_none_any_wheel_rejected(build_options: BuildOptions) -> None:
         runner.run_builds([builder.spec])
 
 
+def test_none_any_repaired_wheel_rejected(build_options: BuildOptions) -> None:
+    builder = FakeBuilder(
+        identifier="cp311-macosx_arm64",
+        build_options=build_options,
+        calls=[],
+        repaired_wheel_names=("spam-0.1.0-py3-none-any.whl",),
+    )
+
+    with pytest.raises(errors.NonPlatformWheelError):
+        runner.run_builds([builder.spec])
+
+
 def test_test_skipped_by_selector(build_options: BuildOptions) -> None:
     build_options = dataclasses.replace(
         build_options,
