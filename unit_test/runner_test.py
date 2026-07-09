@@ -56,7 +56,7 @@ def build_options(tmp_path: Path) -> BuildOptions:
     )
 
 
-class FakeBuilder(runner.Builder[Path]):
+class FakeBuilder:
     """Records the steps the runner invokes; touches no real files."""
 
     def __init__(
@@ -77,8 +77,13 @@ class FakeBuilder(runner.Builder[Path]):
     def record(self, step: str) -> None:
         self.calls.append((self.identifier, step))
 
-    def setup(self) -> None:
+    def setup(self) -> FakeBuilder:
         self.record("setup")
+        return self
+
+    @property
+    def spec(self) -> runner.BuildSpec[Path]:
+        return runner.BuildSpec(identifier=self.identifier, setup=self.setup)
 
     def before_build(self) -> None:
         self.record("before_build")
@@ -123,7 +128,7 @@ def test_step_order(build_options: BuildOptions) -> None:
         built_wheel_name=wheel_name,
     )
 
-    runner.run_builds([builder])
+    runner.run_builds([builder.spec])
 
     assert calls == [
         ("cp311-macosx_arm64", "setup"),
@@ -141,7 +146,7 @@ def test_no_before_build_no_test(build_options: BuildOptions) -> None:
     calls: list[tuple[str, str]] = []
     builder = FakeBuilder(identifier="cp311-macosx_arm64", build_options=build_options, calls=calls)
 
-    runner.run_builds([builder])
+    runner.run_builds([builder.spec])
 
     steps = [step for _, step in calls]
     assert "before_build" not in steps
@@ -174,7 +179,7 @@ def test_compatible_wheel_reuse(build_options: BuildOptions) -> None:
         ),
     ]
 
-    runner.run_builds(builders)
+    runner.run_builds([b.spec for b in builders])
 
     second = [step for identifier, step in calls if identifier == "cp312-macosx_arm64"]
     # build/repair/audit/move are skipped, but the reused wheel is still tested
@@ -190,7 +195,7 @@ def test_repair_produced_no_wheel(build_options: BuildOptions) -> None:
     )
 
     with pytest.raises(errors.RepairStepProducedNoWheelError):
-        runner.run_builds([builder])
+        runner.run_builds([builder.spec])
 
 
 def test_repair_produced_multiple_wheels(build_options: BuildOptions) -> None:
@@ -205,7 +210,7 @@ def test_repair_produced_multiple_wheels(build_options: BuildOptions) -> None:
     )
 
     with pytest.raises(errors.RepairStepProducedMultipleWheelsError):
-        runner.run_builds([builder])
+        runner.run_builds([builder.spec])
 
 
 def test_already_built_wheel(build_options: BuildOptions) -> None:
@@ -228,7 +233,7 @@ def test_already_built_wheel(build_options: BuildOptions) -> None:
     ]
 
     with pytest.raises(errors.AlreadyBuiltWheelError):
-        runner.run_builds(builders)
+        runner.run_builds([b.spec for b in builders])
 
 
 def test_none_any_wheel_rejected(build_options: BuildOptions) -> None:
@@ -240,7 +245,7 @@ def test_none_any_wheel_rejected(build_options: BuildOptions) -> None:
     )
 
     with pytest.raises(errors.NonPlatformWheelError):
-        runner.run_builds([builder])
+        runner.run_builds([builder.spec])
 
 
 def test_test_skipped_by_selector(build_options: BuildOptions) -> None:
@@ -254,7 +259,7 @@ def test_test_skipped_by_selector(build_options: BuildOptions) -> None:
     calls: list[tuple[str, str]] = []
     builder = FakeBuilder(identifier="cp311-macosx_arm64", build_options=build_options, calls=calls)
 
-    runner.run_builds([builder])
+    runner.run_builds([builder.spec])
 
     assert not any(step.startswith("test_wheel") for _, step in calls)
 

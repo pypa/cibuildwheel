@@ -12,6 +12,7 @@ __lazy_modules__ = {
     "cibuildwheel.util.python_build_standalone",
     "cibuildwheel.venv",
     "filelock",
+    "functools",
     "packaging",
     "packaging.utils",
     "pathlib",
@@ -25,6 +26,7 @@ __lazy_modules__ = {
     "typing",
 }
 
+import functools
 import os
 import platform
 import re
@@ -449,52 +451,25 @@ def find_pip(build_options: BuildOptions) -> tuple[bool, list[str]]:
     return use_uv, pip
 
 
-class AndroidBuilder(runner.HostBuilder):
-    def __init__(
-        self,
-        *,
-        config: PythonConfiguration,
-        build_options: BuildOptions,
-        tmp_dir: Path,
-        session_tmp_dir: Path,
-    ) -> None:
-        super().__init__(
-            identifier=config.identifier,
-            build_options=build_options,
-            tmp_dir=tmp_dir,
-            session_tmp_dir=session_tmp_dir,
-        )
-        self.config = config
+@dataclass(frozen=True, kw_only=True)
+class AndroidBuilder:
+    """Steps to build one Android wheel, invoked by runner.run_builds().
 
-    def setup(self) -> None:
-        self.tmp_dir.mkdir()
-        self.python_dir = setup_target_python(self.config, self.tmp_dir)
-        self.build_env, self.android_env = setup_env(
-            self.config, self.build_options, self.tmp_dir, self.python_dir
-        )
-        self.setup_xbuild_files()
+    Android is a cross-compilation target, so there are two environments:
+    build_env for tools that run on the build machine, and android_env for
+    anything that must see the target's configuration.
+    """
 
-    def setup_xbuild_files(self) -> None:
-        _, pip = find_pip(self.build_options)
-        xbf_dir = self.tmp_dir / "xbuild_files"
-        xbf_dir.mkdir()
-
-        for requirement in call(
-            *pip, "freeze", env=self.build_env, capture_stdout=True
-        ).splitlines():
-            name, _, _ = requirement.strip().partition("==")
-            xbuild_files = self.build_options.xbuild_files.get(canonicalize_name(name), [])
-            if xbuild_files:
-                log.step(f"Installing xbuild-files for {name}...")
-                self.pip_install_android(self.android_env, xbf_dir, "--no-deps", requirement)
-                for xbf in xbuild_files:
-                    if (xbf_dir / xbf).exists():
-                        shutil.copy(
-                            xbf_dir / xbf,
-                            find_site_packages(self.build_env) / xbf,
-                        )
-                    else:
-                        log.warning(f"{xbf_dir / xbf} does not exist")
+    identifier: str
+    build_options: BuildOptions
+    config: PythonConfiguration
+    tmp_dir: Path
+    session_tmp_dir: Path
+    built_wheel_dir: Path
+    repaired_wheel_dir: Path
+    python_dir: Path
+    build_env: dict[str, str]
+    android_env: dict[str, str]
 
     def pip_install_android(self, env: dict[str, str], target: Path, *args: PathOrStr) -> None:
         use_uv, pip = find_pip(self.build_options)
@@ -598,6 +573,9 @@ class AndroidBuilder(runner.HostBuilder):
 
         return list(self.repaired_wheel_dir.glob("*.whl"))
 
+    def audit_wheel(self, repaired_wheel: Path) -> None:
+        runner.host_audit_wheel(self, repaired_wheel)
+
     def test_wheel(self, repaired_wheel: Path) -> None:
         build_options = self.build_options
         test_command = build_options.test_command
@@ -700,6 +678,62 @@ class AndroidBuilder(runner.HostBuilder):
             env=build_test_env,
         )
 
+    def move_to_output(self, repaired_wheel: Path) -> Path:
+        return runner.host_move_to_output(self, repaired_wheel)
+
+    def cleanup(self) -> None:
+        runner.host_cleanup(self)
+
+
+def install_xbuild_files(builder: AndroidBuilder) -> None:
+    _, pip = find_pip(builder.build_options)
+    xbf_dir = builder.tmp_dir / "xbuild_files"
+    xbf_dir.mkdir()
+
+    for requirement in call(
+        *pip, "freeze", env=builder.build_env, capture_stdout=True
+    ).splitlines():
+        name, _, _ = requirement.strip().partition("==")
+        xbuild_files = builder.build_options.xbuild_files.get(canonicalize_name(name), [])
+        if xbuild_files:
+            log.step(f"Installing xbuild-files for {name}...")
+            builder.pip_install_android(builder.android_env, xbf_dir, "--no-deps", requirement)
+            for xbf in xbuild_files:
+                if (xbf_dir / xbf).exists():
+                    shutil.copy(
+                        xbf_dir / xbf,
+                        find_site_packages(builder.build_env) / xbf,
+                    )
+                else:
+                    log.warning(f"{xbf_dir / xbf} does not exist")
+
+
+def setup_builder(
+    config: PythonConfiguration,
+    build_options: BuildOptions,
+    tmp_dir: Path,
+    session_tmp_dir: Path,
+) -> AndroidBuilder:
+    """Install Python and prepare the build environments for one identifier."""
+    tmp_dir.mkdir()
+    python_dir = setup_target_python(config, tmp_dir)
+    build_env, android_env = setup_env(config, build_options, tmp_dir, python_dir)
+
+    builder = AndroidBuilder(
+        identifier=config.identifier,
+        build_options=build_options,
+        config=config,
+        tmp_dir=tmp_dir,
+        session_tmp_dir=session_tmp_dir,
+        built_wheel_dir=tmp_dir / "built_wheel",
+        repaired_wheel_dir=tmp_dir / "repaired_wheel",
+        python_dir=python_dir,
+        build_env=build_env,
+        android_env=android_env,
+    )
+    install_xbuild_files(builder)
+    return builder
+
 
 def build(options: Options, tmp_path: Path) -> None:
     if "ANDROID_HOME" not in os.environ:
@@ -719,11 +753,15 @@ def build(options: Options, tmp_path: Path) -> None:
         runner.run_before_all(options, configs)
         runner.run_builds(
             [
-                AndroidBuilder(
-                    config=config,
-                    build_options=options.build_options(config.identifier),
-                    tmp_dir=tmp_path / config.identifier,
-                    session_tmp_dir=tmp_path,
+                runner.BuildSpec(
+                    identifier=config.identifier,
+                    setup=functools.partial(
+                        setup_builder,
+                        config=config,
+                        build_options=options.build_options(config.identifier),
+                        tmp_dir=tmp_path / config.identifier,
+                        session_tmp_dir=tmp_path,
+                    ),
                 )
                 for config in configs
             ]

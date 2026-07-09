@@ -454,22 +454,23 @@ def setup_python(
     return base_python, env
 
 
-class MacOSBuilder(runner.HostBuilder):
-    def __init__(
-        self,
-        *,
-        config: PythonConfiguration,
-        build_options: BuildOptions,
-        tmp_dir: Path,
-        session_tmp_dir: Path,
-    ) -> None:
-        super().__init__(
-            identifier=config.identifier,
-            build_options=build_options,
-            tmp_dir=tmp_dir,
-            session_tmp_dir=session_tmp_dir,
-        )
-        self.config = config
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class MacOSBuilder:
+    """Steps to build one macOS wheel, invoked by runner.run_builds()."""
+
+    identifier: str
+    build_options: BuildOptions
+    config: PythonConfiguration
+    tmp_dir: Path
+    session_tmp_dir: Path
+    built_wheel_dir: Path
+    repaired_wheel_dir: Path
+    env: dict[str, str]
+    base_python: Path
+    use_uv: bool
+    uv_path: Path | None
+    pip: list[str]
+    pip_version: str | None
 
     @property
     def config_is_arm64(self) -> bool:
@@ -479,33 +480,8 @@ class MacOSBuilder(runner.HostBuilder):
     def config_is_universal2(self) -> bool:
         return self.identifier.endswith("universal2")
 
-    def setup(self) -> None:
-        build_options = self.build_options
-        build_frontend = build_options.build_frontend
-
-        self.use_uv = build_frontend.name in {"build[uv]", "uv"}
-        self.uv_path = find_uv()
-        if self.use_uv and self.uv_path is None:
-            msg = "uv not found"
-            raise errors.FatalError(msg)
-        self.pip: list[str] = ["pip"] if not self.use_uv else [str(self.uv_path), "pip"]
-
-        self.tmp_dir.mkdir()
-
-        constraints_path = build_options.dependency_constraints.get_for_python_version(
-            version=self.config.version, tmp_dir=self.tmp_dir
-        )
-
-        self.base_python, env = setup_python(
-            self.tmp_dir / "build",
-            self.config,
-            constraints_path,
-            build_options.environment,
-            build_frontend.name,
-        )
-        env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = self.identifier
-        self.pip_version = None if self.use_uv else get_pip_version(env)
-        self.env = env
+    def before_build(self) -> None:
+        runner.host_before_build(self, env=self.env)
 
     def build_wheel(self) -> Path:
         build_options = self.build_options
@@ -601,6 +577,9 @@ class MacOSBuilder(runner.HostBuilder):
             shutil.move(str(built_wheel), self.repaired_wheel_dir)
 
         return list(self.repaired_wheel_dir.glob("*.whl"))
+
+    def audit_wheel(self, repaired_wheel: Path) -> None:
+        runner.host_audit_wheel(self, repaired_wheel)
 
     def test_wheel(self, repaired_wheel: Path) -> None:
         build_options = self.build_options
@@ -740,6 +719,59 @@ class MacOSBuilder(runner.HostBuilder):
 
             shell_with_arch(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
+    def move_to_output(self, repaired_wheel: Path) -> Path:
+        return runner.host_move_to_output(self, repaired_wheel)
+
+    def cleanup(self) -> None:
+        runner.host_cleanup(self)
+
+
+def setup_builder(
+    config: PythonConfiguration,
+    build_options: BuildOptions,
+    tmp_dir: Path,
+    session_tmp_dir: Path,
+) -> MacOSBuilder:
+    """Install Python and prepare the build environment for one identifier."""
+    build_frontend = build_options.build_frontend
+
+    use_uv = build_frontend.name in {"build[uv]", "uv"}
+    uv_path = find_uv()
+    if use_uv and uv_path is None:
+        msg = "uv not found"
+        raise errors.FatalError(msg)
+
+    tmp_dir.mkdir()
+
+    constraints_path = build_options.dependency_constraints.get_for_python_version(
+        version=config.version, tmp_dir=tmp_dir
+    )
+
+    base_python, env = setup_python(
+        tmp_dir / "build",
+        config,
+        constraints_path,
+        build_options.environment,
+        build_frontend.name,
+    )
+    env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
+
+    return MacOSBuilder(
+        identifier=config.identifier,
+        build_options=build_options,
+        config=config,
+        tmp_dir=tmp_dir,
+        session_tmp_dir=session_tmp_dir,
+        built_wheel_dir=tmp_dir / "built_wheel",
+        repaired_wheel_dir=tmp_dir / "repaired_wheel",
+        env=env,
+        base_python=base_python,
+        use_uv=use_uv,
+        uv_path=uv_path,
+        pip=["pip"] if not use_uv else [str(uv_path), "pip"],
+        pip_version=None if use_uv else get_pip_version(env),
+    )
+
 
 def build(options: Options, tmp_path: Path) -> None:
     python_configurations = get_python_configurations(
@@ -757,11 +789,15 @@ def build(options: Options, tmp_path: Path) -> None:
         )
         runner.run_builds(
             [
-                MacOSBuilder(
-                    config=config,
-                    build_options=options.build_options(config.identifier),
-                    tmp_dir=tmp_path / config.identifier,
-                    session_tmp_dir=tmp_path,
+                runner.BuildSpec(
+                    identifier=config.identifier,
+                    setup=functools.partial(
+                        setup_builder,
+                        config=config,
+                        build_options=options.build_options(config.identifier),
+                        tmp_dir=tmp_path / config.identifier,
+                        session_tmp_dir=tmp_path,
+                    ),
                 )
                 for config in python_configurations
             ]

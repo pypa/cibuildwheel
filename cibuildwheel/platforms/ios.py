@@ -10,6 +10,7 @@ __lazy_modules__ = {
     "cibuildwheel.util.helpers",
     "cibuildwheel.venv",
     "filelock",
+    "functools",
     "packaging",
     "packaging.version",
     "pathlib",
@@ -22,6 +23,7 @@ __lazy_modules__ = {
 }
 
 import dataclasses
+import functools
 import os
 import platform
 import shlex
@@ -468,49 +470,22 @@ def setup_python(
     return target_install_path, env
 
 
-class IOSBuilder(runner.HostBuilder):
-    def __init__(
-        self,
-        *,
-        config: PythonConfiguration,
-        build_options: BuildOptions,
-        tmp_dir: Path,
-        session_tmp_dir: Path,
-    ) -> None:
-        super().__init__(
-            identifier=config.identifier,
-            build_options=build_options,
-            tmp_dir=tmp_dir,
-            session_tmp_dir=session_tmp_dir,
-        )
-        self.config = config
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class IOSBuilder:
+    """Steps to build one iOS wheel, invoked by runner.run_builds()."""
 
-    def setup(self) -> None:
-        build_options = self.build_options
-        build_frontend = build_options.build_frontend
+    identifier: str
+    build_options: BuildOptions
+    config: PythonConfiguration
+    tmp_dir: Path
+    session_tmp_dir: Path
+    built_wheel_dir: Path
+    repaired_wheel_dir: Path
+    env: dict[str, str]
+    target_install_path: Path
 
-        # uv doesn't support iOS
-        # Not using set because mypy can't narrow it
-        if build_frontend.name == "build[uv]" or build_frontend.name == "uv":  # noqa: PLR1714
-            msg = "uv doesn't support iOS"
-            raise errors.FatalError(msg)
-
-        self.tmp_dir.mkdir()
-
-        constraints_path = build_options.dependency_constraints.get_for_python_version(
-            version=self.config.version, tmp_dir=self.tmp_dir
-        )
-
-        self.target_install_path, env = setup_python(
-            self.tmp_dir / "build",
-            python_configuration=self.config,
-            dependency_constraint=constraints_path,
-            environment=build_options.environment,
-            build_frontend=build_frontend.name,
-            xbuild_tools=build_options.xbuild_tools,
-        )
-        env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = self.identifier
-        self.env = env
+    def before_build(self) -> None:
+        runner.host_before_build(self, env=self.env)
 
     def build_wheel(self) -> Path:
         build_options = self.build_options
@@ -556,7 +531,7 @@ class IOSBuilder(runner.HostBuilder):
                     env=self.env,
                 )
             case _:
-                # the other frontends were rejected in setup() or option validation
+                # the other frontends were rejected in setup_builder() or option validation
                 msg = f"Unsupported build frontend {build_frontend.name!r} for iOS"
                 raise errors.FatalError(msg)
 
@@ -564,6 +539,12 @@ class IOSBuilder(runner.HostBuilder):
             return next(self.built_wheel_dir.glob("*.whl"))
         except StopIteration:
             raise errors.BuildProducedNoWheelError() from None
+
+    def repair_wheel(self, built_wheel: Path) -> list[Path]:
+        return runner.host_repair_wheel(self, built_wheel, env=self.env)
+
+    def audit_wheel(self, repaired_wheel: Path) -> None:
+        runner.host_audit_wheel(self, repaired_wheel)
 
     def test_wheel(self, repaired_wheel: Path) -> None:
         build_options = self.build_options
@@ -725,6 +706,56 @@ class IOSBuilder(runner.HostBuilder):
 
         log.step_end()
 
+    def move_to_output(self, repaired_wheel: Path) -> Path:
+        return runner.host_move_to_output(self, repaired_wheel)
+
+    def cleanup(self) -> None:
+        runner.host_cleanup(self)
+
+
+def setup_builder(
+    config: PythonConfiguration,
+    build_options: BuildOptions,
+    tmp_dir: Path,
+    session_tmp_dir: Path,
+) -> IOSBuilder:
+    """Install Python and prepare the build environment for one identifier."""
+    build_frontend = build_options.build_frontend
+
+    # uv doesn't support iOS
+    # Not using set because mypy can't narrow it
+    if build_frontend.name == "build[uv]" or build_frontend.name == "uv":  # noqa: PLR1714
+        msg = "uv doesn't support iOS"
+        raise errors.FatalError(msg)
+
+    tmp_dir.mkdir()
+
+    constraints_path = build_options.dependency_constraints.get_for_python_version(
+        version=config.version, tmp_dir=tmp_dir
+    )
+
+    target_install_path, env = setup_python(
+        tmp_dir / "build",
+        python_configuration=config,
+        dependency_constraint=constraints_path,
+        environment=build_options.environment,
+        build_frontend=build_frontend.name,
+        xbuild_tools=build_options.xbuild_tools,
+    )
+    env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
+
+    return IOSBuilder(
+        identifier=config.identifier,
+        build_options=build_options,
+        config=config,
+        tmp_dir=tmp_dir,
+        session_tmp_dir=session_tmp_dir,
+        built_wheel_dir=tmp_dir / "built_wheel",
+        repaired_wheel_dir=tmp_dir / "repaired_wheel",
+        env=env,
+        target_install_path=target_install_path,
+    )
+
 
 def build(options: Options, tmp_path: Path) -> None:
     if sys.platform != "darwin":
@@ -747,11 +778,15 @@ def build(options: Options, tmp_path: Path) -> None:
         )
         runner.run_builds(
             [
-                IOSBuilder(
-                    config=config,
-                    build_options=options.build_options(config.identifier),
-                    tmp_dir=tmp_path / config.identifier,
-                    session_tmp_dir=tmp_path,
+                runner.BuildSpec(
+                    identifier=config.identifier,
+                    setup=functools.partial(
+                        setup_builder,
+                        config=config,
+                        build_options=options.build_options(config.identifier),
+                        tmp_dir=tmp_path / config.identifier,
+                        session_tmp_dir=tmp_path,
+                    ),
                 )
                 for config in python_configurations
             ]
