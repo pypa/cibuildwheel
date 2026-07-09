@@ -393,62 +393,22 @@ def get_python_configurations(
     return [c for c in all_python_configurations() if build_selector(c.identifier)]
 
 
-class PyodideBuilder(runner.HostBuilder):
-    def __init__(
-        self,
-        *,
-        config: PythonConfiguration,
-        build_options: BuildOptions,
-        tmp_dir: Path,
-        session_tmp_dir: Path,
-    ) -> None:
-        super().__init__(
-            identifier=config.identifier,
-            build_options=build_options,
-            tmp_dir=tmp_dir,
-            session_tmp_dir=session_tmp_dir,
-        )
-        self.config = config
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class PyodideBuilder:
+    """Steps to build one Pyodide wheel, invoked by runner.run_builds()."""
 
-    def setup(self) -> None:
-        build_options = self.build_options
+    identifier: str
+    build_options: BuildOptions
+    config: PythonConfiguration
+    tmp_dir: Path
+    session_tmp_dir: Path
+    built_wheel_dir: Path
+    repaired_wheel_dir: Path
+    env: dict[str, str]
+    pip_version: str
 
-        self.tmp_dir.mkdir()
-        self.built_wheel_dir.mkdir()
-
-        constraints_path = build_options.dependency_constraints.get_for_python_version(
-            version=self.config.version, variant="pyodide", tmp_dir=self.tmp_dir
-        )
-
-        env = setup_python(
-            tmp=self.tmp_dir / "build",
-            python_configuration=self.config,
-            constraints_path=constraints_path,
-            environment=build_options.environment,
-            user_pyodide_version=build_options.pyodide_version,
-        )
-        env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = self.identifier
-        self.pip_version = get_pip_version(env)
-
-        # The Pyodide command line runner mounts all directories in the host
-        # filesystem into the Pyodide file system, except for the custom
-        # file systems /dev, /lib, /proc, and /tmp. Mounting the mount
-        # points for alternate file systems causes some mysterious failure
-        # of the process (it just quits without any clear error).
-        #
-        # Because of this, by default Pyodide can't see anything under /tmp.
-        # This environment variable tells it also to mount our temp
-        # directory.
-        oldmounts = ""
-        extra_mounts = [str(self.tmp_dir)]
-        if Path.cwd().is_relative_to("/tmp"):
-            extra_mounts.append(str(Path.cwd()))
-
-        if "_PYODIDE_EXTRA_MOUNTS" in env:
-            oldmounts = env["_PYODIDE_EXTRA_MOUNTS"] + ":"
-        env["_PYODIDE_EXTRA_MOUNTS"] = oldmounts + ":".join(extra_mounts)
-
-        self.env = env
+    def before_build(self) -> None:
+        runner.host_before_build(self, env=self.env)
 
     def build_wheel(self) -> Path:
         build_options = self.build_options
@@ -475,6 +435,12 @@ class PyodideBuilder(runner.HostBuilder):
             return next(self.built_wheel_dir.glob("*.whl"))
         except StopIteration:
             raise errors.BuildProducedNoWheelError() from None
+
+    def repair_wheel(self, built_wheel: Path) -> list[Path]:
+        return runner.host_repair_wheel(self, built_wheel, env=self.env)
+
+    def audit_wheel(self, repaired_wheel: Path) -> None:
+        runner.host_audit_wheel(self, repaired_wheel)
 
     def test_wheel(self, repaired_wheel: Path) -> None:
         build_options = self.build_options
@@ -552,6 +518,67 @@ class PyodideBuilder(runner.HostBuilder):
 
         shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
+    def move_to_output(self, repaired_wheel: Path) -> Path:
+        return runner.host_move_to_output(self, repaired_wheel)
+
+    def cleanup(self) -> None:
+        runner.host_cleanup(self)
+
+
+def setup_builder(
+    config: PythonConfiguration,
+    build_options: BuildOptions,
+    tmp_dir: Path,
+    session_tmp_dir: Path,
+) -> PyodideBuilder:
+    """Install Python and prepare the build environment for one identifier."""
+    tmp_dir.mkdir()
+    built_wheel_dir = tmp_dir / "built_wheel"
+    built_wheel_dir.mkdir()
+
+    constraints_path = build_options.dependency_constraints.get_for_python_version(
+        version=config.version, variant="pyodide", tmp_dir=tmp_dir
+    )
+
+    env = setup_python(
+        tmp=tmp_dir / "build",
+        python_configuration=config,
+        constraints_path=constraints_path,
+        environment=build_options.environment,
+        user_pyodide_version=build_options.pyodide_version,
+    )
+    env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
+
+    # The Pyodide command line runner mounts all directories in the host
+    # filesystem into the Pyodide file system, except for the custom
+    # file systems /dev, /lib, /proc, and /tmp. Mounting the mount
+    # points for alternate file systems causes some mysterious failure
+    # of the process (it just quits without any clear error).
+    #
+    # Because of this, by default Pyodide can't see anything under /tmp.
+    # This environment variable tells it also to mount our temp
+    # directory.
+    oldmounts = ""
+    extra_mounts = [str(tmp_dir)]
+    if Path.cwd().is_relative_to("/tmp"):
+        extra_mounts.append(str(Path.cwd()))
+
+    if "_PYODIDE_EXTRA_MOUNTS" in env:
+        oldmounts = env["_PYODIDE_EXTRA_MOUNTS"] + ":"
+    env["_PYODIDE_EXTRA_MOUNTS"] = oldmounts + ":".join(extra_mounts)
+
+    return PyodideBuilder(
+        identifier=config.identifier,
+        build_options=build_options,
+        config=config,
+        tmp_dir=tmp_dir,
+        session_tmp_dir=session_tmp_dir,
+        built_wheel_dir=built_wheel_dir,
+        repaired_wheel_dir=tmp_dir / "repaired_wheel",
+        env=env,
+        pip_version=get_pip_version(env),
+    )
+
 
 def build(options: Options, tmp_path: Path) -> None:
     python_configurations = get_python_configurations(
@@ -565,11 +592,15 @@ def build(options: Options, tmp_path: Path) -> None:
         runner.run_before_all(options, python_configurations)
         runner.run_builds(
             [
-                PyodideBuilder(
-                    config=config,
-                    build_options=options.build_options(config.identifier),
-                    tmp_dir=tmp_path / config.identifier,
-                    session_tmp_dir=tmp_path,
+                runner.BuildSpec(
+                    identifier=config.identifier,
+                    setup=functools.partial(
+                        setup_builder,
+                        config=config,
+                        build_options=options.build_options(config.identifier),
+                        tmp_dir=tmp_path / config.identifier,
+                        session_tmp_dir=tmp_path,
+                    ),
                 )
                 for config in python_configurations
             ]

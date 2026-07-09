@@ -10,6 +10,7 @@ __lazy_modules__ = {
     "collections",
     "contextlib",
     "functools",
+    "pathlib",
     "shutil",
     "subprocess",
     "textwrap",
@@ -25,7 +26,7 @@ import sys
 import textwrap
 from collections import OrderedDict
 from pathlib import Path, PurePath, PurePosixPath
-from typing import assert_never
+from typing import ClassVar, assert_never
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
@@ -186,86 +187,31 @@ def check_all_python_exist(
         raise errors.FatalError(message)
 
 
-class LinuxBuilder(runner.Builder[PurePosixPath]):
-    """A Builder that runs every step inside an OCI container. Wheel paths
-    are container-side paths; the wheels are copied back to the host once,
-    after every build in the container has finished."""
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class LinuxBuilder:
+    """Steps to build one Linux wheel, invoked by runner.run_builds().
 
-    def __init__(
-        self,
-        *,
-        config: PythonConfiguration,
-        build_options: BuildOptions,
-        container: OCIContainer,
-        container_project_path: PurePath,
-        container_package_dir: PurePath,
-        local_tmp_dir: Path,
-    ) -> None:
-        self.identifier = config.identifier
-        self.build_options = build_options
-        self.config = config
-        self.container = container
-        self.container_project_path = container_project_path
-        self.container_package_dir = container_package_dir
-        # host-side scratch space, shared across identifiers
-        self.local_tmp_dir = local_tmp_dir
-        self.container_output_dir = PurePosixPath("/output")
-        container_tmp_dir = PurePosixPath("/tmp/cibuildwheel")
-        self.built_wheel_dir = container_tmp_dir / "built_wheel"
-        self.repaired_wheel_dir = container_tmp_dir / "repaired_wheel"
+    Every step runs inside an OCI container, so wheel paths are container-side
+    paths; the wheels are copied back to the host once, after every build in
+    the container has finished.
+    """
 
-    def setup(self) -> None:
-        container = self.container
-        config = self.config
-        build_options = self.build_options
-
-        self.use_uv = build_options.build_frontend.name in {"build[uv]", "uv"}
-        self.pip: list[str] = ["uv", "pip"] if self.use_uv else ["pip"]
-
-        log.step("Setting up build environment...")
-
-        self.dependency_constraint_flags: list[PathOrStr] = []
-        local_identifier_tmp_dir = self.local_tmp_dir / self.identifier
-        local_identifier_tmp_dir.mkdir(parents=True, exist_ok=True)
-        local_constraints_file = build_options.dependency_constraints.get_for_python_version(
-            version=config.version,
-            tmp_dir=local_identifier_tmp_dir,
-        )
-        if local_constraints_file:
-            container_constraints_file = PurePosixPath("/constraints.txt")
-            container.copy_into(local_constraints_file, container_constraints_file)
-            self.dependency_constraint_flags = ["-c", container_constraints_file]
-
-        env = container.get_environment()
-        env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-        env["PIP_ROOT_USER_ACTION"] = "ignore"
-
-        # put this config's python top of the list
-        self.python_bin = config.path / "bin"
-        env["PATH"] = f"{self.python_bin}:{env['PATH']}"
-
-        env = build_options.environment.as_dictionary(env, executor=container.environment_executor)
-        env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = self.identifier
-
-        # check config python is still on PATH
-        which_python = container.call(["which", "python"], env=env, capture_output=True).strip()
-        if PurePosixPath(which_python) != self.python_bin / "python":
-            msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
-            raise errors.FatalError(msg)
-        container.call(["python", "-V", "-V"], env=env)
-
-        if self.use_uv:
-            which_uv = container.call(["which", "uv"], env=env, capture_output=True).strip()
-            if not which_uv:
-                msg = "uv not found on PATH. You must use a supported manylinux or musllinux environment with uv."
-                raise errors.FatalError(msg)
-        else:
-            which_pip = container.call(["which", "pip"], env=env, capture_output=True).strip()
-            if PurePosixPath(which_pip) != self.python_bin / "pip":
-                msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
-                raise errors.FatalError(msg)
-
-        self.env = env
+    identifier: str
+    build_options: BuildOptions
+    config: PythonConfiguration
+    container: OCIContainer
+    container_project_path: PurePath
+    container_package_dir: PurePath
+    # host-side scratch space, shared across identifiers
+    local_tmp_dir: Path
+    env: dict[str, str]
+    python_bin: PurePosixPath
+    use_uv: bool
+    pip: list[str]
+    dependency_constraint_flags: list[PathOrStr]
+    container_output_dir: ClassVar[PurePosixPath] = PurePosixPath("/output")
+    built_wheel_dir: ClassVar[PurePosixPath] = PurePosixPath("/tmp/cibuildwheel/built_wheel")
+    repaired_wheel_dir: ClassVar[PurePosixPath] = PurePosixPath("/tmp/cibuildwheel/repaired_wheel")
 
     def before_build(self) -> None:
         build_options = self.build_options
@@ -490,6 +436,76 @@ class LinuxBuilder(runner.Builder[PurePosixPath]):
         pass
 
 
+def setup_builder(
+    config: PythonConfiguration,
+    build_options: BuildOptions,
+    container: OCIContainer,
+    container_project_path: PurePath,
+    container_package_dir: PurePath,
+    local_tmp_dir: Path,
+) -> LinuxBuilder:
+    """Prepare the container's build environment for one identifier."""
+    use_uv = build_options.build_frontend.name in {"build[uv]", "uv"}
+
+    log.step("Setting up build environment...")
+
+    dependency_constraint_flags: list[PathOrStr] = []
+    local_identifier_tmp_dir = local_tmp_dir / config.identifier
+    local_identifier_tmp_dir.mkdir(parents=True, exist_ok=True)
+    local_constraints_file = build_options.dependency_constraints.get_for_python_version(
+        version=config.version,
+        tmp_dir=local_identifier_tmp_dir,
+    )
+    if local_constraints_file:
+        container_constraints_file = PurePosixPath("/constraints.txt")
+        container.copy_into(local_constraints_file, container_constraints_file)
+        dependency_constraint_flags = ["-c", container_constraints_file]
+
+    env = container.get_environment()
+    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    env["PIP_ROOT_USER_ACTION"] = "ignore"
+
+    # put this config's python top of the list
+    python_bin = config.path / "bin"
+    env["PATH"] = f"{python_bin}:{env['PATH']}"
+
+    env = build_options.environment.as_dictionary(env, executor=container.environment_executor)
+    env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
+
+    # check config python is still on PATH
+    which_python = container.call(["which", "python"], env=env, capture_output=True).strip()
+    if PurePosixPath(which_python) != python_bin / "python":
+        msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+        raise errors.FatalError(msg)
+    container.call(["python", "-V", "-V"], env=env)
+
+    if use_uv:
+        which_uv = container.call(["which", "uv"], env=env, capture_output=True).strip()
+        if not which_uv:
+            msg = "uv not found on PATH. You must use a supported manylinux or musllinux environment with uv."
+            raise errors.FatalError(msg)
+    else:
+        which_pip = container.call(["which", "pip"], env=env, capture_output=True).strip()
+        if PurePosixPath(which_pip) != python_bin / "pip":
+            msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+            raise errors.FatalError(msg)
+
+    return LinuxBuilder(
+        identifier=config.identifier,
+        build_options=build_options,
+        config=config,
+        container=container,
+        container_project_path=container_project_path,
+        container_package_dir=container_package_dir,
+        local_tmp_dir=local_tmp_dir,
+        env=env,
+        python_bin=python_bin,
+        use_uv=use_uv,
+        pip=["uv", "pip"] if use_uv else ["pip"],
+        dependency_constraint_flags=dependency_constraint_flags,
+    )
+
+
 def build_in_container(
     *,
     options: Options,
@@ -528,13 +544,17 @@ def build_in_container(
 
     runner.run_builds(
         [
-            LinuxBuilder(
-                config=config,
-                build_options=options.build_options(config.identifier),
-                container=container,
-                container_project_path=container_project_path,
-                container_package_dir=container_package_dir,
-                local_tmp_dir=local_tmp_dir,
+            runner.BuildSpec(
+                identifier=config.identifier,
+                setup=functools.partial(
+                    setup_builder,
+                    config=config,
+                    build_options=options.build_options(config.identifier),
+                    container=container,
+                    container_project_path=container_project_path,
+                    container_package_dir=container_package_dir,
+                    local_tmp_dir=local_tmp_dir,
+                ),
             )
             for config in platform_configs
         ]

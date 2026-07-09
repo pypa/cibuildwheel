@@ -20,7 +20,7 @@ __lazy_modules__ = {
 import dataclasses
 import platform as platform_module
 import textwrap
-from functools import cache
+from functools import cache, partial
 from pathlib import Path
 from typing import assert_never
 
@@ -407,47 +407,25 @@ def setup_python(
     return base_python, env
 
 
-class WindowsBuilder(runner.HostBuilder):
-    def __init__(
-        self,
-        *,
-        config: PythonConfiguration,
-        build_options: BuildOptions,
-        tmp_dir: Path,
-        session_tmp_dir: Path,
-    ) -> None:
-        super().__init__(
-            identifier=config.identifier,
-            build_options=build_options,
-            tmp_dir=tmp_dir,
-            session_tmp_dir=session_tmp_dir,
-        )
-        self.config = config
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class WindowsBuilder:
+    """Steps to build one Windows wheel, invoked by runner.run_builds()."""
 
-    def setup(self) -> None:
-        build_options = self.build_options
-        build_frontend = build_options.build_frontend
+    identifier: str
+    build_options: BuildOptions
+    config: PythonConfiguration
+    tmp_dir: Path
+    session_tmp_dir: Path
+    built_wheel_dir: Path
+    repaired_wheel_dir: Path
+    env: dict[str, str]
+    base_python: Path
+    use_uv: bool
+    uv_path: Path | None
+    pip_version: str | None
 
-        self.use_uv = build_frontend.name in {"build[uv]", "uv"}
-        self.uv_path = find_uv()
-
-        self.tmp_dir.mkdir()
-
-        constraints_path = build_options.dependency_constraints.get_for_python_version(
-            version=self.config.version, tmp_dir=self.tmp_dir
-        )
-
-        # install Python
-        self.base_python, env = setup_python(
-            self.tmp_dir / "build",
-            self.config,
-            constraints_path,
-            build_options.environment,
-            build_frontend.name,
-        )
-        env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = self.identifier
-        self.pip_version = None if self.use_uv else get_pip_version(env)
-        self.env = env
+    def before_build(self) -> None:
+        runner.host_before_build(self, env=self.env)
 
     def build_wheel(self) -> Path:
         build_options = self.build_options
@@ -516,6 +494,12 @@ class WindowsBuilder(runner.HostBuilder):
             return next(self.built_wheel_dir.glob("*.whl"))
         except StopIteration:
             raise errors.BuildProducedNoWheelError() from None
+
+    def repair_wheel(self, built_wheel: Path) -> list[Path]:
+        return runner.host_repair_wheel(self, built_wheel, env=self.env)
+
+    def audit_wheel(self, repaired_wheel: Path) -> None:
+        runner.host_audit_wheel(self, repaired_wheel)
 
     def test_wheel(self, repaired_wheel: Path) -> None:
         build_options = self.build_options
@@ -596,6 +580,56 @@ class WindowsBuilder(runner.HostBuilder):
         )
         shell(test_command_prepared, cwd=test_cwd, env=virtualenv_env)
 
+    def move_to_output(self, repaired_wheel: Path) -> Path:
+        return runner.host_move_to_output(self, repaired_wheel)
+
+    def cleanup(self) -> None:
+        runner.host_cleanup(self)
+
+
+def setup_builder(
+    config: PythonConfiguration,
+    build_options: BuildOptions,
+    tmp_dir: Path,
+    session_tmp_dir: Path,
+) -> WindowsBuilder:
+    """Install Python and prepare the build environment for one identifier."""
+    build_frontend = build_options.build_frontend
+
+    use_uv = build_frontend.name in {"build[uv]", "uv"}
+    uv_path = find_uv()
+
+    tmp_dir.mkdir()
+
+    constraints_path = build_options.dependency_constraints.get_for_python_version(
+        version=config.version, tmp_dir=tmp_dir
+    )
+
+    # install Python
+    base_python, env = setup_python(
+        tmp_dir / "build",
+        config,
+        constraints_path,
+        build_options.environment,
+        build_frontend.name,
+    )
+    env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
+
+    return WindowsBuilder(
+        identifier=config.identifier,
+        build_options=build_options,
+        config=config,
+        tmp_dir=tmp_dir,
+        session_tmp_dir=session_tmp_dir,
+        built_wheel_dir=tmp_dir / "built_wheel",
+        repaired_wheel_dir=tmp_dir / "repaired_wheel",
+        env=env,
+        base_python=base_python,
+        use_uv=use_uv,
+        uv_path=uv_path,
+        pip_version=None if use_uv else get_pip_version(env),
+    )
+
 
 def build(options: Options, tmp_path: Path) -> None:
     python_configurations = get_python_configurations(
@@ -609,11 +643,15 @@ def build(options: Options, tmp_path: Path) -> None:
         runner.run_before_all(options, python_configurations)
         runner.run_builds(
             [
-                WindowsBuilder(
-                    config=config,
-                    build_options=options.build_options(config.identifier),
-                    tmp_dir=tmp_path / config.identifier,
-                    session_tmp_dir=tmp_path,
+                runner.BuildSpec(
+                    identifier=config.identifier,
+                    setup=partial(
+                        setup_builder,
+                        config=config,
+                        build_options=options.build_options(config.identifier),
+                        tmp_dir=tmp_path / config.identifier,
+                        session_tmp_dir=tmp_path,
+                    ),
                 )
                 for config in python_configurations
             ]

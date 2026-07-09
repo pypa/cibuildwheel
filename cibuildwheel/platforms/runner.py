@@ -1,16 +1,23 @@
 """
 The shared build loop, used by every platform module.
 
-Each platform defines a Builder subclass whose methods implement the
-platform-specific steps; run_builds() drives those steps for each build
-identifier, in a fixed order:
+Each platform defines a builder class implementing the Builder protocol, whose
+methods are the platform-specific steps of one wheel build. run_builds() takes
+a BuildSpec per build identifier and drives the steps in a fixed order:
 
     setup -> before_build -> build_wheel -> repair_wheel -> audit_wheel
           -> test_wheel -> move_to_output -> cleanup
 
+A builder is only constructed once its environment is fully set up: each
+BuildSpec carries a setup function that does the work and returns the
+ready-to-use builder, so every attribute on a builder is set from the moment
+it exists.
+
 run_builds() also owns everything that's identical across platforms: logging,
 reuse of compatible wheels, validation of the built/repaired wheels, the test
-gate, and moving wheels to the output directory.
+gate, and moving wheels to the output directory. The host_*() functions are
+the step implementations shared by the platforms that build directly on the
+host (everything except Linux); builders use them by delegation.
 """
 
 from __future__ import annotations
@@ -28,12 +35,12 @@ __lazy_modules__ = {
 }
 
 import contextlib
+import dataclasses
 import os
 import shutil
 import subprocess
-from abc import ABC, abstractmethod
 from pathlib import Path, PurePath
-from typing import Generic, TypeVar
+from typing import Generic, Protocol, TypeVar
 
 from cibuildwheel import errors
 from cibuildwheel.audit import run_audit
@@ -54,44 +61,38 @@ if TYPE_CHECKING:
 PathT = TypeVar("PathT", bound=PurePath)
 
 
-class Builder(ABC, Generic[PathT]):
+class Builder(Protocol[PathT]):
     """
     The platform-specific steps to build one wheel (one build identifier).
 
-    Constructing a Builder must not do any work; all work happens in the step
-    methods, which run_builds() calls in a fixed order. PathT is the type of
-    the paths the wheels live at while building: Path on the host platforms,
-    PurePosixPath inside the Linux container.
+    Builders are plain classes (typically frozen dataclasses) satisfying this
+    protocol structurally; they are created by a BuildSpec's setup function
+    with all their state already prepared. run_builds() calls the steps in a
+    fixed order. PathT is the type of the paths the wheels live at while
+    building: Path on the host platforms, PurePosixPath inside the Linux
+    container.
     """
 
-    identifier: str
-    build_options: BuildOptions
+    @property
+    def identifier(self) -> str: ...
 
-    @abstractmethod
-    def setup(self) -> None:
-        """Install Python and prepare the build environment, storing any state
-        the later steps need (e.g. self.env) on the instance. Logs its own
-        log.step()s and may leave the last one open."""
+    @property
+    def build_options(self) -> BuildOptions: ...
 
-    @abstractmethod
     def before_build(self) -> None:
         """Run the user's before-build command. Only called if one is set."""
 
-    @abstractmethod
     def build_wheel(self) -> PathT:
         """Build the wheel with the configured frontend and return its path."""
 
-    @abstractmethod
     def repair_wheel(self, built_wheel: PathT) -> list[PathT]:
         """Run the user's repair command (or, if none is set, move the wheel
         as-is) and return the contents of the repaired-wheel directory. The
         runner validates that exactly one wheel was produced."""
 
-    @abstractmethod
     def audit_wheel(self, repaired_wheel: PathT) -> None:
         """Run the audit command, if one is configured."""
 
-    @abstractmethod
     def test_wheel(self, repaired_wheel: PathT) -> None:
         """Test the wheel: set up a test environment, run before-test, install
         the wheel and its test requirements, and run the test command. Only
@@ -99,98 +100,106 @@ class Builder(ABC, Generic[PathT]):
         conditions that can only be determined at build time (e.g. an arch
         that can't be tested on this machine) live here too."""
 
-    @abstractmethod
     def move_to_output(self, repaired_wheel: PathT) -> PathT:
         """Move the wheel to the output directory, returning the path that
         later builds can reuse it from (and install it from, in tests)."""
 
-    @abstractmethod
     def cleanup(self) -> None:
         """Remove this identifier's temporary files."""
 
 
-class HostBuilder(Builder[Path]):
-    """A Builder whose wheels live on the host filesystem; implements the
-    steps that are common to every platform except Linux (which builds inside
-    a container)."""
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class BuildSpec(Generic[PathT]):
+    """One wheel to build: its identifier, plus a setup function that installs
+    Python, prepares the build environment, and returns the builder that runs
+    the remaining steps. setup logs its own log.step()s and may leave the last
+    one open."""
 
-    env: dict[str, str]  # set by setup() in each subclass
+    identifier: str
+    setup: Callable[[], Builder[PathT]]
 
-    def __init__(
-        self,
-        *,
-        identifier: str,
-        build_options: BuildOptions,
-        tmp_dir: Path,
-        session_tmp_dir: Path,
-    ) -> None:
-        self.identifier = identifier
-        self.build_options = build_options
-        # per-identifier scratch space, removed by cleanup()
-        self.tmp_dir = tmp_dir
-        # shared across identifiers; run_audit() reuses its venv between calls
-        self.session_tmp_dir = session_tmp_dir
-        self.built_wheel_dir = tmp_dir / "built_wheel"
-        self.repaired_wheel_dir = tmp_dir / "repaired_wheel"
 
-    def before_build(self) -> None:
-        assert self.build_options.before_build is not None
-        before_build_prepared = prepare_command(
-            self.build_options.before_build,
+class HostBuilder(Builder[Path], Protocol):
+    """The state the shared host_*() step implementations need on a builder
+    that builds directly on the host (every platform except Linux)."""
+
+    @property
+    def tmp_dir(self) -> Path:
+        """Per-identifier scratch space, removed by cleanup()."""
+
+    @property
+    def session_tmp_dir(self) -> Path:
+        """Shared across identifiers; run_audit() reuses its venv between
+        calls."""
+
+    @property
+    def repaired_wheel_dir(self) -> Path: ...
+
+
+def host_before_build(builder: HostBuilder, *, env: dict[str, str]) -> None:
+    assert builder.build_options.before_build is not None
+    before_build_prepared = prepare_command(
+        builder.build_options.before_build,
+        project=".",
+        package=builder.build_options.package_dir,
+    )
+    shell(before_build_prepared, env=env)
+
+
+def host_repair_wheel(
+    builder: HostBuilder, built_wheel: Path, *, env: dict[str, str]
+) -> list[Path]:
+    builder.repaired_wheel_dir.mkdir(exist_ok=True)
+    if builder.build_options.repair_command:
+        repair_command_prepared = prepare_command(
+            builder.build_options.repair_command,
+            wheel=built_wheel,
+            dest_dir=builder.repaired_wheel_dir,
+            package=builder.build_options.package_dir,
             project=".",
-            package=self.build_options.package_dir,
         )
-        shell(before_build_prepared, env=self.env)
-
-    def repair_wheel(self, built_wheel: Path) -> list[Path]:
-        self.repaired_wheel_dir.mkdir(exist_ok=True)
-        if self.build_options.repair_command:
-            repair_command_prepared = prepare_command(
-                self.build_options.repair_command,
-                wheel=built_wheel,
-                dest_dir=self.repaired_wheel_dir,
-                package=self.build_options.package_dir,
-                project=".",
-            )
-            shell(repair_command_prepared, env=self.env)
-        else:
-            shutil.move(str(built_wheel), self.repaired_wheel_dir)
-        return list(self.repaired_wheel_dir.glob("*.whl"))
-
-    def audit_wheel(self, repaired_wheel: Path) -> None:
-        run_audit(
-            tmp_dir=self.session_tmp_dir, build_options=self.build_options, wheel=repaired_wheel
-        )
-
-    def move_to_output(self, repaired_wheel: Path) -> Path:
-        output_wheel = self.build_options.output_dir / repaired_wheel.name
-        moved_wheel = move_file(repaired_wheel, output_wheel)
-        if moved_wheel != output_wheel.resolve():
-            log.warning(f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}")
-        return output_wheel
-
-    def cleanup(self) -> None:
-        # ignore_errors: occasionally Windows fails to unlink a file, and we
-        # don't want to abort a build because of a leftover temp dir
-        shutil.rmtree(self.tmp_dir, ignore_errors=True)
+        shell(repair_command_prepared, env=env)
+    else:
+        shutil.move(str(built_wheel), builder.repaired_wheel_dir)
+    return list(builder.repaired_wheel_dir.glob("*.whl"))
 
 
-def run_builds(builders: Sequence[Builder[PathT]]) -> None:
-    """Build a wheel for each builder, in order."""
+def host_audit_wheel(builder: HostBuilder, repaired_wheel: Path) -> None:
+    run_audit(
+        tmp_dir=builder.session_tmp_dir, build_options=builder.build_options, wheel=repaired_wheel
+    )
+
+
+def host_move_to_output(builder: HostBuilder, repaired_wheel: Path) -> Path:
+    output_wheel = builder.build_options.output_dir / repaired_wheel.name
+    moved_wheel = move_file(repaired_wheel, output_wheel)
+    if moved_wheel != output_wheel.resolve():
+        log.warning(f"{repaired_wheel} was moved to {moved_wheel} instead of {output_wheel}")
+    return output_wheel
+
+
+def host_cleanup(builder: HostBuilder) -> None:
+    # ignore_errors: occasionally Windows fails to unlink a file, and we
+    # don't want to abort a build because of a leftover temp dir
+    shutil.rmtree(builder.tmp_dir, ignore_errors=True)
+
+
+def run_builds(specs: Sequence[BuildSpec[PathT]]) -> None:
+    """Build a wheel for each spec, in order."""
     built_wheels: list[PathT] = []
 
-    for builder in builders:
+    for spec in specs:
+        log.build_start(spec.identifier)
+
+        builder = spec.setup()
         build_options = builder.build_options
-        log.build_start(builder.identifier)
 
-        builder.setup()
-
-        compatible_wheel = find_compatible_wheel(built_wheels, builder.identifier)
+        compatible_wheel = find_compatible_wheel(built_wheels, spec.identifier)
         if compatible_wheel is not None:
             log.step_end()
             print(
                 f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with "
-                f"{builder.identifier}. Skipping build step..."
+                f"{spec.identifier}. Skipping build step..."
             )
             repaired_wheel = compatible_wheel
         else:
@@ -222,7 +231,7 @@ def run_builds(builders: Sequence[Builder[PathT]]) -> None:
 
             builder.audit_wheel(repaired_wheel)
 
-        if build_options.test_command and build_options.test_selector(builder.identifier):
+        if build_options.test_command and build_options.test_selector(spec.identifier):
             builder.test_wheel(repaired_wheel)
 
         output_wheel: Path | None = None
