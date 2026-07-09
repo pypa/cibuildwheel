@@ -1,71 +1,60 @@
-from __future__ import annotations
-
+import os
 import sys
+from pathlib import Path
 
 import pytest
 
-from cibuildwheel.venv import _symlink_python_config_scripts
-
-TYPE_CHECKING = False
-if TYPE_CHECKING:
-    from pathlib import Path
-
-pytestmark = pytest.mark.skipif(
-    sys.platform.startswith("win"), reason="config scripts are a POSIX concept"
-)
+import cibuildwheel.venv
+from cibuildwheel.venv import activate_virtualenv, find_uv, virtualenv
 
 
-def test_symlink_python_config_scripts(tmp_path: Path) -> None:
+def test_activate_virtualenv(tmp_path: Path) -> None:
+    venv_path = tmp_path / "venv"
+    env = activate_virtualenv(venv_path, env={"PATH": "/usr/bin"})
+    paths = env["PATH"].split(os.pathsep)
+    if sys.platform == "win32":
+        assert paths[:2] == [str(venv_path), str(venv_path / "Scripts")]
+    else:
+        assert paths[0] == str(venv_path / "bin")
+    assert paths[-1] == "/usr/bin"
+    assert env["VIRTUAL_ENV"] == str(venv_path)
+
+
+def test_activate_virtualenv_base_python_bin_dir(tmp_path: Path) -> None:
+    venv_path = tmp_path / "venv"
     base_bin = tmp_path / "base" / "bin"
-    base_bin.mkdir(parents=True)
-    base_python = base_bin / "python3"
-    base_python.touch()
-    # python.org framework builds ship both an unversioned and a versioned script
-    (base_bin / "python3-config").touch()
-    (base_bin / "python3.12-config").touch()
-
-    venv_bin = tmp_path / "venv" / "bin"
-    venv_bin.mkdir(parents=True)
-
-    _symlink_python_config_scripts(base_python, venv_bin)
-
-    for name in ("python3-config", "python3.12-config"):
-        linked = venv_bin / name
-        assert linked.is_symlink()
-        assert linked.resolve() == (base_bin / name).resolve()
+    env = activate_virtualenv(venv_path, env={"PATH": "/usr/bin"}, base_python_bin_dir=base_bin)
+    paths = env["PATH"].split(os.pathsep)
+    # the base interpreter's bin dir comes right after the venv, so scripts
+    # like python3-config resolve to the matching interpreter (see #2021)
+    if sys.platform == "win32":
+        assert paths[:3] == [str(venv_path), str(venv_path / "Scripts"), str(base_bin)]
+    else:
+        assert paths[:2] == [str(venv_path / "bin"), str(base_bin)]
+    assert paths[-1] == "/usr/bin"
 
 
-def test_symlink_python_config_scripts_no_config(tmp_path: Path) -> None:
-    """Interpreters without a config script (PyPy, GraalPy, ...) must not fail."""
-    base_bin = tmp_path / "base" / "bin"
-    base_bin.mkdir(parents=True)
-    base_python = base_bin / "pypy3"
-    base_python.touch()
-    # PyPy ships pypy3-config, which must not be picked up as python*-config
-    (base_bin / "pypy3-config").touch()
-
-    venv_bin = tmp_path / "venv" / "bin"
-    venv_bin.mkdir(parents=True)
-
-    _symlink_python_config_scripts(base_python, venv_bin)
-
-    assert list(venv_bin.iterdir()) == []
+@pytest.mark.skipif(sys.platform == "win32", reason="POSIX-only behavior")
+@pytest.mark.skipif(find_uv() is None, reason="requires uv")
+def test_virtualenv_puts_base_python_bin_dir_on_path(tmp_path: Path) -> None:
+    version = "{}.{}".format(*sys.version_info[:2])
+    venv_path = tmp_path / "venv"
+    env = virtualenv(
+        version, Path(sys.executable), venv_path, None, use_uv=True, env={"PATH": "/usr/bin"}
+    )
+    paths = env["PATH"].split(os.pathsep)
+    assert paths == [str(venv_path / "bin"), str(Path(sys.executable).parent), "/usr/bin"]
 
 
-def test_symlink_python_config_scripts_existing_not_overwritten(tmp_path: Path) -> None:
-    base_bin = tmp_path / "base" / "bin"
-    base_bin.mkdir(parents=True)
-    base_python = base_bin / "python3"
-    base_python.touch()
-    (base_bin / "python3-config").touch()
-
-    venv_bin = tmp_path / "venv" / "bin"
-    venv_bin.mkdir(parents=True)
-    # a pre-existing real file should be left untouched
-    existing = venv_bin / "python3-config"
-    existing.write_text("#!/bin/sh\n")
-
-    _symlink_python_config_scripts(base_python, venv_bin)
-
-    assert not existing.is_symlink()
-    assert existing.read_text() == "#!/bin/sh\n"
+@pytest.mark.skipif(find_uv() is None, reason="requires uv")
+def test_virtualenv_no_base_python_bin_dir_on_windows(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(cibuildwheel.venv, "_IS_WIN", True)
+    version = "{}.{}".format(*sys.version_info[:2])
+    venv_path = tmp_path / "venv"
+    env = virtualenv(
+        version, Path(sys.executable), venv_path, None, use_uv=True, env={"PATH": "/usr/bin"}
+    )
+    paths = env["PATH"].split(os.pathsep)
+    assert str(Path(sys.executable).parent) not in paths

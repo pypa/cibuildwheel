@@ -152,6 +152,10 @@ def virtualenv(
     venv. Otherwise, pip is installed.
     """
 
+    # the unresolved path, so e.g. the python.org framework bin directory is
+    # used rather than the internal location of the real binary
+    base_python_bin_dir = None if _IS_WIN else python.parent
+
     # virtualenv may fail if this is a symlink.
     python = python.resolve()
 
@@ -189,9 +193,7 @@ def virtualenv(
             python,
             venv_path,
         )
-    if not _IS_WIN:
-        _symlink_python_config_scripts(python, venv_path / "bin")
-    venv_env = activate_virtualenv(venv_path, env=env)
+    venv_env = activate_virtualenv(venv_path, env=env, base_python_bin_dir=base_python_bin_dir)
     if not use_uv and pip_version == "embed":
         call(
             "python",
@@ -207,30 +209,22 @@ def virtualenv(
     return venv_env
 
 
-def _symlink_python_config_scripts(base_python: Path, venv_bin: Path) -> None:
-    """
-    Symlink the base interpreter's ``python*-config`` scripts into the venv's
-    bin directory if provided and not already linked (virtualenvs don't always
-    provide them).
-    """
-    # The config scripts live next to the base interpreter, e.g.
-    # `python3-config` and `python3.12-config`.
-    for config_script in sorted(base_python.parent.glob("python*-config")):
-        target = venv_bin / config_script.name
-        if target.exists() or target.is_symlink():
-            continue
-        with contextlib.suppress(OSError):
-            target.symlink_to(config_script)
-
-
 def activate_virtualenv(
     venv_path: Path,
     env: dict[str, str] | None = None,
+    base_python_bin_dir: Path | None = None,
 ) -> dict[str, str]:
     """
     Return a copy of the environment with the virtualenv at `venv_path` activated.
+
+    If given, `base_python_bin_dir` is placed on PATH right after the venv, so
+    that scripts installed alongside the base interpreter that aren't copied
+    into the venv (such as python3-config, see #2021) resolve to the matching
+    interpreter.
     """
     paths = [str(venv_path), str(venv_path / "Scripts")] if _IS_WIN else [str(venv_path / "bin")]
+    if base_python_bin_dir is not None:
+        paths.append(str(base_python_bin_dir))
     venv_env = os.environ.copy() if env is None else env.copy()
     venv_env["PATH"] = os.pathsep.join([*paths, venv_env["PATH"]])
     venv_env["VIRTUAL_ENV"] = str(venv_path)
