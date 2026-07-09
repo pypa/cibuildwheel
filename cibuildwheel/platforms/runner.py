@@ -225,6 +225,9 @@ def run_builds(specs: Sequence[BuildSpec[PathT]]) -> None:
                         [wheel.name for wheel in many_wheels]
                     )
 
+            if repaired_wheel.name.endswith("none-any.whl"):
+                raise errors.NonPlatformWheelError()
+
             if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
                 raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
             log.step_end()
