@@ -833,6 +833,31 @@ def test_test_runtime_handling(
 
 
 @pytest.mark.parametrize(
+    ("platform", "platform_envvar"),
+    [
+        ("android", "CIBW_TEST_RUNTIME_ANDROID"),
+        ("ios", "CIBW_TEST_RUNTIME_IOS"),
+    ],
+)
+def test_test_runtime_platform_environment(
+    tmp_path: Path, platform: PlatformName, platform_envvar: str
+) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    options = Options(
+        platform=platform,
+        command_line_arguments=args,
+        env={
+            "CIBW_TEST_RUNTIME": "args: --global",
+            platform_envvar: "args: --platform-specific",
+        },
+    )
+
+    assert options.build_options(None).test_runtime.args == ["--platform-specific"]
+
+
+@pytest.mark.parametrize(
     ("definition", "expected"),
     [
         ("", None),
