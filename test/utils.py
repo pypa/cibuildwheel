@@ -281,15 +281,15 @@ def _expected_wheels(
         python_abi_tags = ["cp313-cp313", "cp314-cp314"]
         if EnableGroup.PyodideEoL in enable_groups:
             python_abi_tags.insert(0, "cp312-cp312")
-    elif (platform == "android" and python_abi_tags is None) or (
-        platform == "ios" and python_abi_tags is None
-    ):
+    elif platform in {"android", "ios"} and python_abi_tags is None:
         python_abi_tags = [
             "cp313-cp313",
             "cp314-cp314",
+            "cp315-cp315",
         ]
         if EnableGroup.CPythonPrerelease in enable_groups:
-            python_abi_tags += ["cp315-cp315"]
+            # python_abi_tags += ["cp316-cp316"]
+            ...  # Add cp316 here when available
     elif python_abi_tags is None:
         python_abi_tags = [
             "cp39-cp39",
@@ -299,13 +299,16 @@ def _expected_wheels(
             "cp313-cp313",
             "cp314-cp314",
             "cp314-cp314t",
+            "cp315-cp315",
+            "cp315-cp315t",
         ]
 
         if EnableGroup.CPythonPrerelease in enable_groups:
-            python_abi_tags += [
-                "cp315-cp315",
-                "cp315-cp315t",
-            ]
+            # python_abi_tags += [
+            #     "cp316-cp316",
+            #     "cp316-cp316t",
+            # ]
+            ...  # Add cp316 here when available
 
         if EnableGroup.PyPyEoL in enable_groups:
             python_abi_tags += [
