@@ -112,7 +112,7 @@ files = [
     "cibuildwheel/*.py",
     "test/**/*.py",
     "unit_test/**/*.py",
-    "bin/*.py",
+    "bin/[!_]*.py",
     "noxfile.py",
 ]
 warn_unused_configs = true

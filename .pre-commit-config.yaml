@@ -30,7 +30,7 @@ repos:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
     args: ["--python-version=3.11"]
-    exclude: ^cibuildwheel/resources/android/_cross_venv.py$  # Requires Python 3.13 or later
+    exclude: (^cibuildwheel/resources/android/_cross_venv.py$|^bin/_cooldown\.py$)  # _cross_venv.py requires Python 3.13 or later and _cooldown.py is a support module for bin/ scripts
     additional_dependencies: &mypy-dependencies
       - bracex
       - build
@@ -53,6 +53,7 @@ repos:
   - id: mypy
     name: mypy 3.14
     args: ["--python-version=3.14"]
+    exclude: ^bin/_cooldown\.py$  # support module, not a top-level file
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/shellcheck-py/shellcheck-py
