@@ -215,18 +215,19 @@ def install_cpython(_tmp: Path, version: str, url: str, free_threading: bool, sh
 
 
 def install_pypy(tmp: Path, url: str, sha256: str) -> Path:
-    pypy_tar_bz2 = url.rsplit("/", 1)[-1]
-    extension = ".tar.bz2"
-    assert pypy_tar_bz2.endswith(extension)
-    installation_path = CIBW_CACHE_PATH / pypy_tar_bz2[: -len(extension)]
+    pypy_archive = url.rsplit("/", 1)[-1]
+    # PyPy ships .tar.bz2 for some platforms and .tar.gz for others.
+    extension = ".tar.bz2" if pypy_archive.endswith(".tar.bz2") else ".tar.gz"
+    assert pypy_archive.endswith(extension)
+    installation_path = CIBW_CACHE_PATH / pypy_archive[: -len(extension)]
     with FileLock(str(installation_path) + ".lock"):
         if not installation_path.exists():
-            downloaded_tar_bz2 = tmp / pypy_tar_bz2
-            download(url, downloaded_tar_bz2, sha256=sha256)
+            downloaded_archive = tmp / pypy_archive
+            download(url, downloaded_archive, sha256=sha256)
             installation_path.parent.mkdir(parents=True, exist_ok=True)
             with remove_on_error(installation_path):
-                call("tar", "-C", installation_path.parent, "-xf", downloaded_tar_bz2)
-            downloaded_tar_bz2.unlink()
+                call("tar", "-C", installation_path.parent, "-xf", downloaded_archive)
+            downloaded_archive.unlink()
     return installation_path / "bin" / "pypy3"
 
 
