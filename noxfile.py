@@ -65,21 +65,39 @@ def tests(session: nox.Session) -> None:
         session.run("pytest", "test", "-x", "--durations", "0", "--timeout=2400", "test")
 
 
-# Newer pip breaks GraalPy on Windows; hold it back there until GraalPy ships
-# a fix. uv pip compile can't express this per-implementation split, so patch
-# the compiled output.
-GRAALPY_WINDOWS_PIP = "26.0.1"
+# Packages held back for GraalPy until upstream fixes land. uv pip compile
+# can't express a per-implementation split, so the compiled pin is patched:
+# GraalPy (matching `graalpy_marker`) gets `held`, everything else
+# (`other_marker`) tracks the freshly compiled version.
+GRAALPY_HELD_BACK = (
+    # Newer pip breaks GraalPy on Windows.
+    {
+        "package": "pip",
+        "held": "26.0.1",
+        "graalpy_marker": 'implementation_name == "graalpy" and platform_system == "Windows"',
+        "other_marker": 'implementation_name != "graalpy" or platform_system != "Windows"',
+    },
+    # filelock >=3.30 imports errno.ENOTSUP, which GraalPy lacks (fix due ~2026-08).
+    {
+        "package": "filelock",
+        "held": "3.29.4",
+        "graalpy_marker": 'implementation_name == "graalpy"',
+        "other_marker": 'implementation_name != "graalpy"',
+    },
+)
 
 
-def _pin_graalpy_pip(output_file: Path) -> None:
+def _pin_graalpy_workarounds(output_file: Path) -> None:
     text = output_file.read_text()
-    text = re.sub(
-        r"^pip==(?P<version>[^\s;]+)$",
-        r'pip==\g<version>; implementation_name != "graalpy" or platform_system != "Windows"\n'
-        rf'pip=={GRAALPY_WINDOWS_PIP}; implementation_name == "graalpy" and platform_system == "Windows"',
-        text,
-        flags=re.MULTILINE,
-    )
+    for pin in GRAALPY_HELD_BACK:
+        package = re.escape(pin["package"])
+        text = re.sub(
+            rf"^{package}==(?P<version>[^\s;]+)$",
+            f"{pin['package']}==\\g<version>; {pin['other_marker']}\n"
+            f"{pin['package']}=={pin['held']}; {pin['graalpy_marker']}",
+            text,
+            flags=re.MULTILINE,
+        )
     output_file.write_text(text)
 
 
@@ -126,7 +144,7 @@ def update_constraints(session: nox.Session) -> None:
             env=env,
         )
         if python_version in graalpy_versions:
-            _pin_graalpy_pip(output_file)
+            _pin_graalpy_workarounds(output_file)
 
     shutil.copyfile(
         resources / "constraints-python315.txt",

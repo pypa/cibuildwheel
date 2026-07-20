@@ -26,7 +26,8 @@ delvewheel==1.13.0
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.3
     # via virtualenv
-filelock==3.31.1
+filelock==3.31.1; implementation_name != "graalpy"
+filelock==3.29.4; implementation_name == "graalpy"
     # via
     #   python-discovery
     #   virtualenv
