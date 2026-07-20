@@ -16,9 +16,11 @@ See sessions with `nox -l`
 """
 
 import os
+import re
 import shutil
 import sys
 from pathlib import Path
+from typing import Any
 
 import nox
 
@@ -63,6 +65,34 @@ def tests(session: nox.Session) -> None:
         session.run("pytest", "test", "-x", "--durations", "0", "--timeout=2400", "test")
 
 
+# Newer pip breaks GraalPy on Windows; hold it back there until GraalPy ships
+# a fix. uv pip compile can't express this per-implementation split, so patch
+# the compiled output.
+GRAALPY_WINDOWS_PIP = "26.0.1"
+
+
+def _pin_graalpy_pip(output_file: Path) -> None:
+    text = output_file.read_text()
+    text = re.sub(
+        r"^pip==(?P<version>[^\s;]+)$",
+        r'pip==\g<version>; implementation_name != "graalpy" or platform_system != "Windows"\n'
+        rf'pip=={GRAALPY_WINDOWS_PIP}; implementation_name == "graalpy" and platform_system == "Windows"',
+        text,
+        flags=re.MULTILINE,
+    )
+    output_file.write_text(text)
+
+
+def _graalpy_python_versions(build_platforms: dict[str, Any]) -> set[str]:
+    """Python minor versions (e.g. "3.12") that ship a GraalPy configuration."""
+    return {
+        ".".join(config["version"].split(".")[:2])
+        for platform in build_platforms.values()
+        for config in platform["python_configurations"]
+        if config["identifier"].startswith("gp")
+    }
+
+
 @nox.session(default=False, tags=["update"])
 def update_constraints(session: nox.Session) -> None:
     """
@@ -79,6 +109,9 @@ def update_constraints(session: nox.Session) -> None:
     env = os.environ.copy()
     env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
 
+    build_platforms = nox.project.load_toml(resources / "build-platforms.toml")
+    graalpy_versions = _graalpy_python_versions(build_platforms)
+
     for minor_version in range(9, 16):
         python_version = f"3.{minor_version}"
         output_file = resources / f"constraints-python{python_version.replace('.', '')}.txt"
@@ -92,13 +125,14 @@ def update_constraints(session: nox.Session) -> None:
             f"--output-file={output_file}",
             env=env,
         )
+        if python_version in graalpy_versions:
+            _pin_graalpy_pip(output_file)
 
     shutil.copyfile(
         resources / "constraints-python315.txt",
         resources / "constraints.txt",
     )
 
-    build_platforms = nox.project.load_toml(resources / "build-platforms.toml")
     pyodides = build_platforms["pyodide"]["python_configurations"]
     for pyodide in pyodides:
         python_version = ".".join(pyodide["version"].split(".")[:2])
