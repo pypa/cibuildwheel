@@ -80,7 +80,7 @@ GRAALPY_HELD_BACK = (
     # filelock >=3.30 imports errno.ENOTSUP, which GraalPy lacks (fix due ~2026-08).
     {
         "package": "filelock",
-        "held": "3.29.4",
+        "held": "3.29.7",
         "graalpy_marker": 'implementation_name == "graalpy"',
         "other_marker": 'implementation_name != "graalpy"',
     },
