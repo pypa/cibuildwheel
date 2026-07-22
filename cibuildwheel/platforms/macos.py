@@ -2,7 +2,6 @@ from __future__ import annotations
 
 __lazy_modules__ = {
     "cibuildwheel.ci",
-    "cibuildwheel.frontend",
     "cibuildwheel.logger",
     "cibuildwheel.util",
     "cibuildwheel.util.cmd",
@@ -17,7 +16,6 @@ __lazy_modules__ = {
     "pathlib",
     "platform",
     "re",
-    "shutil",
 }
 
 import dataclasses
@@ -26,7 +24,6 @@ import inspect
 import os
 import platform
 import re
-import shutil
 import sys
 import typing
 from pathlib import Path
@@ -37,15 +34,10 @@ from packaging.version import Version
 
 from cibuildwheel import errors
 from cibuildwheel.ci import detect_ci_provider
-from cibuildwheel.frontend import (
-    BuildFrontendName,
-    get_build_frontend_extra_flags,
-    prepare_config_settings,
-)
 from cibuildwheel.logger import log
 from cibuildwheel.platforms import runner
 from cibuildwheel.util import resources
-from cibuildwheel.util.cmd import call, shell
+from cibuildwheel.util.cmd import call
 from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
     download,
@@ -62,6 +54,7 @@ if TYPE_CHECKING:
 
     from cibuildwheel.architecture import Architecture
     from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.frontend import BuildFrontendName
     from cibuildwheel.options import BuildOptions, Options
     from cibuildwheel.selector import BuildSelector
 
@@ -484,99 +477,24 @@ class MacOSBuilder:
         runner.host_before_build(self, env=self.env)
 
     def build_wheel(self) -> Path:
-        build_options = self.build_options
-        build_frontend = build_options.build_frontend
-
-        self.built_wheel_dir.mkdir()
-
-        extra_flags = get_build_frontend_extra_flags(
-            build_frontend,
-            build_options.build_verbosity,
-            prepare_config_settings(
-                build_options.config_settings,
-                project=Path.cwd(),
-                package=build_options.package_dir,
-            ),
+        return runner.host_build_wheel(
+            self,
+            env=self.env,
+            base_python=self.base_python,
+            use_uv=self.use_uv,
+            uv_path=self.uv_path,
         )
 
-        build_env = self.env.copy()
-
-        match build_frontend.name:
-            case "pip":
-                # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-                # see https://github.com/pypa/cibuildwheel/pull/369
-                call(
-                    "python",
-                    "-m",
-                    "pip",
-                    "wheel",
-                    build_options.package_dir.resolve(),
-                    f"--wheel-dir={self.built_wheel_dir}",
-                    "--no-deps",
-                    *extra_flags,
-                    env=build_env,
-                )
-            case "build" | "build[uv]":
-                if self.use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
-                    extra_flags.append("--installer=uv")
-                call(
-                    "python",
-                    "-m",
-                    "build",
-                    build_options.package_dir,
-                    "--wheel",
-                    f"--outdir={self.built_wheel_dir}",
-                    *extra_flags,
-                    env=build_env,
-                )
-            case "uv":
-                assert self.uv_path is not None
-                call(
-                    self.uv_path,
-                    "build",
-                    f"--python={self.base_python}",
-                    build_options.package_dir,
-                    "--wheel",
-                    f"--out-dir={self.built_wheel_dir}",
-                    *extra_flags,
-                    env=build_env,
-                )
-            case "pyodide-build":
-                msg = "The 'pyodide-build' build frontend is not supported on this platform"
-                raise errors.FatalError(msg)
-            case _:
-                assert_never(build_frontend)
-
-        try:
-            return next(self.built_wheel_dir.glob("*.whl"))
-        except StopIteration:
-            raise errors.BuildProducedNoWheelError() from None
-
     def repair_wheel(self, built_wheel: Path) -> list[Path]:
-        build_options = self.build_options
-        self.repaired_wheel_dir.mkdir(exist_ok=True)
-
-        if build_options.repair_command:
-            if self.config_is_universal2:
-                delocate_archs = "x86_64,arm64"
-            elif self.config_is_arm64:
-                delocate_archs = "arm64"
-            else:
-                delocate_archs = "x86_64"
-
-            repair_command_prepared = prepare_command(
-                build_options.repair_command,
-                wheel=built_wheel,
-                dest_dir=self.repaired_wheel_dir,
-                delocate_archs=delocate_archs,
-                package=build_options.package_dir,
-                project=".",
-            )
-            shell(repair_command_prepared, env=self.env)
+        if self.config_is_universal2:
+            delocate_archs = "x86_64,arm64"
+        elif self.config_is_arm64:
+            delocate_archs = "arm64"
         else:
-            shutil.move(str(built_wheel), self.repaired_wheel_dir)
-
-        return list(self.repaired_wheel_dir.glob("*.whl"))
+            delocate_archs = "x86_64"
+        return runner.host_repair_wheel(
+            self, built_wheel, env=self.env, delocate_archs=delocate_archs
+        )
 
     def audit_wheel(self, repaired_wheel: Path) -> None:
         runner.host_audit_wheel(self, repaired_wheel)
@@ -781,24 +699,10 @@ def build(options: Options, tmp_path: Path) -> None:
     if not python_configurations:
         return
 
-    with runner.fatal_on_called_process_error():
-        runner.run_before_all(
-            options,
-            python_configurations,
-            env_defaults={"MACOSX_DEPLOYMENT_TARGET": "10.9"},
-        )
-        runner.run_builds(
-            [
-                runner.BuildSpec(
-                    identifier=config.identifier,
-                    setup=functools.partial(
-                        setup_builder,
-                        config=config,
-                        build_options=options.build_options(config.identifier),
-                        tmp_dir=tmp_path / config.identifier,
-                        session_tmp_dir=tmp_path,
-                    ),
-                )
-                for config in python_configurations
-            ]
-        )
+    runner.run_host_builds(
+        options,
+        python_configurations,
+        setup_builder,
+        tmp_path,
+        env_defaults={"MACOSX_DEPLOYMENT_TARGET": "10.9"},
+    )

@@ -8,11 +8,9 @@ __lazy_modules__ = {
     "cibuildwheel.logger",
     "cibuildwheel.util.cmd",
     "cibuildwheel.util.file",
-    "cibuildwheel.util.helpers",
     "cibuildwheel.util.python_build_standalone",
     "cibuildwheel.venv",
     "filelock",
-    "functools",
     "packaging",
     "packaging.utils",
     "pathlib",
@@ -26,7 +24,6 @@ __lazy_modules__ = {
     "typing",
 }
 
-import functools
 import os
 import platform
 import re
@@ -55,13 +52,12 @@ from cibuildwheel.frontend import (
 from cibuildwheel.logger import log
 from cibuildwheel.platforms import runner
 from cibuildwheel.util import resources
-from cibuildwheel.util.cmd import call, shell
+from cibuildwheel.util.cmd import call
 from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
     download,
     remove_on_error,
 )
-from cibuildwheel.util.helpers import prepare_command
 from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
 from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
@@ -115,13 +111,6 @@ def get_python_configurations(
         for c in all_python_configurations()
         if c.arch in architectures and build_selector(c.identifier)
     ]
-
-
-def shell_prepared(command: str, *, build_options: BuildOptions, env: dict[str, str]) -> None:
-    shell(
-        prepare_command(command, project=".", package=build_options.package_dir),
-        env=env,
-    )
 
 
 def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
@@ -485,12 +474,7 @@ class AndroidBuilder:
         )
 
     def before_build(self) -> None:
-        assert self.build_options.before_build is not None
-        shell_prepared(
-            self.build_options.before_build,
-            build_options=self.build_options,
-            env=self.android_env,
-        )
+        runner.host_before_build(self, env=self.android_env)
 
     def build_wheel(self) -> Path:
         build_options = self.build_options
@@ -544,8 +528,7 @@ class AndroidBuilder:
         return glob1(self.built_wheel_dir, "*.whl")
 
     def repair_wheel(self, built_wheel: Path) -> list[Path]:
-        self.repaired_wheel_dir.mkdir()
-
+        ldpaths = ""
         if self.build_options.repair_command:
             # Tell auditwheel the locations of compiler libraries.
             toolchain = Path(self.android_env["CC"]).parent.parent
@@ -557,21 +540,7 @@ class AndroidBuilder:
                     f"sysroot/usr/lib/{triplet}",  # libc++_shared
                 ]
             )
-            shell(
-                prepare_command(
-                    self.build_options.repair_command,
-                    ldpaths=ldpaths,
-                    wheel=built_wheel,
-                    dest_dir=self.repaired_wheel_dir,
-                    package=self.build_options.package_dir,
-                    project=".",
-                ),
-                env=self.build_env,
-            )
-        else:
-            shutil.move(built_wheel, self.repaired_wheel_dir)
-
-        return list(self.repaired_wheel_dir.glob("*.whl"))
+        return runner.host_repair_wheel(self, built_wheel, env=self.build_env, ldpaths=ldpaths)
 
     def audit_wheel(self, repaired_wheel: Path) -> None:
         runner.host_audit_wheel(self, repaired_wheel)
@@ -599,12 +568,7 @@ class AndroidBuilder:
             prev_environment=self.build_env
         )
 
-        if build_options.before_test:
-            shell_prepared(
-                build_options.before_test,
-                build_options=build_options,
-                env=android_test_env,
-            )
+        runner.host_before_test(self, env=android_test_env)
 
         # Install the wheel and test-requires.
         site_packages_dir = self.tmp_dir / "site-packages"
@@ -749,20 +713,4 @@ def build(options: Options, tmp_path: Path) -> None:
     if not configs:
         return
 
-    with runner.fatal_on_called_process_error():
-        runner.run_before_all(options, configs)
-        runner.run_builds(
-            [
-                runner.BuildSpec(
-                    identifier=config.identifier,
-                    setup=functools.partial(
-                        setup_builder,
-                        config=config,
-                        build_options=options.build_options(config.identifier),
-                        tmp_dir=tmp_path / config.identifier,
-                        session_tmp_dir=tmp_path,
-                    ),
-                )
-                for config in configs
-            ]
-        )
+    runner.run_host_builds(options, configs, setup_builder, tmp_path)

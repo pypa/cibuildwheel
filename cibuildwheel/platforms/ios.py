@@ -10,7 +10,6 @@ __lazy_modules__ = {
     "cibuildwheel.util.helpers",
     "cibuildwheel.venv",
     "filelock",
-    "functools",
     "packaging",
     "packaging.version",
     "pathlib",
@@ -23,7 +22,6 @@ __lazy_modules__ = {
 }
 
 import dataclasses
-import functools
 import os
 import platform
 import shlex
@@ -47,14 +45,13 @@ from cibuildwheel.logger import log
 from cibuildwheel.platforms import runner
 from cibuildwheel.platforms.macos import install_cpython as install_build_cpython
 from cibuildwheel.util import resources
-from cibuildwheel.util.cmd import call, shell, split_command
+from cibuildwheel.util.cmd import call, split_command
 from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
-    copy_test_sources,
     download,
     remove_on_error,
 )
-from cibuildwheel.util.helpers import prepare_command, unwrap_preserving_paragraphs
+from cibuildwheel.util.helpers import unwrap_preserving_paragraphs
 from cibuildwheel.venv import constraint_flags, virtualenv
 
 TYPE_CHECKING = False
@@ -535,10 +532,7 @@ class IOSBuilder:
                 msg = f"Unsupported build frontend {build_frontend.name!r} for iOS"
                 raise errors.FatalError(msg)
 
-        try:
-            return next(self.built_wheel_dir.glob("*.whl"))
-        except StopIteration:
-            raise errors.BuildProducedNoWheelError() from None
+        return runner.find_built_wheel(self.built_wheel_dir)
 
     def repair_wheel(self, built_wheel: Path) -> list[Path]:
         return runner.host_repair_wheel(self, built_wheel, env=self.env)
@@ -559,13 +553,7 @@ class IOSBuilder:
 
         test_env = build_options.test_environment.as_dictionary(prev_environment=self.env)
 
-        if build_options.before_test:
-            before_test_prepared = prepare_command(
-                build_options.before_test,
-                project=".",
-                package=build_options.package_dir,
-            )
-            shell(before_test_prepared, env=test_env)
+        runner.host_before_test(self, env=test_env)
 
         log.step("Setting up test harness...")
         # Clone the testbed project into the build directory
@@ -579,16 +567,7 @@ class IOSBuilder:
         )
 
         testbed_app_path = testbed_path / "iOSTestbed" / "app"
-
-        # Copy the test sources to the testbed app
-        if build_options.test_sources:
-            copy_test_sources(
-                build_options.test_sources,
-                Path.cwd(),
-                testbed_app_path,
-            )
-        else:
-            (testbed_app_path / "test_fail.py").write_text(resources.TEST_FAIL_CWD_FILE.read_text())
+        runner.prepare_test_cwd(testbed_app_path, build_options.test_sources)
 
         log.step("Installing test requirements...")
         # Install the compiled wheel (with any test extras), plus
@@ -770,24 +749,10 @@ def build(options: Options, tmp_path: Path) -> None:
     if not python_configurations:
         return
 
-    with runner.fatal_on_called_process_error():
-        runner.run_before_all(
-            options,
-            python_configurations,
-            env_defaults={"IPHONEOS_DEPLOYMENT_TARGET": "13.0"},
-        )
-        runner.run_builds(
-            [
-                runner.BuildSpec(
-                    identifier=config.identifier,
-                    setup=functools.partial(
-                        setup_builder,
-                        config=config,
-                        build_options=options.build_options(config.identifier),
-                        tmp_dir=tmp_path / config.identifier,
-                        session_tmp_dir=tmp_path,
-                    ),
-                )
-                for config in python_configurations
-            ]
-        )
+    runner.run_host_builds(
+        options,
+        python_configurations,
+        setup_builder,
+        tmp_path,
+        env_defaults={"IPHONEOS_DEPLOYMENT_TARGET": "13.0"},
+    )

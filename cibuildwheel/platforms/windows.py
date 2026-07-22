@@ -2,7 +2,6 @@ from __future__ import annotations
 
 __lazy_modules__ = {
     "cibuildwheel.architecture",
-    "cibuildwheel.frontend",
     "cibuildwheel.logger",
     "cibuildwheel.util",
     "cibuildwheel.util.cmd",
@@ -20,7 +19,7 @@ __lazy_modules__ = {
 import dataclasses
 import platform as platform_module
 import textwrap
-from functools import cache, partial
+from functools import cache
 from pathlib import Path
 from typing import assert_never
 
@@ -28,11 +27,6 @@ from filelock import FileLock
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
-from cibuildwheel.frontend import (
-    BuildFrontendName,
-    get_build_frontend_extra_flags,
-    prepare_config_settings,
-)
 from cibuildwheel.logger import log
 from cibuildwheel.platforms import runner
 from cibuildwheel.util import resources
@@ -49,9 +43,10 @@ from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virt
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from collections.abc import MutableMapping, Sequence, Set
+    from collections.abc import MutableMapping, Set
 
     from cibuildwheel.environment import ParsedEnvironment
+    from cibuildwheel.frontend import BuildFrontendName
     from cibuildwheel.options import BuildOptions, Options
     from cibuildwheel.selector import BuildSelector
 
@@ -422,78 +417,20 @@ class WindowsBuilder:
     base_python: Path
     use_uv: bool
     uv_path: Path | None
+    pip: list[str]
     pip_version: str | None
 
     def before_build(self) -> None:
         runner.host_before_build(self, env=self.env)
 
     def build_wheel(self) -> Path:
-        build_options = self.build_options
-        build_frontend = build_options.build_frontend
-
-        self.built_wheel_dir.mkdir()
-
-        extra_flags = get_build_frontend_extra_flags(
-            build_frontend,
-            build_options.build_verbosity,
-            prepare_config_settings(
-                build_options.config_settings,
-                project=Path.cwd(),
-                package=build_options.package_dir,
-            ),
+        return runner.host_build_wheel(
+            self,
+            env=self.env,
+            base_python=self.base_python,
+            use_uv=self.use_uv,
+            uv_path=self.uv_path,
         )
-
-        match build_frontend.name:
-            case "pip":
-                # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
-                # see https://github.com/pypa/cibuildwheel/pull/369
-                call(
-                    "python",
-                    "-m",
-                    "pip",
-                    "wheel",
-                    build_options.package_dir.resolve(),
-                    f"--wheel-dir={self.built_wheel_dir}",
-                    "--no-deps",
-                    *extra_flags,
-                    env=self.env,
-                )
-            case "build" | "build[uv]":
-                if self.use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
-                    extra_flags.append("--installer=uv")
-
-                call(
-                    "python",
-                    "-m",
-                    "build",
-                    build_options.package_dir,
-                    "--wheel",
-                    f"--outdir={self.built_wheel_dir}",
-                    *extra_flags,
-                    env=self.env,
-                )
-            case "uv":
-                assert self.uv_path is not None
-                call(
-                    self.uv_path,
-                    "build",
-                    f"--python={self.base_python}",
-                    build_options.package_dir,
-                    "--wheel",
-                    f"--out-dir={self.built_wheel_dir}",
-                    *extra_flags,
-                    env=self.env,
-                )
-            case "pyodide-build":
-                msg = "The 'pyodide-build' build frontend is not supported on this platform"
-                raise errors.FatalError(msg)
-            case _:
-                assert_never(build_frontend)
-
-        try:
-            return next(self.built_wheel_dir.glob("*.whl"))
-        except StopIteration:
-            raise errors.BuildProducedNoWheelError() from None
 
     def repair_wheel(self, built_wheel: Path) -> list[Path]:
         return runner.host_repair_wheel(self, built_wheel, env=self.env)
@@ -539,24 +476,11 @@ class WindowsBuilder:
         # check that we are using the Python from the virtual environment
         call("where", "python", env=virtualenv_env)
 
-        if build_options.before_test:
-            before_test_prepared = prepare_command(
-                build_options.before_test,
-                project=".",
-                package=build_options.package_dir,
-            )
-            shell(before_test_prepared, env=virtualenv_env)
-
-        pip: Sequence[Path | str]
-        if self.use_uv:
-            assert self.uv_path is not None
-            pip = [self.uv_path, "pip"]
-        else:
-            pip = ["pip"]
+        runner.host_before_test(self, env=virtualenv_env)
 
         # install the wheel
         call(
-            *pip,
+            *self.pip,
             "install",
             str(repaired_wheel) + build_options.test_extras,
             env=virtualenv_env,
@@ -564,7 +488,7 @@ class WindowsBuilder:
 
         # test the wheel
         if build_options.test_requires:
-            call(*pip, "install", *build_options.test_requires, env=virtualenv_env)
+            call(*self.pip, "install", *build_options.test_requires, env=virtualenv_env)
 
         # run the tests from a temp dir, with an absolute path in the command
         # (this ensures that Python runs the tests against the installed wheel
@@ -598,6 +522,9 @@ def setup_builder(
 
     use_uv = build_frontend.name in {"build[uv]", "uv"}
     uv_path = find_uv()
+    if use_uv and uv_path is None:
+        msg = "uv not found"
+        raise errors.FatalError(msg)
 
     tmp_dir.mkdir()
 
@@ -627,6 +554,7 @@ def setup_builder(
         base_python=base_python,
         use_uv=use_uv,
         uv_path=uv_path,
+        pip=["pip"] if not use_uv else [str(uv_path), "pip"],
         pip_version=None if use_uv else get_pip_version(env),
     )
 
@@ -639,20 +567,4 @@ def build(options: Options, tmp_path: Path) -> None:
     if not python_configurations:
         return
 
-    with runner.fatal_on_called_process_error():
-        runner.run_before_all(options, python_configurations)
-        runner.run_builds(
-            [
-                runner.BuildSpec(
-                    identifier=config.identifier,
-                    setup=partial(
-                        setup_builder,
-                        config=config,
-                        build_options=options.build_options(config.identifier),
-                        tmp_dir=tmp_path / config.identifier,
-                        session_tmp_dir=tmp_path,
-                    ),
-                )
-                for config in python_configurations
-            ]
-        )
+    runner.run_host_builds(options, python_configurations, setup_builder, tmp_path)

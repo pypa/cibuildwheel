@@ -219,6 +219,7 @@ def activate_virtualenv(
     return venv_env
 
 
+@functools.cache
 def find_uv() -> Path | None:
     # Prefer uv in our environment
     with contextlib.suppress(ImportError, FileNotFoundError):
