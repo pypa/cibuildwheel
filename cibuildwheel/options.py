@@ -821,7 +821,6 @@ class Options:
 
             test_runtime_str = self.reader.get(
                 "test-runtime",
-                env_plat=False,
                 option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
             )
             if not test_runtime_str:
