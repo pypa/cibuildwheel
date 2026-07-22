@@ -43,7 +43,7 @@ from packaging.specifiers import SpecifierSet
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.environment import EnvironmentParseError, ParsedEnvironment, parse_environment
-from cibuildwheel.frontend import BuildFrontendConfig
+from cibuildwheel.frontend import BuildFrontendConfig, BuildFrontendName
 from cibuildwheel.logger import log
 from cibuildwheel.oci_container import OCIContainerEngineConfig
 from cibuildwheel.projectfiles import get_requires_python_str, resolve_dependency_groups
@@ -850,8 +850,11 @@ class Options:
                 env_plat=False,
                 option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
             )
+            default_frontend: BuildFrontendName = (
+                "pyodide-build" if self.platform == "pyodide" else "build"
+            )
             if not build_frontend_str or build_frontend_str == "default":
-                build_frontend = BuildFrontendConfig("build")
+                build_frontend = BuildFrontendConfig(default_frontend)
             else:
                 try:
                     build_frontend = BuildFrontendConfig.from_config_string(build_frontend_str)
@@ -860,8 +863,13 @@ class Options:
                     raise errors.ConfigurationError(msg) from e
 
             if self.platform == "pyodide" and build_frontend.name != "pyodide-build":
-                msg = "The pyodide platform requires the 'pyodide-build' build frontend"
-                raise errors.ConfigurationError(msg)
+                # pip and uv could become an error, eventually. build -> pyodide-build is
+                # probably fine to keep as a warning
+                log.warning(
+                    f"The pyodide platform ignores the {build_frontend.name!r} build "
+                    "frontend; using 'pyodide-build' instead"
+                )
+                build_frontend = BuildFrontendConfig("pyodide-build", build_frontend.args)
             if self.platform != "pyodide" and build_frontend.name == "pyodide-build":
                 msg = "The 'pyodide-build' build frontend is only supported on the pyodide platform"
                 raise errors.ConfigurationError(msg)

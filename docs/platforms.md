@@ -190,7 +190,7 @@ The `--libdir` option specifies the directory containing cross-compiled shared l
 
 ### Build frontend support {: #pyodide-build-frontend}
 
-The pyodide platform builds wheels by shelling out to `pyodide build`, via the `pyodide-build` [`build-frontend`](options.md#build-frontend), which itself is a meta build frontend and passes through commands to pypa/build with specialised handling. This is the only supported frontend for this platform, and is used by default.
+The pyodide platform builds wheels by shelling out to `pyodide build`, via the `pyodide-build` [`build-frontend`](options.md#build-frontend), which itself is a meta build frontend and passes through commands to pypa/build with specialised handling. This is the only supported frontend for this platform, and is used by default. A global [`build-frontend`](options.md#build-frontend) setting naming another frontend is ignored with a warning on this platform.
 
 [`build-verbosity`](options.md#build-verbosity) is passed through to `pyodide build` as `-v`/`-vv`. It is capped at `-vv`. `pyodide build` has no `-vvv` flag.
 

@@ -483,9 +483,9 @@ files (from workspaces) are not supported.
 
 On Android, the "pip" frontend is not supported.
 
-On Pyodide, `build-frontend` must be `pyodide-build`, which is the default for that
-platform. See [Pyodide build frontend support](platforms.md#pyodide-build-frontend) for
-details.
+On Pyodide, `pyodide-build` is the default and only supported frontend; setting
+another frontend produces a warning and uses `pyodide-build` instead. See
+[Pyodide build frontend support](platforms.md#pyodide-build-frontend) for details.
 
 You can specify extra arguments to pass to the build frontend using the
 optional `args` option.
