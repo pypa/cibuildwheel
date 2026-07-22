@@ -149,8 +149,6 @@ def test_no_before_build_no_test(build_options: BuildOptions) -> None:
     runner.run_builds([builder.spec])
 
     steps = [step for _, step in calls]
-    assert "before_build" not in steps
-    assert not any(step.startswith("test_wheel") for step in steps)
     assert steps == [
         "setup",
         "build_wheel",

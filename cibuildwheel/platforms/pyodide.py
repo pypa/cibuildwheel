@@ -413,6 +413,8 @@ class PyodideBuilder:
     def build_wheel(self) -> Path:
         build_options = self.build_options
 
+        self.built_wheel_dir.mkdir()
+
         extra_flags = get_build_frontend_extra_flags(
             build_options.build_frontend,
             build_options.build_verbosity,
@@ -431,10 +433,7 @@ class PyodideBuilder:
             *extra_flags,
             env=self.env,
         )
-        try:
-            return next(self.built_wheel_dir.glob("*.whl"))
-        except StopIteration:
-            raise errors.BuildProducedNoWheelError() from None
+        return runner.find_built_wheel(self.built_wheel_dir)
 
     def repair_wheel(self, built_wheel: Path) -> list[Path]:
         return runner.host_repair_wheel(self, built_wheel, env=self.env)
@@ -483,13 +482,7 @@ class PyodideBuilder:
         # check that we are using the Python from the virtual environment
         call("which", "python", env=virtualenv_env)
 
-        if build_options.before_test:
-            before_test_prepared = prepare_command(
-                build_options.before_test,
-                project=".",
-                package=build_options.package_dir,
-            )
-            shell(before_test_prepared, env=virtualenv_env)
+        runner.host_before_test(self, env=virtualenv_env)
 
         # install the wheel
         call(
@@ -533,8 +526,6 @@ def setup_builder(
 ) -> PyodideBuilder:
     """Install Python and prepare the build environment for one identifier."""
     tmp_dir.mkdir()
-    built_wheel_dir = tmp_dir / "built_wheel"
-    built_wheel_dir.mkdir()
 
     constraints_path = build_options.dependency_constraints.get_for_python_version(
         version=config.version, variant="pyodide", tmp_dir=tmp_dir
@@ -573,7 +564,7 @@ def setup_builder(
         config=config,
         tmp_dir=tmp_dir,
         session_tmp_dir=session_tmp_dir,
-        built_wheel_dir=built_wheel_dir,
+        built_wheel_dir=tmp_dir / "built_wheel",
         repaired_wheel_dir=tmp_dir / "repaired_wheel",
         env=env,
         pip_version=get_pip_version(env),
@@ -588,20 +579,4 @@ def build(options: Options, tmp_path: Path) -> None:
     if not python_configurations:
         return
 
-    with runner.fatal_on_called_process_error():
-        runner.run_before_all(options, python_configurations)
-        runner.run_builds(
-            [
-                runner.BuildSpec(
-                    identifier=config.identifier,
-                    setup=functools.partial(
-                        setup_builder,
-                        config=config,
-                        build_options=options.build_options(config.identifier),
-                        tmp_dir=tmp_path / config.identifier,
-                        session_tmp_dir=tmp_path,
-                    ),
-                )
-                for config in python_configurations
-            ]
-        )
+    runner.run_host_builds(options, python_configurations, setup_builder, tmp_path)

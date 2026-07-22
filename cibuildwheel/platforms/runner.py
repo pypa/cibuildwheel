@@ -17,36 +17,41 @@ run_builds() also owns everything that's identical across platforms: logging,
 reuse of compatible wheels, validation of the built/repaired wheels, the test
 gate, and moving wheels to the output directory. The host_*() functions are
 the step implementations shared by the platforms that build directly on the
-host (everything except Linux); builders use them by delegation.
+host (everything except Linux); builders use them by delegation, and
+run_host_builds() wires a platform's setup_builder() into the loop.
 """
 
 from __future__ import annotations
 
 __lazy_modules__ = {
     "cibuildwheel.audit",
+    "cibuildwheel.frontend",
     "cibuildwheel.logger",
     "cibuildwheel.util",
     "cibuildwheel.util.cmd",
     "cibuildwheel.util.file",
     "cibuildwheel.util.helpers",
     "cibuildwheel.util.packaging",
+    "functools",
     "shutil",
     "subprocess",
 }
 
 import contextlib
 import dataclasses
+import functools
 import os
 import shutil
 import subprocess
 from pathlib import Path, PurePath
-from typing import Generic, Protocol, TypeVar
+from typing import Generic, Protocol, TypeVar, assert_never
 
 from cibuildwheel import errors
 from cibuildwheel.audit import run_audit
+from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config_settings
 from cibuildwheel.logger import log
 from cibuildwheel.util import resources
-from cibuildwheel.util.cmd import shell
+from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import copy_test_sources, move_file
 from cibuildwheel.util.helpers import prepare_command
 from cibuildwheel.util.packaging import find_compatible_wheel
@@ -56,9 +61,10 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Generator, Mapping, Sequence
 
     from cibuildwheel.options import BuildOptions, Options
-    from cibuildwheel.typing import GenericPythonConfiguration
+    from cibuildwheel.typing import GenericPythonConfiguration, PathOrStr
 
 PathT = TypeVar("PathT", bound=PurePath)
+ConfigT_contra = TypeVar("ConfigT_contra", bound="GenericPythonConfiguration", contravariant=True)
 
 
 class Builder(Protocol[PathT]):
@@ -72,9 +78,6 @@ class Builder(Protocol[PathT]):
     building: Path on the host platforms, PurePosixPath inside the Linux
     container.
     """
-
-    @property
-    def identifier(self) -> str: ...
 
     @property
     def build_options(self) -> BuildOptions: ...
@@ -102,7 +105,9 @@ class Builder(Protocol[PathT]):
 
     def move_to_output(self, repaired_wheel: PathT) -> PathT:
         """Move the wheel to the output directory, returning the path that
-        later builds can reuse it from (and install it from, in tests)."""
+        later builds can reuse it from (and install it from, in tests). The
+        returned path need not be host-visible yet — it may live inside a
+        container that only syncs to the host later."""
 
     def cleanup(self) -> None:
         """Remove this identifier's temporary files."""
@@ -133,6 +138,9 @@ class HostBuilder(Builder[Path], Protocol):
         calls."""
 
     @property
+    def built_wheel_dir(self) -> Path: ...
+
+    @property
     def repaired_wheel_dir(self) -> Path: ...
 
 
@@ -146,8 +154,94 @@ def host_before_build(builder: HostBuilder, *, env: dict[str, str]) -> None:
     shell(before_build_prepared, env=env)
 
 
+def find_built_wheel(built_wheel_dir: Path) -> Path:
+    """Return the wheel the build frontend produced."""
+    try:
+        return next(built_wheel_dir.glob("*.whl"))
+    except StopIteration:
+        raise errors.BuildProducedNoWheelError() from None
+
+
+def host_build_wheel(
+    builder: HostBuilder,
+    *,
+    env: dict[str, str],
+    base_python: Path,
+    use_uv: bool,
+    uv_path: Path | None,
+) -> Path:
+    """Build the wheel with pip, build, or uv — the frontends shared by the
+    platforms that build with an ordinary Python install on the host."""
+    build_options = builder.build_options
+    build_frontend = build_options.build_frontend
+
+    builder.built_wheel_dir.mkdir()
+
+    extra_flags = get_build_frontend_extra_flags(
+        build_frontend,
+        build_options.build_verbosity,
+        prepare_config_settings(
+            build_options.config_settings,
+            project=Path.cwd(),
+            package=build_options.package_dir,
+        ),
+    )
+
+    match build_frontend.name:
+        case "pip":
+            # Path.resolve() is needed. Without it pip wheel may try to fetch package from pypi.org
+            # see https://github.com/pypa/cibuildwheel/pull/369
+            call(
+                "python",
+                "-m",
+                "pip",
+                "wheel",
+                build_options.package_dir.resolve(),
+                f"--wheel-dir={builder.built_wheel_dir}",
+                "--no-deps",
+                *extra_flags,
+                env=env,
+            )
+        case "build" | "build[uv]":
+            if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
+                extra_flags.append("--installer=uv")
+            call(
+                "python",
+                "-m",
+                "build",
+                build_options.package_dir,
+                "--wheel",
+                f"--outdir={builder.built_wheel_dir}",
+                *extra_flags,
+                env=env,
+            )
+        case "uv":
+            assert uv_path is not None
+            call(
+                uv_path,
+                "build",
+                f"--python={base_python}",
+                build_options.package_dir,
+                "--wheel",
+                f"--out-dir={builder.built_wheel_dir}",
+                *extra_flags,
+                env=env,
+            )
+        case "pyodide-build":
+            msg = "The 'pyodide-build' build frontend is not supported on this platform"
+            raise errors.FatalError(msg)
+        case _:
+            assert_never(build_frontend)
+
+    return find_built_wheel(builder.built_wheel_dir)
+
+
 def host_repair_wheel(
-    builder: HostBuilder, built_wheel: Path, *, env: dict[str, str]
+    builder: HostBuilder,
+    built_wheel: Path,
+    *,
+    env: dict[str, str],
+    **extra_placeholders: PathOrStr,
 ) -> list[Path]:
     builder.repaired_wheel_dir.mkdir(exist_ok=True)
     if builder.build_options.repair_command:
@@ -157,11 +251,24 @@ def host_repair_wheel(
             dest_dir=builder.repaired_wheel_dir,
             package=builder.build_options.package_dir,
             project=".",
+            **extra_placeholders,
         )
         shell(repair_command_prepared, env=env)
     else:
         shutil.move(str(built_wheel), builder.repaired_wheel_dir)
     return list(builder.repaired_wheel_dir.glob("*.whl"))
+
+
+def host_before_test(builder: HostBuilder, *, env: dict[str, str]) -> None:
+    """Run the user's before-test command, if one is set."""
+    if not builder.build_options.before_test:
+        return
+    before_test_prepared = prepare_command(
+        builder.build_options.before_test,
+        project=".",
+        package=builder.build_options.package_dir,
+    )
+    shell(before_test_prepared, env=env)
 
 
 def host_audit_wheel(builder: HostBuilder, repaired_wheel: Path) -> None:
@@ -241,12 +348,55 @@ def run_builds(specs: Sequence[BuildSpec[PathT]]) -> None:
         if compatible_wheel is None:
             tracked_wheel = builder.move_to_output(repaired_wheel)
             built_wheels.append(tracked_wheel)
-            # on Linux, the wheel only arrives at this host path when the
-            # container exits; the summary reads the file lazily, so that's fine
+            # the tracked path need not be host-visible yet (see
+            # Builder.move_to_output), so derive the user-facing path here;
+            # the summary reads the file lazily, so that's fine
             output_wheel = build_options.output_dir / tracked_wheel.name
 
         builder.cleanup()
         log.build_end(output_wheel)
+
+
+class SetupBuilderFn(Protocol[ConfigT_contra]):
+    """The signature every host platform's setup_builder() shares."""
+
+    def __call__(
+        self,
+        config: ConfigT_contra,
+        build_options: BuildOptions,
+        tmp_dir: Path,
+        session_tmp_dir: Path,
+    ) -> Builder[Path]: ...
+
+
+def run_host_builds(
+    options: Options,
+    python_configurations: Sequence[ConfigT_contra],
+    setup_builder: SetupBuilderFn[ConfigT_contra],
+    tmp_path: Path,
+    *,
+    env_defaults: Mapping[str, str] | None = None,
+) -> None:
+    """The whole build loop for platforms that build on the host: the
+    before-all command, then one BuildSpec per configuration wired to the
+    platform's setup_builder()."""
+    with fatal_on_called_process_error():
+        run_before_all(options, python_configurations, env_defaults=env_defaults)
+        run_builds(
+            [
+                BuildSpec(
+                    identifier=config.identifier,
+                    setup=functools.partial(
+                        setup_builder,
+                        config=config,
+                        build_options=options.build_options(config.identifier),
+                        tmp_dir=tmp_path / config.identifier,
+                        session_tmp_dir=tmp_path,
+                    ),
+                )
+                for config in python_configurations
+            ]
+        )
 
 
 def run_before_all(
