@@ -516,12 +516,32 @@ def test_pyodide_build_frontend_args(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize(
+    "build_frontend_str",
+    ["default", "pip", "build", "build[uv]", "uv"],
+)
+def test_pyodide_global_build_frontend_coerced(tmp_path: Path, build_frontend_str: str) -> None:
+    """A global non-pyodide frontend setting is coerced to pyodide-build, not an error."""
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel]
+            build-frontend = "{build_frontend_str}"
+            """
+        )
+    )
+
+    options = Options(platform="pyodide", command_line_arguments=args, env={})
+    build_frontend = options.build_options(identifier=None).build_frontend
+
+    assert build_frontend.name == "pyodide-build"
+
+
+@pytest.mark.parametrize(
     ("platform", "build_frontend_str"),
     [
-        ("pyodide", "pip"),
-        ("pyodide", "build"),
-        ("pyodide", "build[uv]"),
-        ("pyodide", "uv"),
         ("linux", "pyodide-build"),
         ("macos", "pyodide-build"),
         ("windows", "pyodide-build"),
