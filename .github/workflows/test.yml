@@ -23,7 +23,7 @@ on:
       - .travis.yml
       - README.md
       - azure-pipelines.yml
-      - mkdocs.yml
+      - properdocs.yml
       - noxfile.py
   workflow_dispatch:
     # allow manual runs on branches without a PR
