@@ -1,6 +1,7 @@
 import tomllib
 from pathlib import Path
 
+import pytest
 from packaging.version import Version
 
 from cibuildwheel.extra import Printable, dump_python_configurations
@@ -21,6 +22,7 @@ def test_compare_configs() -> None:
     assert new_txt == txt
 
 
+@pytest.mark.skipif(not OPTIONS_MD.is_file(), reason="docs/options.md not present")
 def test_all_identifiers_in_docs_table() -> None:
     # The build-id table in docs/options.md is hand-maintained; this guards
     # against forgetting an identifier when build-platforms.toml changes.
