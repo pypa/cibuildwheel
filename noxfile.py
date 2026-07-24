@@ -228,7 +228,9 @@ def docs(session: nox.Session) -> None:
     """
     pyproject = nox.project.load_toml()
     session.install("-e.", *nox.project.dependency_groups(pyproject, "docs"))
-    session.run("mkdocs", "serve" if session.interactive else "build", "--strict", *session.posargs)
+    session.run(
+        "properdocs", "serve" if session.interactive else "build", "--strict", *session.posargs
+    )
 
 
 @nox.session(default=False)
