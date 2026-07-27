@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import io
 import ssl
 import time
+import urllib.error
 import urllib.request
 
 import certifi
@@ -11,7 +13,7 @@ from cibuildwheel.util.file import download
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Iterator
     from pathlib import Path
     from typing import Self
 
@@ -40,6 +42,26 @@ def test_download_bad_ssl_cert_file(monkeypatch: pytest.MonkeyPatch, tmp_path: P
     dest = tmp_path / "file.txt"
     with pytest.raises(ssl.SSLError):
         download(DOWNLOAD_URL, dest)
+
+
+def _no_sleep(seconds: float) -> None:
+    pass
+
+
+@pytest.fixture
+def http_error() -> Iterator[Callable[[str, int], urllib.error.HTTPError]]:
+    """Build HTTPErrors, and close them, as each one holds a temporary file."""
+    errors = []
+
+    def make(url: str, code: int) -> urllib.error.HTTPError:
+        error = urllib.error.HTTPError(url, code, "error", {}, io.BytesIO(b""))  # type: ignore[arg-type]
+        errors.append(error)
+        return error
+
+    yield make
+
+    for error in errors:
+        error.close()
 
 
 class FakeResponse:
@@ -102,3 +124,49 @@ def test_download_backoff_covers_a_minute_outage(
         download(DOWNLOAD_URL, dest)
 
     assert sum(sleeps) >= 60
+
+
+@pytest.mark.parametrize("code", [400, 404, 410])
+def test_download_does_not_retry_client_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    code: int,
+    http_error: Callable[[str, int], urllib.error.HTTPError],
+) -> None:
+    """A bad URL is not going to fix itself, so report it at once."""
+    attempts: list[str] = []
+
+    def fake_urlopen(url: str, context: object = None) -> FakeResponse:  # noqa: ARG001
+        attempts.append(url)
+        raise http_error(url, code)
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(time, "sleep", _no_sleep)
+
+    with pytest.raises(urllib.error.HTTPError):
+        download(DOWNLOAD_URL, tmp_path / "file.txt")
+
+    assert len(attempts) == 1
+
+
+@pytest.mark.parametrize("code", [500, 503])
+def test_download_retries_server_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    code: int,
+    http_error: Callable[[str, int], urllib.error.HTTPError],
+) -> None:
+    attempts: list[str] = []
+
+    def fake_urlopen(url: str, context: object = None) -> FakeResponse:  # noqa: ARG001
+        attempts.append(url)
+        if len(attempts) == 1:
+            raise http_error(url, code)
+        return FakeResponse()
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+    monkeypatch.setattr(time, "sleep", _no_sleep)
+
+    download(DOWNLOAD_URL, tmp_path / "file.txt")
+
+    assert len(attempts) == 2
