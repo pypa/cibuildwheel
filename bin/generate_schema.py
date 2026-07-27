@@ -395,24 +395,41 @@ for os_name, command in [
 
 del oses["linux"]["properties"]["dependency-versions"]
 
-oses["pyodide"]["properties"]["build-frontend"] = {
-    **schema["properties"]["build-frontend"],
-    "default": "pyodide-build",
-    "description": 'On the pyodide platform, the build frontend must be "pyodide-build"',
-    "oneOf": [
-        {"enum": ["pyodide-build", "default"]},
-        {"type": "string", "pattern": "^pyodide-build; ?args:"},
-        {
-            "type": "object",
-            "additionalProperties": False,
-            "required": ["name"],
-            "properties": {
-                "name": {"enum": ["pyodide-build"]},
-                "args": {"type": "array", "items": {"type": "string"}},
-            },
-        },
-    ],
+
+def select_build_frontends(names: set[str]) -> dict[str, Any]:
+    """
+    Keep only the given frontends in a copy of the build-frontend schema.
+    """
+    one_of: list[dict[str, Any]] = []
+    for item in copy.deepcopy(schema["properties"]["build-frontend"]["oneOf"]):
+        match item:
+            case {"enum": [*values]}:
+                item["enum"] = [v for v in values if v in names]
+            case {"pattern": str(pattern)}:
+                if pattern.removeprefix("^").partition(";")[0].replace("\\", "") not in names:
+                    continue
+            case {"properties": {"name": {"enum": [*values]}}}:
+                item["properties"]["name"]["enum"] = [v for v in values if v in names]
+        one_of.append(item)
+    return {**schema["properties"]["build-frontend"], "oneOf": one_of}
+
+
+all_frontends = set(schema["properties"]["build-frontend"]["oneOf"][0]["enum"])
+
+schema["$defs"]["build-frontend-no-pyodide"] = {
+    **select_build_frontends(all_frontends - {"pyodide-build"}),
+    "description": 'Set the tool to use to build, either "build" (default), "build[uv]", "uv", or "pip"',
 }
+
+for os_name, os_val in oses.items():
+    if os_name == "pyodide":
+        os_val["properties"]["build-frontend"] = {
+            **select_build_frontends({"pyodide-build", "default"}),
+            "default": "pyodide-build",
+            "description": 'On the pyodide platform, the build frontend must be "pyodide-build"',
+        }
+    else:
+        os_val["properties"]["build-frontend"] = {"$ref": "#/$defs/build-frontend-no-pyodide"}
 
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses

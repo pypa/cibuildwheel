@@ -20,7 +20,62 @@
         "pypy-eol"
       ]
     },
-    "description": "A Python version or flavor to enable."
+    "description": "A Python version or flavor to enable.",
+    "build-frontend-no-pyodide": {
+      "default": "default",
+      "description": "Set the tool to use to build, either \"build\" (default), \"build[uv]\", \"uv\", or \"pip\"",
+      "oneOf": [
+        {
+          "enum": [
+            "pip",
+            "build",
+            "build[uv]",
+            "uv",
+            "default"
+          ]
+        },
+        {
+          "type": "string",
+          "pattern": "^pip; ?args:"
+        },
+        {
+          "type": "string",
+          "pattern": "^build; ?args:"
+        },
+        {
+          "type": "string",
+          "pattern": "^build\\[uv\\]; ?args:"
+        },
+        {
+          "type": "string",
+          "pattern": "^uv; ?args:"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "enum": [
+                "pip",
+                "build",
+                "build[uv]",
+                "uv"
+              ]
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ],
+      "title": "CIBW_BUILD_FRONTEND"
+    }
   },
   "additionalProperties": false,
   "description": "cibuildwheel's settings.",
@@ -900,7 +955,7 @@
           "$ref": "#/properties/before-test"
         },
         "build-frontend": {
-          "$ref": "#/properties/build-frontend"
+          "$ref": "#/$defs/build-frontend-no-pyodide"
         },
         "build-verbosity": {
           "$ref": "#/properties/build-verbosity"
@@ -1039,7 +1094,7 @@
           "$ref": "#/properties/before-test"
         },
         "build-frontend": {
-          "$ref": "#/properties/build-frontend"
+          "$ref": "#/$defs/build-frontend-no-pyodide"
         },
         "build-verbosity": {
           "$ref": "#/properties/build-verbosity"
@@ -1124,7 +1179,7 @@
           "$ref": "#/properties/before-test"
         },
         "build-frontend": {
-          "$ref": "#/properties/build-frontend"
+          "$ref": "#/$defs/build-frontend-no-pyodide"
         },
         "build-verbosity": {
           "$ref": "#/properties/build-verbosity"
@@ -1315,7 +1370,7 @@
           "$ref": "#/properties/before-test"
         },
         "build-frontend": {
-          "$ref": "#/properties/build-frontend"
+          "$ref": "#/$defs/build-frontend-no-pyodide"
         },
         "build-verbosity": {
           "$ref": "#/properties/build-verbosity"
@@ -1400,7 +1455,7 @@
           "$ref": "#/properties/before-test"
         },
         "build-frontend": {
-          "$ref": "#/properties/build-frontend"
+          "$ref": "#/$defs/build-frontend-no-pyodide"
         },
         "build-verbosity": {
           "$ref": "#/properties/build-verbosity"

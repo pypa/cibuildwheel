@@ -165,14 +165,36 @@ def test_pyodide_build_frontend(validator: validate_pyproject.api.Validator) -> 
     assert validator(example) is not None
 
 
-def test_pyodide_bad_build_frontend(validator: validate_pyproject.api.Validator) -> None:
+@pytest.mark.parametrize("frontend", ['"uv"', '"build; args: --some-arg"', '{ name = "pip" }'])
+def test_pyodide_bad_build_frontend(
+    validator: validate_pyproject.api.Validator, frontend: str
+) -> None:
     """
     The pyodide table only accepts the pyodide-build frontend.
     """
     example = tomllib.loads(
-        """
+        f"""
         [tool.cibuildwheel.pyodide]
-        build-frontend = "uv"
+        build-frontend = {frontend}
+        """
+    )
+
+    with pytest.raises(validate_pyproject.error_reporting.ValidationError):
+        validator(example)
+
+
+@pytest.mark.parametrize("platform", ["linux", "macos", "windows", "ios", "android"])
+@pytest.mark.parametrize("frontend", ["pyodide-build", "pyodide-build; args: --some-arg"])
+def test_bad_pyodide_build_frontend(
+    validator: validate_pyproject.api.Validator, platform: str, frontend: str
+) -> None:
+    """
+    Only the pyodide table accepts the pyodide-build frontend.
+    """
+    example = tomllib.loads(
+        f"""
+        [tool.cibuildwheel.{platform}]
+        build-frontend = "{frontend}"
         """
     )
 
