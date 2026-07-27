@@ -34,6 +34,10 @@ concurrency:
   group: test-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # runners see short DNS/network outages; uv's default of 3 retries is too few
+  UV_HTTP_RETRIES: "6"
+
 jobs:
   lint:
     name: Linters (mypy, ruff, etc.)
