@@ -1208,7 +1208,8 @@
           "oneOf": [
             {
               "enum": [
-                "pyodide-build"
+                "pyodide-build",
+                "default"
               ]
             },
             {

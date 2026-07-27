@@ -398,7 +398,7 @@ oses["pyodide"]["properties"]["build-frontend"] = {
     "default": "pyodide-build",
     "description": 'On the pyodide platform, the build frontend must be "pyodide-build"',
     "oneOf": [
-        {"enum": ["pyodide-build"]},
+        {"enum": ["pyodide-build", "default"]},
         {"type": "string", "pattern": "^pyodide-build; ?args:"},
         {
             "type": "object",
