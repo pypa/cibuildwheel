@@ -143,32 +143,36 @@ def test_overrides_invalid_inherit_value(validator: validate_pyproject.api.Valid
         validator(example)
 
 
-def test_overrides_pyodide_build_frontend(validator: validate_pyproject.api.Validator) -> None:
+def test_pyodide_build_frontend(validator: validate_pyproject.api.Validator) -> None:
     """
-    An override can select the pyodide platform, where pyodide-build is valid.
+    pyodide-build is accepted anywhere the frontend can be set, as an override
+    or a global value can apply to pyodide builds only.
     """
     example = tomllib.loads(
         """
+        [tool.cibuildwheel]
+        build-frontend = "pyodide-build"
+
+        [tool.cibuildwheel.pyodide]
+        build-frontend = { name = "pyodide-build", args = ["--some-arg"] }
+
         [[tool.cibuildwheel.overrides]]
         select = "*pyodide*"
-        build-frontend = "pyodide-build"
+        build-frontend = "pyodide-build; args: --some-arg"
         """
     )
 
     assert validator(example) is not None
 
 
-@pytest.mark.parametrize("platform", ["linux", "macos", "windows", "ios", "android"])
-def test_bad_pyodide_build_frontend(
-    validator: validate_pyproject.api.Validator, platform: str
-) -> None:
+def test_pyodide_bad_build_frontend(validator: validate_pyproject.api.Validator) -> None:
     """
-    pyodide-build is not a valid frontend for the other platforms.
+    The pyodide table only accepts the pyodide-build frontend.
     """
     example = tomllib.loads(
-        f"""
-        [tool.cibuildwheel.{platform}]
-        build-frontend = "pyodide-build"
+        """
+        [tool.cibuildwheel.pyodide]
+        build-frontend = "uv"
         """
     )
 

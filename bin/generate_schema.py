@@ -64,9 +64,9 @@ properties:
     type: string_array
   build-frontend:
     default: default
-    description: Set the tool to use to build, either "build" (default), "build[uv]", "uv", or "pip"
+    description: Set the tool to use to build, either "build" (default), "build[uv]", "uv", or "pip" ("pyodide-build" for pyodide)
     oneOf:
-      - enum: [pip, build, "build[uv]", uv, default]
+      - enum: [pip, build, "build[uv]", uv, pyodide-build, default]
       - type: string
         pattern: '^pip; ?args:'
       - type: string
@@ -75,12 +75,14 @@ properties:
         pattern: '^build\\[uv\\]; ?args:'
       - type: string
         pattern: '^uv; ?args:'
+      - type: string
+        pattern: '^pyodide-build; ?args:'
       - type: object
         additionalProperties: false
         required: [name]
         properties:
           name:
-            enum: [pip, build, "build[uv]", uv]
+            enum: [pip, build, "build[uv]", uv, pyodide-build]
           args:
             type: array
             items:
@@ -353,25 +355,6 @@ overrides["items"]["properties"]["select"]["oneOf"] = string_array
 overrides["items"]["properties"] |= non_global_options.copy()
 
 del overrides["items"]["properties"]["archs"]
-
-# An override can select the pyodide platform, so it also accepts pyodide-build.
-overrides["items"]["properties"]["build-frontend"] = {
-    **schema["properties"]["build-frontend"],
-    "oneOf": [
-        *copy.deepcopy(schema["properties"]["build-frontend"]["oneOf"]),
-        {"type": "string", "pattern": "^pyodide-build; ?args:"},
-        {
-            "type": "object",
-            "additionalProperties": False,
-            "required": ["name"],
-            "properties": {
-                "name": {"enum": ["pyodide-build"]},
-                "args": {"type": "array", "items": {"type": "string"}},
-            },
-        },
-    ],
-}
-overrides["items"]["properties"]["build-frontend"]["oneOf"][0]["enum"].append("pyodide-build")
 
 not_linux = non_global_options.copy()
 
