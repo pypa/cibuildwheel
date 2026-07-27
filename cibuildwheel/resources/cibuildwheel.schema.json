@@ -18,9 +18,9 @@
         "pyodide-prerelease",
         "pypy",
         "pypy-eol"
-      ]
+      ],
+      "description": "A Python version or flavor to enable."
     },
-    "description": "A Python version or flavor to enable.",
     "build-frontend-no-pyodide": {
       "default": "default",
       "description": "Set the tool to use to build, either \"build\" (default), \"build[uv]\", \"uv\", or \"pip\"",

@@ -35,7 +35,7 @@ $defs:
       - pyodide-prerelease
       - pypy
       - pypy-eol
-  description: A Python version or flavor to enable.
+    description: A Python version or flavor to enable.
 additionalProperties: false
 description: cibuildwheel's settings.
 type: object
