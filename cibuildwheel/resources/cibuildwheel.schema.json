@@ -764,7 +764,84 @@
             "$ref": "#/properties/before-test"
           },
           "build-frontend": {
-            "$ref": "#/properties/build-frontend"
+            "default": "default",
+            "description": "Set the tool to use to build, either \"build\" (default), \"build[uv]\", \"uv\", or \"pip\"",
+            "oneOf": [
+              {
+                "enum": [
+                  "pip",
+                  "build",
+                  "build[uv]",
+                  "uv",
+                  "default",
+                  "pyodide-build"
+                ]
+              },
+              {
+                "type": "string",
+                "pattern": "^pip; ?args:"
+              },
+              {
+                "type": "string",
+                "pattern": "^build; ?args:"
+              },
+              {
+                "type": "string",
+                "pattern": "^build\\[uv\\]; ?args:"
+              },
+              {
+                "type": "string",
+                "pattern": "^uv; ?args:"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "enum": [
+                      "pip",
+                      "build",
+                      "build[uv]",
+                      "uv"
+                    ]
+                  },
+                  "args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              {
+                "type": "string",
+                "pattern": "^pyodide-build; ?args:"
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "name"
+                ],
+                "properties": {
+                  "name": {
+                    "enum": [
+                      "pyodide-build"
+                    ]
+                  },
+                  "args": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ],
+            "title": "CIBW_BUILD_FRONTEND"
           },
           "build-verbosity": {
             "$ref": "#/properties/build-verbosity"

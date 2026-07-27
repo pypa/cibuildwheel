@@ -354,6 +354,25 @@ overrides["items"]["properties"] |= non_global_options.copy()
 
 del overrides["items"]["properties"]["archs"]
 
+# An override can select the pyodide platform, so it also accepts pyodide-build.
+overrides["items"]["properties"]["build-frontend"] = {
+    **schema["properties"]["build-frontend"],
+    "oneOf": [
+        *copy.deepcopy(schema["properties"]["build-frontend"]["oneOf"]),
+        {"type": "string", "pattern": "^pyodide-build; ?args:"},
+        {
+            "type": "object",
+            "additionalProperties": False,
+            "required": ["name"],
+            "properties": {
+                "name": {"enum": ["pyodide-build"]},
+                "args": {"type": "array", "items": {"type": "string"}},
+            },
+        },
+    ],
+}
+overrides["items"]["properties"]["build-frontend"]["oneOf"][0]["enum"].append("pyodide-build")
+
 not_linux = non_global_options.copy()
 
 del not_linux["environment-pass"]

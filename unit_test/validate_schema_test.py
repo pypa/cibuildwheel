@@ -143,6 +143,39 @@ def test_overrides_invalid_inherit_value(validator: validate_pyproject.api.Valid
         validator(example)
 
 
+def test_overrides_pyodide_build_frontend(validator: validate_pyproject.api.Validator) -> None:
+    """
+    An override can select the pyodide platform, where pyodide-build is valid.
+    """
+    example = tomllib.loads(
+        """
+        [[tool.cibuildwheel.overrides]]
+        select = "*pyodide*"
+        build-frontend = "pyodide-build"
+        """
+    )
+
+    assert validator(example) is not None
+
+
+@pytest.mark.parametrize("platform", ["linux", "macos", "windows", "ios", "android"])
+def test_bad_pyodide_build_frontend(
+    validator: validate_pyproject.api.Validator, platform: str
+) -> None:
+    """
+    pyodide-build is not a valid frontend for the other platforms.
+    """
+    example = tomllib.loads(
+        f"""
+        [tool.cibuildwheel.{platform}]
+        build-frontend = "pyodide-build"
+        """
+    )
+
+    with pytest.raises(validate_pyproject.error_reporting.ValidationError):
+        validator(example)
+
+
 def test_docs_examples(validator: validate_pyproject.api.Validator) -> None:
     """
     Parse out all the configuration examples, build valid TOML out of them, and
