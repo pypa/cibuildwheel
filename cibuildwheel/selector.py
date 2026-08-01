@@ -92,6 +92,9 @@ class BuildSelector:
                 return False
 
         # filter out groups that are not enabled
+        # NOTE: this also covers cp315-pyodide_wasm32. The current Pyodide
+        # prerelease embeds a prerelease CPython (3.15.0b4), so it is gated by
+        # `cpython-prerelease` rather than `pyodide-prerelease`.
         if EnableGroup.CPythonPrerelease not in self.enable and fnmatch(build_id, "cp315*"):
             return False
         is_pypy_eol = fnmatch(build_id, "pp3?-*") or fnmatch(build_id, "pp310-*")
@@ -104,17 +107,18 @@ class BuildSelector:
             return False
         if EnableGroup.PyodideEoL not in self.enable and fnmatch(build_id, "cp312-pyodide_*"):
             return False
-        # NOTE: Re-enable this when we have a new Pyodide prerelease (e.g., 315.0.0a1+)
-        # When doing this, also:
+        # NOTE: The `pyodide-prerelease` guard is currently inert. The Pyodide
+        # prerelease (315.0.0a1) targets a prerelease CPython, so it is already
+        # gated by the `cpython-prerelease` check above; adding a guard here too
+        # would force users to enable both groups. Re-enable this when a Pyodide
+        # prerelease targets an *already-final* CPython, and set the pattern to
+        # that identifier. When doing so, also:
         #   1. update Pyodide tests in unit_test/build_selector_test.py and unit_test/options_test.py accordingly.
-        #   2. update Python versions for Pyodide identifiers in cibuildwheel/selector.py.
+        #   2. update Python versions for Pyodide identifiers in test/utils.py.
         #   3. update constraints as necessary via bin/generate_pyodide_constraints.py and add/delete
-        #      Pyodide constraints files in cibuildwheel/resources/constraints/ as necessary.
-        # When re-enabling, update the pattern to match the experimental Python version when
-        # it is bumped to Python 3.15 (likely cp315-pyodide_*).
-        # This depends on the CPython version being used in the Pyodide runtime at the time.
+        #      Pyodide constraints files in cibuildwheel/resources/ as necessary.
         # if EnableGroup.PyodidePrerelease not in self.enable and fnmatch(
-        #     build_id, "cp315-pyodide_*"
+        #     build_id, "cp316-pyodide_*"
         # ):
         #     return False
 

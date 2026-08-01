@@ -1,6 +1,6 @@
 # Maintaining Pyodide support
 
-Last updated: May 2026
+Last updated: August 2026
 
 This page describes how to update cibuildwheel's Pyodide platform code when either:
 
@@ -33,16 +33,28 @@ In `cibuildwheel/resources/build-platforms.toml`, add an entry under `[pyodide]`
 
 `version` is the CPython version string, `default_pyodide_version` is the Pyodide release to use when the user does not pin one explicitly (use the latest available alpha/beta for a prerelease entry), and `node_version` is the minimum Node.js major required by that Pyodide release — check the [pyodide-build FAQ](https://pyodide-build.readthedocs.io/en/latest/faq.html#what-node-js-version-do-i-need) for a rudimentary idea of what the correct value is. `sha256` is the checksum of the Pyodide xbuildenv tarball.
 
-### 2. Update the prerelease guards in the selector
+### 2. Check the prerelease guards in the selector
 
-In `cibuildwheel/selector.py`, update the patterns in the `PyodidePrerelease` guards to match the new identifier:
+Work out which `enable` group should gate the new identifier, then make sure exactly one guard in `cibuildwheel/selector.py` matches it. If a `PyodidePrerelease` guard is needed, it looks like this:
 
 ```python
 if EnableGroup.PyodidePrerelease not in self.enable and fnmatch(
-    build_id, "cp315-pyodide_*"
+    build_id, "cp316-pyodide_*"
 ):
     return False
 ```
+
+Note the interaction with the `cpython-prerelease` guard. That guard matches the
+in-development CPython by prefix (e.g. `cp315*`), which also matches
+`cp315-pyodide_wasm32`. So when a Pyodide prerelease targets a CPython that has not
+been released yet, it is **already** gated by `cpython-prerelease`, and adding a
+`PyodidePrerelease` guard for the same identifier would force users to enable *both*
+groups. In that situation, leave the `PyodidePrerelease` guard commented out and rely on
+`cpython-prerelease`.
+
+Only add a `PyodidePrerelease` guard when the Pyodide prerelease targets a CPython that
+is already final (e.g. a `316.0.0a1` built against a released Python 3.16), since nothing
+else would gate it then.
 
 ### 3. Generate and pin a constraints file
 

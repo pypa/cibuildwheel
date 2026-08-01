@@ -281,6 +281,8 @@ def _expected_wheels(
         python_abi_tags = ["cp313-cp313", "cp314-cp314"]
         if EnableGroup.PyodideEoL in enable_groups:
             python_abi_tags.insert(0, "cp312-cp312")
+        if EnableGroup.CPythonPrerelease in enable_groups:
+            python_abi_tags.append("cp315-cp315")
     elif (platform == "android" and python_abi_tags is None) or (
         platform == "ios" and python_abi_tags is None
     ):
@@ -410,6 +412,7 @@ def _expected_wheels(
                 "cp312-cp312": ["pyodide_2024_0_wasm32"],
                 "cp313-cp313": ["pyemscripten_2025_0_wasm32"],
                 "cp314-cp314": ["pyemscripten_2026_0_wasm32"],
+                "cp315-cp315": ["pyemscripten_2026_5_wasm32"],
             }.get(python_abi_tag, [])
 
             if not platform_tags:

@@ -91,15 +91,23 @@ def test_build_filter_pypy_all() -> None:
     assert build_selector("pp39-manylinux_x86_64")
 
 
-# Re-enable when we have Pyodide 3.15 prerelease builds to test against
-# def test_build_filter_pyodide_prerelease() -> None:
-#     build_selector = BuildSelector(
-#         build_config="*",
-#         skip_config="",
-#         enable=frozenset([EnableGroup.PyodidePrerelease]),
-#     )
-#     assert build_selector("cp314-pyodide_wasm32")
-#     assert build_selector("cp315-pyodide_wasm32")
+def test_build_filter_pyodide_prerelease() -> None:
+    # The Pyodide prerelease embeds a prerelease CPython, so it is gated by
+    # `cpython-prerelease`, not `pyodide-prerelease`.
+    build_selector = BuildSelector(
+        build_config="*",
+        skip_config="",
+        enable=frozenset([EnableGroup.CPythonPrerelease]),
+    )
+    assert build_selector("cp314-pyodide_wasm32")
+    assert build_selector("cp315-pyodide_wasm32")
+
+    pyodide_prerelease_only = BuildSelector(
+        build_config="*",
+        skip_config="",
+        enable=frozenset([EnableGroup.PyodidePrerelease]),
+    )
+    assert not pyodide_prerelease_only("cp315-pyodide_wasm32")
 
 
 def test_build_filter_pyodide() -> None:
@@ -111,6 +119,7 @@ def test_build_filter_pyodide() -> None:
     assert build_selector("cp313-pyodide_wasm32")
     assert build_selector("cp314-pyodide_wasm32")
     assert not build_selector("cp312-pyodide_wasm32")
+    assert not build_selector("cp315-pyodide_wasm32")
 
 
 def test_build_filter_pyodide_eol() -> None:
@@ -122,6 +131,7 @@ def test_build_filter_pyodide_eol() -> None:
     assert build_selector("cp312-pyodide_wasm32")
     assert build_selector("cp313-pyodide_wasm32")
     assert build_selector("cp314-pyodide_wasm32")
+    assert not build_selector("cp315-pyodide_wasm32")
 
 
 def test_skip() -> None:
