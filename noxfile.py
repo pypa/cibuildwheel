@@ -70,18 +70,21 @@ def tests(session: nox.Session) -> None:
 # GraalPy (matching `graalpy_marker`) gets `held`, everything else
 # (`other_marker`) tracks the freshly compiled version.
 GRAALPY_HELD_BACK = (
-    # Newer pip breaks GraalPy on Windows.
+    # Newer pip breaks GraalPy on macOS and Windows.
     {
         "package": "pip",
-        "held": "26.0.1",
-        "graalpy_marker": 'implementation_name == "graalpy" and platform_system == "Windows"',
-        "other_marker": 'implementation_name != "graalpy" or platform_system != "Windows"',
+        "held": ("26.1.2", "26.0.1"),
+        "graalpy_marker": (
+            'implementation_name == "graalpy" and platform_system != "Windows"',
+            'implementation_name == "graalpy" and platform_system == "Windows"',
+        ),
+        "other_marker": 'implementation_name != "graalpy"',
     },
     # filelock >=3.30 imports errno.ENOTSUP, which GraalPy lacks (fix due ~2026-08).
     {
         "package": "filelock",
-        "held": "3.29.7",
-        "graalpy_marker": 'implementation_name == "graalpy"',
+        "held": ("3.29.7",),
+        "graalpy_marker": ('implementation_name == "graalpy"',),
         "other_marker": 'implementation_name != "graalpy"',
     },
 )
@@ -90,11 +93,15 @@ GRAALPY_HELD_BACK = (
 def _pin_graalpy_workarounds(output_file: Path) -> None:
     text = output_file.read_text()
     for pin in GRAALPY_HELD_BACK:
+        assert isinstance(pin["package"], str)
         package = re.escape(pin["package"])
+        graalpy_pins = "\n".join(
+            f"{pin['package']}=={pin['held'][i]}; {pin['graalpy_marker'][i]}"
+            for i in range(len(pin["held"]))
+        )
         text = re.sub(
             rf"^{package}==(?P<version>[^\s;]+)$",
-            f"{pin['package']}==\\g<version>; {pin['other_marker']}\n"
-            f"{pin['package']}=={pin['held']}; {pin['graalpy_marker']}",
+            f"{pin['package']}==\\g<version>; {pin['other_marker']}\n{graalpy_pins}",
             text,
             flags=re.MULTILINE,
         )
