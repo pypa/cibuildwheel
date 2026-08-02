@@ -114,11 +114,17 @@ def test_overridden_path(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> N
         ),
     ],
 )
+@pytest.mark.skipif(
+    utils.get_platform() not in {"linux", "macos", "windows"}, reason="runs with python 3.9"
+)
 def test_overridden_pip_constraint(tmp_path: Path, build_frontend: str) -> None:
     """
     Verify that users can use PIP_CONSTRAINT to specify a specific version of
     a build-system.requires dependency, by asserting the version of pytz in the
     setup.py.
+    Starting with pip 26.2, PIP_CONSTRAINT is not used anymore for build constraints.
+    Use Python 3.9 here for now but users shall use front-end options for this or
+    move to non-isolated builds.
     """
     project_dir = tmp_path / "project"
 
@@ -154,9 +160,9 @@ def test_overridden_pip_constraint(tmp_path: Path, build_frontend: str) -> None:
             "CIBW_BUILD_FRONTEND": build_frontend,
             "PIP_CONSTRAINT": str(constraints_file),
             "CIBW_ENVIRONMENT_LINUX": "PIP_CONSTRAINT=./constraints.txt",
+            "CIBW_BUILD": "cp39-*",
         },
-        single_python=True,
     )
 
-    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
+    expected_wheels = [w for w in utils.expected_wheels("spam", "0.1.0") if "-cp39-" in w]
     assert set(actual_wheels) == set(expected_wheels)
