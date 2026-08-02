@@ -122,3 +122,4 @@ site/
 
 # This file should be a symlink or contain "See @AGENTS.md"
 CLAUDE.md
+.claude/

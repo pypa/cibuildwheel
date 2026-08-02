@@ -35,7 +35,7 @@ $defs:
       - pyodide-prerelease
       - pypy
       - pypy-eol
-  description: A Python version or flavor to enable.
+    description: A Python version or flavor to enable.
 additionalProperties: false
 description: cibuildwheel's settings.
 type: object
@@ -62,29 +62,7 @@ properties:
     default: ['*']
     description: Choose the Python versions to build.
     type: string_array
-  build-frontend:
-    default: default
-    description: Set the tool to use to build, either "build" (default), "build[uv]", "uv", or "pip"
-    oneOf:
-      - enum: [pip, build, "build[uv]", uv, default]
-      - type: string
-        pattern: '^pip; ?args:'
-      - type: string
-        pattern: '^build; ?args:'
-      - type: string
-        pattern: '^build\\[uv\\]; ?args:'
-      - type: string
-        pattern: '^uv; ?args:'
-      - type: object
-        additionalProperties: false
-        required: [name]
-        properties:
-          name:
-            enum: [pip, build, "build[uv]", uv]
-          args:
-            type: array
-            items:
-              type: string
+  build-frontend: {}  # filled in by build_frontend_schema below
   build-verbosity:
     type: integer
     minimum: -3
@@ -292,6 +270,43 @@ string_table = yaml.safe_load(
 """
 )
 
+FRONTENDS = ["pip", "build", "build[uv]", "uv"]
+
+
+def build_frontend_schema(
+    names: list[str], description: str, default: str = "default"
+) -> dict[str, Any]:
+    """
+    A frontend is a name, a "name; args: ..." string, or a table with a name and args.
+    """
+    # Only the brackets in "build[uv]" need escaping
+    patterns = [name.replace("[", r"\[").replace("]", r"\]") for name in names]
+    return {
+        "default": default,
+        "description": description,
+        "oneOf": [
+            {"enum": [*names, "default"]},
+            *({"type": "string", "pattern": f"^{pattern}; ?args:"} for pattern in patterns),
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["name"],
+                "properties": {
+                    "name": {"enum": names},
+                    "args": {"type": "array", "items": {"type": "string"}},
+                },
+            },
+        ],
+        "title": "CIBW_BUILD_FRONTEND",
+    }
+
+
+schema["properties"]["build-frontend"] = build_frontend_schema(
+    [*FRONTENDS, "pyodide-build"],
+    'Set the tool to use to build, either "build" (default), "build[uv]", "uv", or "pip"'
+    ' ("pyodide-build" for pyodide)',
+)
+
 for value in schema["properties"].values():
     match value:
         case {"type": "string_array"}:
@@ -393,24 +408,20 @@ for os_name, command in [
 
 del oses["linux"]["properties"]["dependency-versions"]
 
-oses["pyodide"]["properties"]["build-frontend"] = {
-    **schema["properties"]["build-frontend"],
-    "default": "pyodide-build",
-    "description": 'On the pyodide platform, the build frontend must be "pyodide-build"',
-    "oneOf": [
-        {"enum": ["pyodide-build"]},
-        {"type": "string", "pattern": "^pyodide-build; ?args:"},
-        {
-            "type": "object",
-            "additionalProperties": False,
-            "required": ["name"],
-            "properties": {
-                "name": {"enum": ["pyodide-build"]},
-                "args": {"type": "array", "items": {"type": "string"}},
-            },
-        },
-    ],
-}
+
+schema["$defs"]["build-frontend-no-pyodide"] = build_frontend_schema(
+    FRONTENDS,
+    'Set the tool to use to build, either "build" (default), "build[uv]", "uv", or "pip"',
+)
+
+for os_val in oses.values():
+    os_val["properties"]["build-frontend"] = {"$ref": "#/$defs/build-frontend-no-pyodide"}
+
+oses["pyodide"]["properties"]["build-frontend"] = build_frontend_schema(
+    ["pyodide-build"],
+    'On the pyodide platform, the build frontend must be "pyodide-build"',
+    default="pyodide-build",
+)
 
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses
