@@ -52,7 +52,7 @@ platformdirs==4.11.0
     #   virtualenv
 pygments==2.20.0
     # via rich
-pyodide-build==0.38.0
+pyodide-build==0.39.0
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.5.0
     # via
