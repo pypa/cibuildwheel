@@ -54,7 +54,7 @@ def test_abi3(tmp_path: Path) -> None:
             "CIBW_BUILD": (
                 "cp314-*"
                 if utils.get_platform() == "pyodide"
-                else "cp39-* cp310-* pp310-* gp312_250-* cp312-* cp314t-*"
+                else "cp39-* cp310-* pp311-* gp312_250-* cp312-* cp314t-*"
             ),
             "CIBW_ENABLE": "all",
         },
@@ -77,7 +77,7 @@ def test_abi3(tmp_path: Path) -> None:
                 "cp39-cp39",
                 "cp310-abi3",  # <-- ABI3, works with 3.10 and 3.12
                 "cp314-cp314t",
-                "pp310-pypy310_pp73",
+                "pp311-pypy311_pp73",
                 "graalpy312-graalpy250_312_native",
             ],
         )
@@ -203,7 +203,7 @@ def test_abi_none(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
             "CIBW_TEST_REQUIRES": "pytest",
             "CIBW_TEST_COMMAND": f"{utils.invoke_pytest()} {{project}}/test",
             # limit the number of builds for test performance reasons
-            "CIBW_BUILD": "cp39-* cp{}{}-* cp314t-* pp310-*".format(*utils.SINGLE_PYTHON_VERSION),
+            "CIBW_BUILD": "cp39-* cp{}{}-* cp314t-* pp311-*".format(*utils.SINGLE_PYTHON_VERSION),
             "CIBW_ENABLE": "all",
         },
     )
