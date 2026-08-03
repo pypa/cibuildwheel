@@ -362,11 +362,6 @@ values are:
 - `pypy`: Enable PyPy.
 - `pypy-eol`: Enable PyPy versions that have passed end of life (if still available).
 - `graalpy`: Enable GraalPy.
-- `pyodide-prerelease`: Pyodide versions that haven't released yet, if one is
-  available. Safe if you are shipping a site with an early build, not for
-  general distribution. Note that when a Pyodide prerelease targets a beta
-  CPython, it is gated by `cpython-prerelease` instead, so this group may have
-  no effect.
 - `pyodide-eol`: Enable Pyodide versions that are no longer the current stable
   release (if still available).
 - `all`: Enable all of the above.
