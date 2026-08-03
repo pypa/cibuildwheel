@@ -43,7 +43,7 @@ In `cibuildwheel/resources/build-platforms.toml`, add an entry under `[pyodide]`
 `version` is the CPython version string, `default_pyodide_version` is the
 Pyodide release to use when the user does not pin one explicitly (use the latest
 available alpha/beta for a prerelease entry), and `node_version` is the minimum
-Node.js major required by that Pyodide release — check the 
+Node.js major required by that Pyodide release — check the
 [pyodide-build FAQ](https://pyodide-build.readthedocs.io/en/latest/faq.html#what-node-js-version-do-i-need)
 for a rudimentary idea of what the correct value is. `sha256` is the checksum of
 the Pyodide xbuildenv tarball.
