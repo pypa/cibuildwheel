@@ -1,3 +1,5 @@
+"""Tests for reading and resolving configuration options."""
+
 from __future__ import annotations
 
 import shlex
@@ -5,6 +7,7 @@ from typing import Any, cast
 
 import pytest
 
+from cibuildwheel import errors
 from cibuildwheel.options import (
     EnvironmentFormat,
     InheritRule,
@@ -551,6 +554,112 @@ before-all = ["override2"]
             options_reader.get("config-settings", option_format=ShlexTableFormat())
             == "key1=value1 key2=override2 empty='' key3=value3"
         )
+
+
+def test_global_inherit(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+inherit = {audit-command = "append"}
+audit-command = "twine check {wheel}"
+"""
+    )
+
+    options_reader = OptionsReader(pyproject_toml, platform="linux", env={})
+
+    assert (
+        options_reader.get("audit-command", option_format=ListFormat(" && "))
+        == "abi3audit --strict --report {abi3_wheel} && twine check {wheel}"
+    )
+
+
+def test_platform_inherit(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+before-all = "global"
+
+[tool.cibuildwheel.linux]
+inherit = {before-all = "prepend"}
+before-all = "linux"
+"""
+    )
+
+    options_reader = OptionsReader(pyproject_toml, platform="linux", env={})
+
+    assert options_reader.get("before-all", option_format=ListFormat(" && ")) == "linux && global"
+
+
+def test_environment_inherit(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+before-all = "config"
+"""
+    )
+
+    options_reader = OptionsReader(
+        pyproject_toml,
+        platform="linux",
+        env={
+            "CIBW_BEFORE_ALL": "env",
+            "CIBW_BEFORE_ALL_LINUX": "linux-env",
+            # A key without a value defaults to append.
+            "CIBW_INHERIT": "before-all; before-all-linux: prepend",
+        },
+    )
+
+    assert (
+        options_reader.get("before-all", option_format=ListFormat(" && "))
+        == "linux-env && config && env"
+    )
+
+
+def test_environment_inherit_none_overrides_default_rule(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+enable = ["cpython-freethreading"]
+"""
+    )
+    options_reader = OptionsReader(
+        pyproject_toml,
+        platform="linux",
+        env={"CIBW_ENABLE": "pypy", "CIBW_INHERIT": "enable: none"},
+    )
+
+    assert (
+        options_reader.get(
+            "enable", option_format=ListFormat(" "), default_env_rule=InheritRule.APPEND
+        )
+        == "pypy"
+    )
+
+
+def test_invalid_config_inherit_rule(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+inherit = {before-all = "invalid"}
+"""
+    )
+
+    with pytest.raises(OptionsReaderError, match="must contain only"):
+        OptionsReader(pyproject_toml, platform="linux", env={})
+
+
+def test_invalid_environment_inherit_rule() -> None:
+    options_reader = OptionsReader(platform="linux", env={"CIBW_INHERIT": "before-all: invalid"})
+
+    with pytest.raises(
+        errors.ConfigurationError, match="Failed to parse CIBW_INHERIT environment variable"
+    ):
+        options_reader.get("before-all", option_format=ListFormat(" && "))
 
 
 def test_audit_command_option(tmp_path: Path, platform: PlatformName) -> None:

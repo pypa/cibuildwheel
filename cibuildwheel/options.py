@@ -450,7 +450,7 @@ def parse_inherit(config: str | dict[str, str] | None) -> dict[str, InheritRule]
 
     if isinstance(config, str):
         parsed = parse_kw_string(config, default_kw_value="append")
-        inherit_dict = {k: "".join(v).upper() for k, v in parsed.items()}
+        inherit_dict = {k: "".join(v) for k, v in parsed.items()}
     elif isinstance(config, dict):
         inherit_dict = config
     else:
@@ -523,7 +523,7 @@ class OptionsReader:
         Raises an error if an option with this name is not allowed in the
         [tool.cibuildwheel] section of a config file.
         """
-        allowed_option_names = self.default_options.keys() | PLATFORMS | {"overrides"}
+        allowed_option_names = self.default_options.keys() | PLATFORMS | {"inherit", "overrides"}
 
         if name not in allowed_option_names:
             msg = f"Option {name!r} not supported in a config file."
@@ -542,7 +542,9 @@ class OptionsReader:
             msg = f"{name!r} is not allowed in {disallowed_platform_options}"
             raise OptionsReaderError(msg)
 
-        allowed_option_names = self.default_options.keys() | self.default_platform_options.keys()
+        allowed_option_names = (
+            self.default_options.keys() | self.default_platform_options.keys() | {"inherit"}
+        )
 
         if name not in allowed_option_names:
             msg = f"Option {name!r} not supported in the {self.platform!r} section"
