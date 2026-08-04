@@ -11,10 +11,10 @@ This page describes how to update cibuildwheel's Pyodide platform code when eith
 
 Pyodide has three types of releases that matter to cibuildwheel:
 
-- **Stable** – the most recent full Pyodide release (e.g., `0.29.x` / cp313).
+- **Stable** – the most recent full Pyodide release.
   This is enabled by default with no special `CIBW_ENABLE` flag needed.
 - **Prerelease** – an alpha/beta/rc Pyodide release that uses the _next_ CPython
-  version (e.g., `314.0.0a1` / cp314). Users must opt in with `CIBW_ENABLE:
+  version. Users must opt in with `CIBW_ENABLE:
   cpython-prerelease` to build against this version. This may or may not be
   available at any given time, depending on the Pyodide release cycle.
 - **End-of-life (EoL)** – older Pyodide stable releases that are no longer the
