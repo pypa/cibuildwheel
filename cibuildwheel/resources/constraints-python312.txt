@@ -55,7 +55,7 @@ pefile==2024.8.26
     # via
     #   abi3audit
     #   delvewheel
-pip==26.2; implementation_name != "graalpy"
+pip==26.2.1; implementation_name != "graalpy"
 pip==26.1.2; implementation_name == "graalpy" and platform_system != "Windows"
 pip==26.0.1; implementation_name == "graalpy" and platform_system == "Windows"
     # via -r cibuildwheel/resources/constraints.in
