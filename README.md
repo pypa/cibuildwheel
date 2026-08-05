@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==4.1.1
+        run: python -m pip install cibuildwheel==4.2.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -238,6 +238,20 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v4.2.0
+
+_4 August 2026_
+
+- 🌟 CPython 3.15 wheels are now built by default - without the `"cpython-prerelease"` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) set. It's time to build and upload these wheels to PyPI! This release includes CPython 3.15.0rc1, which is guaranteed to be ABI compatible with the final release. (#2944)
+- ✨ Adds Pyodide 3.15 support with the `cp315-pyodide_wasm32` build identifier, using Pyodide 315.0.0a2. These are also stable wrt. the final release. (#2958)
+- 🐛 Retries a failed download six times with exponential backoff, so short network outages no longer stop a build. A `4xx` response is still reported at once. (#2953)
+- 🐛 Accepts `default` as a [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) value on Pyodide, and accepts `pyodide-build` in the top-level table and in overrides (#2951)
+- 🛠 Holds pip back on GraalPy, where newer pip breaks the build (#2955)
+- 🛠 Updates Pyodide to 314.0.4 (#2949, #2952)
+- 🛠 Updates dependencies and container pins (#2952, #2960)
+- 💼 Updates CI action pins (#2948, #2954)
+- 🧪 Uses pp311 for the abi3 test, and deletes `test_overridden_pip_constraint`, which is not necessary since #2583 (#2956, #2957)
+
 ### v4.1.1
 
 _24 July 2026_
@@ -337,19 +351,7 @@ _2 April 2026_
 - ✨ cibuildwheel prints the selected build identifiers at the start of the build. (#2785)
 - 🔐 The GitHub Action now references other actions with a full SHA (#2744)
 
-### v3.4.0
-
-_5 March 2026_
-
-- 🌟 You can now build wheels using `uv` as a build frontend. This should improve performance, especially if your project has lots of build dependencies. To use, set [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) to `uv`. (#2322)
-- ⚠️ We no longer support running on Travis CI. It may continue working but we don't run tests there anymore so we can't be sure. (#2682)
-- ✨ Improvements to building rust wheels on Android (#2650)
-- 🛠 Update Pyodide to 0.29.3 (#2719, #2733)
-- 🐛 Fix bug with the GitHub Action on Windows, where PATH was getting unnecessarily changed, causing issues with meson builds. (#2723)
-- ✨ Add support for quiet setting on `build` and `uv` from the cibuildwheel `build-verbosity` setting. (#2737)
-- 📚 Docs updates, including guidance on using Meson on Windows (#2718)
-
-<!-- [[[end]]] (sum: kQUcUVgqfM) -->
+<!-- [[[end]]] (sum: fEuiF50wvg) -->
 
 ---
 

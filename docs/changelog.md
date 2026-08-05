@@ -5,6 +5,20 @@ ref: changelog
 
 # Changelog
 
+### v4.2.0
+
+_4 August 2026_
+
+- 🌟 CPython 3.15 wheels are now built by default - without the `"cpython-prerelease"` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) set. It's time to build and upload these wheels to PyPI! This release includes CPython 3.15.0rc1, which is guaranteed to be ABI compatible with the final release. (#2944)
+- ✨ Adds Pyodide 3.15 support with the `cp315-pyodide_wasm32` build identifier, using Pyodide 315.0.0a2. These are also stable wrt. the final release. (#2958)
+- 🐛 Retries a failed download six times with exponential backoff, so short network outages no longer stop a build. A `4xx` response is still reported at once. (#2953)
+- 🐛 Accepts `default` as a [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) value on Pyodide, and accepts `pyodide-build` in the top-level table and in overrides (#2951)
+- 🛠 Holds pip back on GraalPy, where newer pip breaks the build (#2955)
+- 🛠 Updates Pyodide to 314.0.4 (#2949, #2952)
+- 🛠 Updates dependencies and container pins (#2952, #2960)
+- 💼 Updates CI action pins (#2948, #2954)
+- 🧪 Uses pp311 for the abi3 test, and deletes `test_overridden_pip_constraint`, which is not necessary since #2583 (#2956, #2957)
+
 ### v4.1.1
 
 _24 July 2026_
