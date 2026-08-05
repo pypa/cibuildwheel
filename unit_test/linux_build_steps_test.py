@@ -97,9 +97,11 @@ def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
         "cp313-manylinux_x86_64",
         "cp314-manylinux_x86_64",
         "cp314t-manylinux_x86_64",
+        "cp315-manylinux_x86_64",
+        "cp315t-manylinux_x86_64",
     ]
-    assert before_alls(build_steps[3]) == [""] * 4
-    assert container_engines(build_steps[3]) == [default_container_engine] * 4
+    assert before_alls(build_steps[3]) == [""] * 6
+    assert container_engines(build_steps[3]) == [default_container_engine] * 6
 
 
 def test_package_dir_outside_working_directory_raises_configuration_error(
