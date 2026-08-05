@@ -54,7 +54,7 @@ pefile==2024.8.26
     # via
     #   abi3audit
     #   delvewheel
-pip==26.2
+pip==26.2.1
     # via -r cibuildwheel/resources/constraints.in
 pkgconf==3.0.1.post0
     # via -r cibuildwheel/resources/constraints.in

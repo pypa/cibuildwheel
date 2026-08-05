@@ -44,7 +44,7 @@ packaging==26.3
     #   build
     #   pyodide-build
     #   wheel
-pip==26.2
+pip==26.2.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 platformdirs==4.11.0
     # via
