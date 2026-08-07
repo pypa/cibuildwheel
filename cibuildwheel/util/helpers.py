@@ -147,7 +147,9 @@ def parse_key_value_string(
     return dict(result)
 
 
-def parse_kw_string(kw_string: str, default_kw_value: str | None = None) -> dict[str, list[str]]:
+def parse_arbitrary_key_value_string(
+    key_value_string: str, default_value: str | None = None
+) -> dict[str, list[str]]:
     """
     Parses a string like
 
@@ -159,9 +161,9 @@ def parse_kw_string(kw_string: str, default_kw_value: str | None = None) -> dict
 
     No positional arguments are allowed. Words without a colon attached are
     interpreted as keys. Keys without a value will be assigned the
-    default_kw_value if provided, otherwise an empty list.
+    default_value if provided, otherwise throw an error.
     """
-    shlexer = shlex.shlex(kw_string, posix=True, punctuation_chars=";")
+    shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";")
     shlexer.commenters = ""
     shlexer.whitespace_split = True
     parts = list(shlexer)
@@ -180,12 +182,12 @@ def parse_kw_string(kw_string: str, default_kw_value: str | None = None) -> dict
             result[field_name] += values
         else:
             # no colon, so it's a key (or set of keys) without values
-            if default_kw_value is None:
-                msg = f"Failed to parse {kw_string!r}. No value specified for {field_name!r}. Expected ':' followed by a value."
+            if default_value is None:
+                msg = f"Failed to parse {key_value_string!r}. No value specified for {field_name!r}. Expected ':' followed by a value."
                 raise ValueError(msg)
 
             for key in field:
-                result[key].append(default_kw_value)
+                result[key].append(default_value)
 
     return dict(result)
 

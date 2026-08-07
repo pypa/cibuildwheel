@@ -52,8 +52,8 @@ from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util import resources
 from cibuildwheel.util.helpers import (
     format_safe,
+    parse_arbitrary_key_value_string,
     parse_key_value_string,
-    parse_kw_string,
     strtobool,
     unwrap,
 )
@@ -449,7 +449,7 @@ def parse_inherit(config: str | dict[str, str] | None) -> dict[str, InheritRule]
         return {}
 
     if isinstance(config, str):
-        parsed = parse_kw_string(config, default_kw_value="append")
+        parsed = parse_arbitrary_key_value_string(config, default_value="append")
         inherit_dict = {k: "".join(v) for k, v in parsed.items()}
     elif isinstance(config, dict):
         inherit_dict = config
@@ -874,7 +874,7 @@ class Options:
             if xbuild_tools == ["\u0000"]:
                 xbuild_tools = None
 
-            xbuild_files = parse_kw_string(
+            xbuild_files = parse_arbitrary_key_value_string(
                 self.reader.get(
                     "xbuild-files",
                     option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
