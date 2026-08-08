@@ -222,12 +222,6 @@ def setup_target_python(config: PythonConfiguration, build_path: Path) -> Path:
     python_dir = build_path / "python"
     python_dir.mkdir()
     shutil.unpack_archive(python_tgz, python_dir)
-
-    # Work around https://github.com/python/cpython/issues/138800. This can be removed
-    # once we've updated to Python versions that include the fix.
-    pc_path = python_dir / f"prefix/lib/pkgconfig/python-{config.version}.pc"
-    pc_path.write_text(pc_path.read_text().replace("$(BLDLIBRARY)", f"-lpython{config.version}"))
-
     return python_dir
 
 
