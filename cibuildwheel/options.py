@@ -162,7 +162,7 @@ class BuildOptions:
     build_verbosity: int
     build_frontend: BuildFrontendConfig
     config_settings: str
-    container_engine: OCIContainerEngineConfig
+    container_engine: OCIContainerEngineConfig | None
     pyodide_version: str | None
 
     @property
