@@ -7,9 +7,9 @@ __lazy_modules__ = {
     "cibuildwheel.util",
     "cibuildwheel.util.file",
     "cibuildwheel.util.helpers",
-    "cibuildwheel.util.packaging",
     "collections",
     "contextlib",
+    "functools",
     "pathlib",
     "shutil",
     "subprocess",
@@ -19,13 +19,14 @@ __lazy_modules__ = {
 
 import contextlib
 import dataclasses
+import functools
 import shutil
 import subprocess
 import sys
 import textwrap
 from collections import OrderedDict
 from pathlib import Path, PurePath, PurePosixPath
-from typing import assert_never
+from typing import ClassVar, assert_never
 
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
@@ -33,10 +34,10 @@ from cibuildwheel.audit import needs_audit, run_audit
 from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config_settings
 from cibuildwheel.logger import log
 from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
+from cibuildwheel.platforms import runner
 from cibuildwheel.util import resources
 from cibuildwheel.util.file import copy_test_sources
 from cibuildwheel.util.helpers import prepare_command, unwrap
-from cibuildwheel.util.packaging import find_compatible_wheel
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -186,6 +187,325 @@ def check_all_python_exist(
         raise errors.FatalError(message)
 
 
+@dataclasses.dataclass(frozen=True, kw_only=True)
+class LinuxBuilder:
+    """Steps to build one Linux wheel, invoked by runner.run_builds().
+
+    Every step runs inside an OCI container, so wheel paths are container-side
+    paths; the wheels are copied back to the host once, after every build in
+    the container has finished.
+    """
+
+    identifier: str
+    build_options: BuildOptions
+    config: PythonConfiguration
+    container: OCIContainer
+    container_project_path: PurePath
+    container_package_dir: PurePath
+    # host-side scratch space, shared across identifiers
+    local_tmp_dir: Path
+    env: dict[str, str]
+    python_bin: PurePosixPath
+    use_uv: bool
+    pip: list[str]
+    dependency_constraint_flags: list[PathOrStr]
+    container_output_dir: ClassVar[PurePosixPath] = PurePosixPath("/output")
+    built_wheel_dir: ClassVar[PurePosixPath] = PurePosixPath("/tmp/cibuildwheel/built_wheel")
+    repaired_wheel_dir: ClassVar[PurePosixPath] = PurePosixPath("/tmp/cibuildwheel/repaired_wheel")
+
+    def before_build(self) -> None:
+        build_options = self.build_options
+        assert build_options.before_build is not None
+
+        before_build_prepared = prepare_command(
+            build_options.before_build,
+            project=self.container_project_path,
+            package=self.container_package_dir,
+        )
+        before_build_env = self.env.copy()
+        if self.use_uv:
+            # On Linux, no virtualenv is created for the build environment
+            # (unlike macOS/Windows, where one is set up before before_build
+            # runs). uv requires either an active venv or an explicit Python
+            # target to install packages. Pin UV_PYTHON to the exact interpreter
+            # for this build so that `uv pip install` works in before_build
+            # without requiring users to pass --system.
+            before_build_env["UV_PYTHON"] = str(self.python_bin / "python")
+        self.container.call(["sh", "-c", before_build_prepared], env=before_build_env)
+
+    def build_wheel(self) -> PurePosixPath:
+        container = self.container
+        build_options = self.build_options
+        build_frontend = build_options.build_frontend
+
+        container.call(["rm", "-rf", self.built_wheel_dir])
+        container.call(["mkdir", "-p", self.built_wheel_dir])
+
+        extra_flags = get_build_frontend_extra_flags(
+            build_frontend,
+            build_options.build_verbosity,
+            prepare_config_settings(
+                build_options.config_settings,
+                project=self.container_project_path,
+                package=self.container_package_dir,
+            ),
+        )
+
+        match build_frontend.name:
+            case "pip":
+                container.call(
+                    [
+                        "python",
+                        "-m",
+                        "pip",
+                        "wheel",
+                        self.container_package_dir,
+                        f"--wheel-dir={self.built_wheel_dir}",
+                        "--no-deps",
+                        *extra_flags,
+                    ],
+                    env=self.env,
+                )
+            case "build" | "build[uv]":
+                if self.use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
+                    extra_flags += ["--installer=uv"]
+                container.call(
+                    [
+                        "python",
+                        "-m",
+                        "build",
+                        self.container_package_dir,
+                        "--wheel",
+                        f"--outdir={self.built_wheel_dir}",
+                        *extra_flags,
+                    ],
+                    env=self.env,
+                )
+            case "uv":
+                container.call(
+                    [
+                        "uv",
+                        "build",
+                        f"--python={self.python_bin / 'python'}",
+                        self.container_package_dir,
+                        "--wheel",
+                        f"--out-dir={self.built_wheel_dir}",
+                        *extra_flags,
+                    ],
+                    env=self.env,
+                )
+            case "pyodide-build":
+                msg = "The 'pyodide-build' build frontend is not supported on this platform"
+                raise errors.FatalError(msg)
+            case _:
+                assert_never(build_frontend)
+
+        try:
+            return container.glob(self.built_wheel_dir, "*.whl")[0]
+        except IndexError:
+            raise errors.BuildProducedNoWheelError() from None
+
+    def repair_wheel(self, built_wheel: PurePosixPath) -> list[PurePosixPath]:
+        container = self.container
+        build_options = self.build_options
+
+        container.call(["rm", "-rf", self.repaired_wheel_dir])
+        container.call(["mkdir", "-p", self.repaired_wheel_dir])
+
+        if build_options.repair_command:
+            repair_command_prepared = prepare_command(
+                build_options.repair_command,
+                wheel=built_wheel,
+                dest_dir=self.repaired_wheel_dir,
+                package=self.container_package_dir,
+                project=self.container_project_path,
+            )
+            container.call(["sh", "-c", repair_command_prepared], env=self.env)
+        else:
+            container.call(["mv", built_wheel, self.repaired_wheel_dir])
+
+        return container.glob(self.repaired_wheel_dir, "*.whl")
+
+    def audit_wheel(self, repaired_wheel: PurePosixPath) -> None:
+        build_options = self.build_options
+        if not needs_audit(build_options.audit_command, repaired_wheel.name):
+            return
+
+        # the wheel lives in the container, but the audit tools run on the
+        # host; copy it out to a temporary directory first
+        local_abi3audit_dir = self.local_tmp_dir / self.identifier / "audit"
+        local_abi3audit_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            self.container.copy_out(self.repaired_wheel_dir, local_abi3audit_dir)
+            local_wheel = local_abi3audit_dir / repaired_wheel.name
+            run_audit(tmp_dir=self.local_tmp_dir, build_options=build_options, wheel=local_wheel)
+        finally:
+            shutil.rmtree(local_abi3audit_dir, ignore_errors=True)
+
+    def test_wheel(self, repaired_wheel: PurePosixPath) -> None:
+        container = self.container
+        build_options = self.build_options
+        assert build_options.test_command is not None
+
+        log.step("Testing wheel...")
+
+        # set up a virtual environment to install and test from, to make sure
+        # there are no dependencies that were pulled in at build time.
+        if not self.use_uv:
+            container.call(
+                ["pip", "install", "virtualenv", *self.dependency_constraint_flags], env=self.env
+            )
+
+        testing_temp_dir = PurePosixPath(
+            container.call(["mktemp", "-d"], capture_output=True).strip()
+        )
+        venv_dir = testing_temp_dir / "venv"
+
+        if self.use_uv:
+            container.call(
+                ["uv", "venv", venv_dir, "--python", self.python_bin / "python"], env=self.env
+            )
+        else:
+            # Use embedded dependencies from virtualenv to ensure determinism
+            venv_args = ["--no-periodic-update", "--pip=embed", "--no-setuptools"]
+            if "38" in self.identifier:
+                venv_args.append("--no-wheel")
+            container.call(["python", "-m", "virtualenv", *venv_args, venv_dir], env=self.env)
+
+        virtualenv_env = self.env.copy()
+        virtualenv_env["PATH"] = f"{venv_dir / 'bin'}:{virtualenv_env['PATH']}"
+        virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
+        virtualenv_env = build_options.test_environment.as_dictionary(
+            prev_environment=virtualenv_env
+        )
+
+        if build_options.before_test:
+            before_test_prepared = prepare_command(
+                build_options.before_test,
+                project=self.container_project_path,
+                package=self.container_package_dir,
+            )
+            container.call(["sh", "-c", before_test_prepared], env=virtualenv_env)
+
+        # Install the wheel we just built
+        container.call(
+            [*self.pip, "install", str(repaired_wheel) + build_options.test_extras],
+            env=virtualenv_env,
+        )
+
+        # Install any requirements to run the tests
+        if build_options.test_requires:
+            container.call([*self.pip, "install", *build_options.test_requires], env=virtualenv_env)
+
+        # Run the tests from a different directory
+        test_command_prepared = prepare_command(
+            build_options.test_command,
+            project=self.container_project_path,
+            package=self.container_package_dir,
+            wheel=repaired_wheel,
+        )
+
+        test_cwd = testing_temp_dir / "test_cwd"
+        container.call(["mkdir", "-p", test_cwd])
+
+        if build_options.test_sources:
+            copy_test_sources(
+                build_options.test_sources,
+                Path.cwd(),
+                test_cwd,
+                copy_into=container.copy_into,
+            )
+        else:
+            # Use the test_fail.py file to raise a nice error if the user
+            # tries to run tests in the cwd
+            container.copy_into(resources.TEST_FAIL_CWD_FILE, test_cwd / "test_fail.py")
+
+        container.call(["sh", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
+
+        # clean up test environment
+        container.call(["rm", "-rf", testing_temp_dir])
+
+    def move_to_output(self, repaired_wheel: PurePosixPath) -> PurePosixPath:
+        self.container.call(["mkdir", "-p", self.container_output_dir])
+        self.container.call(["mv", repaired_wheel, self.container_output_dir])
+        return self.container_output_dir / repaired_wheel.name
+
+    def cleanup(self) -> None:
+        # nothing to do: the container is removed when the build step ends,
+        # and the host temp dir is removed at the end of the run
+        pass
+
+
+def setup_builder(
+    config: PythonConfiguration,
+    build_options: BuildOptions,
+    container: OCIContainer,
+    container_project_path: PurePath,
+    container_package_dir: PurePath,
+    local_tmp_dir: Path,
+) -> LinuxBuilder:
+    """Prepare the container's build environment for one identifier."""
+    use_uv = build_options.build_frontend.name in {"build[uv]", "uv"}
+
+    log.step("Setting up build environment...")
+
+    dependency_constraint_flags: list[PathOrStr] = []
+    local_identifier_tmp_dir = local_tmp_dir / config.identifier
+    local_identifier_tmp_dir.mkdir(parents=True, exist_ok=True)
+    local_constraints_file = build_options.dependency_constraints.get_for_python_version(
+        version=config.version,
+        tmp_dir=local_identifier_tmp_dir,
+    )
+    if local_constraints_file:
+        container_constraints_file = PurePosixPath("/constraints.txt")
+        container.copy_into(local_constraints_file, container_constraints_file)
+        dependency_constraint_flags = ["-c", container_constraints_file]
+
+    env = container.get_environment()
+    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    env["PIP_ROOT_USER_ACTION"] = "ignore"
+
+    # put this config's python top of the list
+    python_bin = config.path / "bin"
+    env["PATH"] = f"{python_bin}:{env['PATH']}"
+
+    env = build_options.environment.as_dictionary(env, executor=container.environment_executor)
+    env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
+
+    # check config python is still on PATH
+    which_python = container.call(["which", "python"], env=env, capture_output=True).strip()
+    if PurePosixPath(which_python) != python_bin / "python":
+        msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
+        raise errors.FatalError(msg)
+    container.call(["python", "-V", "-V"], env=env)
+
+    if use_uv:
+        which_uv = container.call(["which", "uv"], env=env, capture_output=True).strip()
+        if not which_uv:
+            msg = "uv not found on PATH. You must use a supported manylinux or musllinux environment with uv."
+            raise errors.FatalError(msg)
+    else:
+        which_pip = container.call(["which", "pip"], env=env, capture_output=True).strip()
+        if PurePosixPath(which_pip) != python_bin / "pip":
+            msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
+            raise errors.FatalError(msg)
+
+    return LinuxBuilder(
+        identifier=config.identifier,
+        build_options=build_options,
+        config=config,
+        container=container,
+        container_project_path=container_project_path,
+        container_package_dir=container_package_dir,
+        local_tmp_dir=local_tmp_dir,
+        env=env,
+        python_bin=python_bin,
+        use_uv=use_uv,
+        pip=["uv", "pip"] if use_uv else ["pip"],
+        dependency_constraint_flags=dependency_constraint_flags,
+    )
+
+
 def build_in_container(
     *,
     options: Options,
@@ -195,13 +515,12 @@ def build_in_container(
     container_package_dir: PurePath,
     local_tmp_dir: Path,
 ) -> None:
-    container_output_dir = PurePosixPath("/output")
-
     check_all_python_exist(platform_configs=platform_configs, container=container)
 
     log.step("Copying project into container...")
     container.copy_into(Path.cwd(), container_project_path)
 
+    # before_all runs once per container, not once per session
     before_all_options_identifier = platform_configs[0].identifier
     before_all_options = options.build_options(before_all_options_identifier)
 
@@ -223,287 +542,27 @@ def build_in_container(
         )
         container.call(["sh", "-c", before_all_prepared], env=env)
 
-    built_wheels: list[PurePosixPath] = []
-
-    for config in platform_configs:
-        log.build_start(config.identifier)
-        local_identifier_tmp_dir = local_tmp_dir / config.identifier
-        build_options = options.build_options(config.identifier)
-        build_frontend = build_options.build_frontend
-        use_uv = build_frontend.name in {"build[uv]", "uv"}
-        pip = ["uv", "pip"] if use_uv else ["pip"]
-
-        log.step("Setting up build environment...")
-
-        dependency_constraint_flags: list[PathOrStr] = []
-        local_constraints_file = build_options.dependency_constraints.get_for_python_version(
-            version=config.version,
-            tmp_dir=local_identifier_tmp_dir,
-        )
-        if local_constraints_file:
-            container_constraints_file = PurePosixPath("/constraints.txt")
-            container.copy_into(local_constraints_file, container_constraints_file)
-            dependency_constraint_flags = ["-c", container_constraints_file]
-
-        env = container.get_environment()
-        env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
-        env["PIP_ROOT_USER_ACTION"] = "ignore"
-
-        # put this config's python top of the list
-        python_bin = config.path / "bin"
-        env["PATH"] = f"{python_bin}:{env['PATH']}"
-
-        env = build_options.environment.as_dictionary(env, executor=container.environment_executor)
-        env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
-
-        # check config python is still on PATH
-        which_python = container.call(["which", "python"], env=env, capture_output=True).strip()
-        if PurePosixPath(which_python) != python_bin / "python":
-            msg = "python available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert python above it."
-            raise errors.FatalError(msg)
-        container.call(["python", "-V", "-V"], env=env)
-
-        if use_uv:
-            which_uv = container.call(["which", "uv"], env=env, capture_output=True).strip()
-            if not which_uv:
-                msg = "uv not found on PATH. You must use a supported manylinux or musllinux environment with uv."
-                raise errors.FatalError(msg)
-        else:
-            which_pip = container.call(["which", "pip"], env=env, capture_output=True).strip()
-            if PurePosixPath(which_pip) != python_bin / "pip":
-                msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
-                raise errors.FatalError(msg)
-
-        compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
-        if compatible_wheel:
-            log.step_end()
-            print(
-                f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
-            )
-            repaired_wheel = compatible_wheel
-        else:
-            if build_options.before_build:
-                log.step("Running before_build...")
-                before_build_prepared = prepare_command(
-                    build_options.before_build,
-                    project=container_project_path,
-                    package=container_package_dir,
-                )
-                before_build_env = env.copy()
-                if use_uv:
-                    # On Linux, no virtualenv is created for the build environment
-                    # (unlike macOS/Windows, where one is set up before before_build
-                    # runs). uv requires either an active venv or an explicit Python
-                    # target to install packages. Pin UV_PYTHON to the exact interpreter
-                    # for this build so that `uv pip install` works in before_build
-                    # without requiring users to pass --system.
-                    before_build_env["UV_PYTHON"] = str(python_bin / "python")
-                container.call(["sh", "-c", before_build_prepared], env=before_build_env)
-
-            log.step("Building wheel...")
-
-            temp_dir = PurePosixPath("/tmp/cibuildwheel")
-            built_wheel_dir = temp_dir / "built_wheel"
-            container.call(["rm", "-rf", built_wheel_dir])
-            container.call(["mkdir", "-p", built_wheel_dir])
-
-            extra_flags = get_build_frontend_extra_flags(
-                build_frontend,
-                build_options.build_verbosity,
-                prepare_config_settings(
-                    build_options.config_settings,
-                    project=container_project_path,
-                    package=container_package_dir,
+    runner.run_builds(
+        [
+            runner.BuildSpec(
+                identifier=config.identifier,
+                setup=functools.partial(
+                    setup_builder,
+                    config=config,
+                    build_options=options.build_options(config.identifier),
+                    container=container,
+                    container_project_path=container_project_path,
+                    container_package_dir=container_package_dir,
+                    local_tmp_dir=local_tmp_dir,
                 ),
             )
-
-            match build_frontend.name:
-                case "pip":
-                    container.call(
-                        [
-                            "python",
-                            "-m",
-                            "pip",
-                            "wheel",
-                            container_package_dir,
-                            f"--wheel-dir={built_wheel_dir}",
-                            "--no-deps",
-                            *extra_flags,
-                        ],
-                        env=env,
-                    )
-                case "build" | "build[uv]":
-                    if use_uv and "--no-isolation" not in extra_flags and "-n" not in extra_flags:
-                        extra_flags += ["--installer=uv"]
-                    container.call(
-                        [
-                            "python",
-                            "-m",
-                            "build",
-                            container_package_dir,
-                            "--wheel",
-                            f"--outdir={built_wheel_dir}",
-                            *extra_flags,
-                        ],
-                        env=env,
-                    )
-                case "uv":
-                    container.call(
-                        [
-                            "uv",
-                            "build",
-                            f"--python={python_bin / 'python'}",
-                            container_package_dir,
-                            "--wheel",
-                            f"--out-dir={built_wheel_dir}",
-                            *extra_flags,
-                        ],
-                        env=env,
-                    )
-                case "pyodide-build":
-                    msg = "The 'pyodide-build' build frontend is not supported on this platform"
-                    raise errors.FatalError(msg)
-                case _:
-                    assert_never(build_frontend)
-
-            try:
-                built_wheel = container.glob(built_wheel_dir, "*.whl")[0]
-            except IndexError:
-                raise errors.BuildProducedNoWheelError() from None
-
-            repaired_wheel_dir = temp_dir / "repaired_wheel"
-            container.call(["rm", "-rf", repaired_wheel_dir])
-            container.call(["mkdir", "-p", repaired_wheel_dir])
-
-            if built_wheel.name.endswith("none-any.whl"):
-                raise errors.NonPlatformWheelError()
-
-            if build_options.repair_command:
-                log.step("Repairing wheel...")
-                repair_command_prepared = prepare_command(
-                    build_options.repair_command,
-                    wheel=built_wheel,
-                    dest_dir=repaired_wheel_dir,
-                    package=container_package_dir,
-                    project=container_project_path,
-                )
-                container.call(["sh", "-c", repair_command_prepared], env=env)
-            else:
-                container.call(["mv", built_wheel, repaired_wheel_dir])
-
-            match container.glob(repaired_wheel_dir, "*.whl"):
-                case []:
-                    raise errors.RepairStepProducedNoWheelError()
-                case [repaired_wheel]:
-                    pass
-                case too_many:
-                    raise errors.RepairStepProducedMultipleWheelsError([p.name for p in too_many])
-
-            if repaired_wheel.name in {wheel.name for wheel in built_wheels}:
-                raise errors.AlreadyBuiltWheelError(repaired_wheel.name)
-
-            log.step_end()
-
-            if needs_audit(build_options.audit_command, repaired_wheel.name):
-                local_abi3audit_dir = local_identifier_tmp_dir / "audit"
-                local_abi3audit_dir.mkdir(parents=True, exist_ok=True)
-                try:
-                    container.copy_out(repaired_wheel_dir, local_abi3audit_dir)
-                    local_wheel = local_abi3audit_dir / repaired_wheel.name
-                    run_audit(tmp_dir=local_tmp_dir, build_options=build_options, wheel=local_wheel)
-                finally:
-                    shutil.rmtree(local_abi3audit_dir, ignore_errors=True)
-
-        if build_options.test_command and build_options.test_selector(config.identifier):
-            log.step("Testing wheel...")
-
-            # set up a virtual environment to install and test from, to make sure
-            # there are no dependencies that were pulled in at build time.
-            if not use_uv:
-                container.call(
-                    ["pip", "install", "virtualenv", *dependency_constraint_flags], env=env
-                )
-
-            testing_temp_dir = PurePosixPath(
-                container.call(["mktemp", "-d"], capture_output=True).strip()
-            )
-            venv_dir = testing_temp_dir / "venv"
-
-            if use_uv:
-                container.call(["uv", "venv", venv_dir, "--python", python_bin / "python"], env=env)
-            else:
-                # Use embedded dependencies from virtualenv to ensure determinism
-                venv_args = ["--no-periodic-update", "--pip=embed", "--no-setuptools"]
-                if "38" in config.identifier:
-                    venv_args.append("--no-wheel")
-                container.call(["python", "-m", "virtualenv", *venv_args, venv_dir], env=env)
-
-            virtualenv_env = env.copy()
-            virtualenv_env["PATH"] = f"{venv_dir / 'bin'}:{virtualenv_env['PATH']}"
-            virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
-            virtualenv_env = build_options.test_environment.as_dictionary(
-                prev_environment=virtualenv_env
-            )
-
-            if build_options.before_test:
-                before_test_prepared = prepare_command(
-                    build_options.before_test,
-                    project=container_project_path,
-                    package=container_package_dir,
-                )
-                container.call(["sh", "-c", before_test_prepared], env=virtualenv_env)
-
-            # Install the wheel we just built
-            container.call(
-                [*pip, "install", str(repaired_wheel) + build_options.test_extras],
-                env=virtualenv_env,
-            )
-
-            # Install any requirements to run the tests
-            if build_options.test_requires:
-                container.call([*pip, "install", *build_options.test_requires], env=virtualenv_env)
-
-            # Run the tests from a different directory
-            test_command_prepared = prepare_command(
-                build_options.test_command,
-                project=container_project_path,
-                package=container_package_dir,
-                wheel=repaired_wheel,
-            )
-
-            test_cwd = testing_temp_dir / "test_cwd"
-            container.call(["mkdir", "-p", test_cwd])
-
-            if build_options.test_sources:
-                copy_test_sources(
-                    build_options.test_sources,
-                    Path.cwd(),
-                    test_cwd,
-                    copy_into=container.copy_into,
-                )
-            else:
-                # Use the test_fail.py file to raise a nice error if the user
-                # tries to run tests in the cwd
-                container.copy_into(resources.TEST_FAIL_CWD_FILE, test_cwd / "test_fail.py")
-
-            container.call(["sh", "-c", test_command_prepared], cwd=test_cwd, env=virtualenv_env)
-
-            # clean up test environment
-            container.call(["rm", "-rf", testing_temp_dir])
-
-        # move repaired wheel to output
-        output_wheel: Path | None = None
-        if compatible_wheel is None:
-            container.call(["mkdir", "-p", container_output_dir])
-            container.call(["mv", repaired_wheel, container_output_dir])
-            built_wheels.append(container_output_dir / repaired_wheel.name)
-            output_wheel = options.globals.output_dir / repaired_wheel.name
-
-        log.build_end(output_wheel)
+            for config in platform_configs
+        ]
+    )
 
     log.step("Copying wheels back to host...")
     # copy the output back into the host
-    container.copy_out(container_output_dir, options.globals.output_dir)
+    container.copy_out(PurePosixPath("/output"), options.globals.output_dir)
     log.step_end()
 
 
@@ -541,7 +600,7 @@ def build(options: Options, tmp_path: Path) -> None:
             )
             raise errors.ConfigurationError(msg) from error
 
-        try:
+        with runner.fatal_on_called_process_error(functools.partial(troubleshoot, options)):
             ids_to_build = [x.identifier for x in build_step.platform_configs]
             log.step(f"Starting container image {build_step.container_image}...")
 
@@ -562,11 +621,6 @@ def build(options: Options, tmp_path: Path) -> None:
                     container_package_dir=container_package_dir,
                     local_tmp_dir=tmp_path,
                 )
-
-        except subprocess.CalledProcessError as error:
-            troubleshoot(options, error)
-            msg = f"Command {error.cmd} failed with code {error.returncode}. {error.stdout or ''}"
-            raise errors.FatalError(msg) from error
 
 
 def _matches_prepared_command(error_cmd: Sequence[str], command_template: str) -> bool:

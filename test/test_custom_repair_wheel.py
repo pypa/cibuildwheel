@@ -84,9 +84,10 @@ def test_repair_wheel_command_structure(tmp_path: Path, repair_command: str) -> 
 
         wheel = Path(sys.argv[1])
         dest_dir = Path(sys.argv[2])
+        platform = wheel.stem.split("-")[-1]
 
         dest_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(wheel, dest_dir / "spamrepaired-0.0.1-py-none-any.whl")
+        shutil.copy(wheel, dest_dir / f"spamrepaired-0.0.1-py2-none-{platform}.whl")
     """)
 
     # Combined test for repair wheel command formats (plain, {package}, {project})
@@ -101,4 +102,5 @@ def test_repair_wheel_command_structure(tmp_path: Path, repair_command: str) -> 
         single_python=True,
     )
 
-    assert result == ["spamrepaired-0.0.1-py-none-any.whl"]
+    assert len(result) == 1
+    assert result[0].startswith("spamrepaired-0.0.1-py2-none-")
