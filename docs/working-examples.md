@@ -75,8 +75,8 @@ ref: working-examples
 | [markupsafe][]                    | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Safely add untrusted strings to HTML/XML markup. |
 | [Rtree][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Rtree: spatial index for Python GIS |
 | [pybind11 cmake_example][]        | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | Example pybind11 module built with a CMake-based build system |
-| [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
 | [dd-trace-py][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Uses custom alternate arch emulation on GitHub |
+| [KDEpy][]                         | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | Kernel Density Estimation in Python |
 | [sourmash][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] ![pyodide icon][] | Quickly search, compare, and analyze genomic and metagenomic data sets. |
 | [tgcalls][]                       | ![github icon][] | ![apple icon][] ![windows icon][] | Python `pybind11` binding to Telegram's WebRTC library with third party dependencies like `OpenSSL`, `MozJPEG`, `FFmpeg`, etc. |
 | [python-rapidjson][]              | ![travisci icon][] ![gitlab icon][] | ![windows icon][] ![linux icon][] | Python wrapper around rapidjson |
@@ -186,8 +186,8 @@ ref: working-examples
 [markupsafe]: https://github.com/pallets/markupsafe
 [Rtree]: https://github.com/Toblerity/rtree
 [pybind11 cmake_example]: https://github.com/pybind/cmake_example
-[KDEpy]: https://github.com/tommyod/KDEpy
 [dd-trace-py]: https://github.com/DataDog/dd-trace-py
+[KDEpy]: https://github.com/tommyod/KDEpy
 [sourmash]: https://github.com/sourmash-bio/sourmash
 [tgcalls]: https://github.com/MarshalX/tgcalls
 [python-rapidjson]: https://github.com/python-rapidjson/python-rapidjson
