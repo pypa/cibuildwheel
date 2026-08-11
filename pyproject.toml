@@ -166,6 +166,7 @@ messages_control.disable = [
   "wrong-import-position",
   "unused-argument",  # Handled by Ruff
   "import-outside-toplevel",  # Handled by Ruff
+  "broad-exception-caught",  # Handled by Ruff
   "broad-exception-raised",  # Could be improved eventually
   "consider-using-in",  # MyPy can't narrow "in"
 ]
@@ -217,6 +218,7 @@ ignore = [
   "PT007",   # Lists of tuples in Pytest
   "PYI025",  # Set as AbstractSet
   "PTH123",  # open -> Path.open
+  "TRY002",  # Create your own exception
 ]
 flake8-unused-arguments.ignore-variadic-names = true
 flake8-tidy-imports.ban-relative-imports = "all"
@@ -234,7 +236,7 @@ future-annotations = true
 
 [tool.ruff.lint.per-file-ignores]
 "unit_test/*" = ["PLC1901", "TID252"]
-"test/*" = ["TID252"]
+"test/*" = ["TID252", "N999"]
 "bin/*" = ["TID251"]
 "cibuildwheel/resources/install_certifi.py" = ["PTH"]
 

@@ -49,7 +49,7 @@ def parse(contents: str) -> str | None:
         analyzer = Analyzer()
         analyzer.visit(tree)
         return analyzer.requires_python or ""
-    except Exception:
+    except Exception:  # noqa: BLE001
         return None
 
 
