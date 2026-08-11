@@ -52,7 +52,7 @@ packaging==26.3
     #   auditwheel
     #   build
     #   delocate
-patchelf==0.17.2.4
+patchelf==0.19.1.0
     # via -r cibuildwheel/resources/constraints.in
 pefile==2024.8.26
     # via
@@ -62,7 +62,7 @@ pip==26.2.1
     # via -r cibuildwheel/resources/constraints.in
 pkgconf==3.0.1.post0
     # via -r cibuildwheel/resources/constraints.in
-platformdirs==4.11.0
+platformdirs==4.11.1
     # via
     #   requests-cache
     #   virtualenv
@@ -98,7 +98,7 @@ urllib3==2.7.0
     # via
     #   requests
     #   requests-cache
-virtualenv==21.7.1
+virtualenv==21.7.3
     # via -r cibuildwheel/resources/constraints.in
 zipp==4.1.0
     # via importlib-metadata
