@@ -53,7 +53,7 @@ def remove_on_error(path: Path) -> Generator[None, None, None]:
                 shutil.rmtree(path)
             elif path.exists() or path.is_symlink():
                 path.unlink()
-        except BaseException as cleanup_exception:
+        except BaseException as cleanup_exception:  # noqa: BLE001
             msg = f"Failed to remove {path}. Please remove it manually."
             raise BaseExceptionGroup(msg, [original_exception, cleanup_exception]) from None
         raise
