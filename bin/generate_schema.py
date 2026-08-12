@@ -43,25 +43,8 @@ properties:
   inherit:
     type: object
     additionalProperties: false
-    properties:
-      audit-command: {"$ref": "#/$defs/inherit"}
-      audit-requires: {"$ref": "#/$defs/inherit"}
-      before-all: {"$ref": "#/$defs/inherit"}
-      before-build: {"$ref": "#/$defs/inherit"}
-      xbuild-tools: {"$ref": "#/$defs/inherit"}
-      xbuild-files: {"$ref": "#/$defs/inherit"}
-      before-test: {"$ref": "#/$defs/inherit"}
-      config-settings: {"$ref": "#/$defs/inherit"}
-      container-engine: {"$ref": "#/$defs/inherit"}
-      environment: {"$ref": "#/$defs/inherit"}
-      environment-pass: {"$ref": "#/$defs/inherit"}
-      repair-wheel-command: {"$ref": "#/$defs/inherit"}
-      test-command: {"$ref": "#/$defs/inherit"}
-      test-extras: {"$ref": "#/$defs/inherit"}
-      test-sources: {"$ref": "#/$defs/inherit"}
-      test-requires: {"$ref": "#/$defs/inherit"}
-      test-environment: {"$ref": "#/$defs/inherit"}
-      test-runtime: {"$ref": "#/$defs/inherit"}
+    description: Merge values with lower-precedence layers instead of replacing them.
+    properties: {}
   audit-command:
     description: Execute a shell command to audit each wheel after it is repaired. Use {wheel} for each wheel path, or {abi3_wheel} to only audit abi3 wheels.
     type: string_array
@@ -343,6 +326,19 @@ items:
 for key, value in schema["properties"].items():
     value["title"] = f"CIBW_{key.replace('-', '_').upper()}"
 
+
+def inherit_ref_table(option_names: dict[str, Any]) -> dict[str, Any]:
+    return {
+        name: {"$ref": "#/$defs/inherit"}
+        for name in option_names
+        if name not in {"inherit", "select"}
+    }
+
+
+# any option can carry an inherit rule; derive the keys from the option list
+# so the schema stays in sync with the runtime
+schema["properties"]["inherit"]["properties"] = inherit_ref_table(schema["properties"])
+
 non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
 del non_global_options["build"]
 del non_global_options["skip"]
@@ -392,6 +388,14 @@ for os_name, command in [
     }
 
 del oses["linux"]["properties"]["dependency-versions"]
+
+# each section only offers inherit rules for the options it can set
+for section in (overrides["items"], *oses.values()):
+    section["properties"]["inherit"] = {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": inherit_ref_table(section["properties"]),
+    }
 
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses

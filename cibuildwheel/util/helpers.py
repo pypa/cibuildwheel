@@ -102,6 +102,9 @@ def parse_key_value_string(
     key_value_string: str,
     positional_arg_names: Sequence[str] | None = None,
     kw_arg_names: Sequence[str] | None = None,
+    *,
+    arbitrary_keys: bool = False,
+    default_value: str | None = None,
 ) -> dict[str, list[str]]:
     """
     Parses a string like "docker; create_args: --some-option=value another-option"
@@ -128,11 +131,19 @@ def parse_key_value_string(
         # check to see if the option name is specified
         field_name, sep, first_value = field[0].partition(":")
         if sep:
-            if field_name not in all_field_names:
+            if not arbitrary_keys and field_name not in all_field_names:
                 msg = f"Failed to parse {key_value_string!r}. Unknown field name {field_name!r}"
                 raise ValueError(msg)
 
-            values = ([first_value] if first_value else []) + field[1:]
+            result[field_name] += ([first_value] if first_value else []) + field[1:]
+        elif arbitrary_keys:
+            # bare words are keys without values
+            if default_value is None:
+                msg = f"Failed to parse {key_value_string!r}. No value specified for {field_name!r}. Expected ':' followed by a value."
+                raise ValueError(msg)
+
+            for key in field:
+                result[key].append(default_value)
         else:
             try:
                 field_name = positional_arg_names[field_i]
@@ -140,9 +151,7 @@ def parse_key_value_string(
                 msg = f"Failed to parse {key_value_string!r}. Too many positional arguments - expected a maximum of {len(positional_arg_names)}"
                 raise ValueError(msg) from None
 
-            values = field
-
-        result[field_name] += values
+            result[field_name] += field
 
     return dict(result)
 
@@ -163,33 +172,9 @@ def parse_arbitrary_key_value_string(
     interpreted as keys. Keys without a value will be assigned the
     default_value if provided, otherwise throw an error.
     """
-    shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";")
-    shlexer.commenters = ""
-    shlexer.whitespace_split = True
-    parts = list(shlexer)
-    # parts now looks like
-    # ['before-build', ';', 'before-test:', 'append', ';', 'after-test:', 'prepend']
-
-    # split by semicolon
-    result: defaultdict[str, list[str]] = defaultdict(list)
-    fields = [list(group) for k, group in itertools.groupby(parts, lambda x: x == ";") if not k]
-    for field in fields:
-        # check to see if the option name is specified
-        field_name, sep, first_value = field[0].partition(":")
-        if sep:
-            # the colon was present, so the first value is the value after the colon
-            values = ([first_value] if first_value else []) + field[1:]
-            result[field_name] += values
-        else:
-            # no colon, so it's a key (or set of keys) without values
-            if default_value is None:
-                msg = f"Failed to parse {key_value_string!r}. No value specified for {field_name!r}. Expected ':' followed by a value."
-                raise ValueError(msg)
-
-            for key in field:
-                result[key].append(default_value)
-
-    return dict(result)
+    return parse_key_value_string(
+        key_value_string, arbitrary_keys=True, default_value=default_value
+    )
 
 
 @dataclasses.dataclass(order=True)
