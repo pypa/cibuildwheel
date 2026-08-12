@@ -396,8 +396,9 @@ def _apply_inherit_rule(
         # if after is an empty string, we shouldn't add any separator
         return before
 
+    msg = f"Don't know how to merge {before!r} and {after!r} with {rule}"
+
     if not option_format:
-        msg = f"Don't know how to merge {before!r} and {after!r} with {rule}"
         raise OptionsReaderError(msg)
 
     try:
@@ -409,7 +410,6 @@ def _apply_inherit_rule(
             case _:
                 assert_never(rule)
     except OptionFormat.NotSupported:
-        msg = f"Don't know how to merge {before!r} and {after!r} with {rule}"
         raise OptionsReaderError(msg) from None
 
 
@@ -446,6 +446,12 @@ def _stringify_setting(
             return setting
 
 
+def _suggestion(name: str, allowed_names: Set[str]) -> str:
+    """A hint like " Perhaps you meant 'x'?" naming the closest match, or ""."""
+    matches = difflib.get_close_matches(name, allowed_names, 1, 0.7)
+    return f" Perhaps you meant {matches[0]!r}?" if matches else ""
+
+
 def parse_inherit(
     config: str | dict[str, str] | None, option_names: Set[str]
 ) -> dict[str, InheritRule]:
@@ -472,21 +478,18 @@ def parse_inherit(
         msg = "'inherit' must be a string or a table"
         raise OptionsReaderError(msg)
 
-    for name in inherit_dict:
+    rules = {}
+    for name, value in inherit_dict.items():
         if name not in option_names:
-            msg = f"Option {name!r} not supported in 'inherit'."
-            matches = difflib.get_close_matches(name, option_names, 1, 0.7)
-            if matches:
-                msg += f" Perhaps you meant {matches[0]!r}?"
+            msg = f"Option {name!r} not supported in 'inherit'.{_suggestion(name, option_names)}"
             raise OptionsReaderError(msg)
+        if not isinstance(value, str) or value.upper() not in InheritRule.__members__:
+            valid_rules = ", ".join(repr(rule.name.lower()) for rule in InheritRule)
+            msg = f"'inherit' rule for {name!r} must be one of {valid_rules}, got {value!r}"
+            raise OptionsReaderError(msg)
+        rules[name] = InheritRule[value.upper()]
 
-    if not all(
-        isinstance(v, str) and v in {"none", "append", "prepend"} for v in inherit_dict.values()
-    ):
-        msg = "'inherit' must contain only {'none', 'append', 'prepend'} values"
-        raise OptionsReaderError(msg)
-
-    return {k: InheritRule[v.upper()] for k, v in inherit_dict.items()}
+    return rules
 
 
 class OptionsReader:
@@ -567,10 +570,10 @@ class OptionsReader:
         allowed_option_names = self.default_options.keys() | PLATFORMS | {"inherit", "overrides"}
 
         if name not in allowed_option_names:
-            msg = f"Option {name!r} not supported in a config file."
-            matches = difflib.get_close_matches(name, allowed_option_names, 1, 0.7)
-            if matches:
-                msg += f" Perhaps you meant {matches[0]!r}?"
+            msg = (
+                f"Option {name!r} not supported in a config file."
+                f"{_suggestion(name, allowed_option_names)}"
+            )
             raise OptionsReaderError(msg)
 
     def _validate_platform_option(self, name: str) -> None:
@@ -588,10 +591,10 @@ class OptionsReader:
         )
 
         if name not in allowed_option_names:
-            msg = f"Option {name!r} not supported in the {self.platform!r} section"
-            matches = difflib.get_close_matches(name, allowed_option_names, 1, 0.7)
-            if matches:
-                msg += f" Perhaps you meant {matches[0]!r}?"
+            msg = (
+                f"Option {name!r} not supported in the {self.platform!r} section"
+                f"{_suggestion(name, allowed_option_names)}"
+            )
             raise OptionsReaderError(msg)
 
     def _load_file(self, filename: Path) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -635,7 +638,7 @@ class OptionsReader:
 
     def _parse_env_inherit(self, envvar: str) -> dict[str, InheritRule]:
         try:
-            return parse_inherit(self.env.get(envvar, ""), self._option_names)
+            return parse_inherit(self.env.get(envvar), self._option_names)
         except OptionsReaderError as e:
             msg = f"Failed to parse {envvar} environment variable. {e}"
             raise errors.ConfigurationError(msg) from e
@@ -686,15 +689,14 @@ class OptionsReader:
 
         # get the option from the default, then the config file, then finally the environment.
         # platform-specific options are preferred, if they're allowed.
+        env_rule = self.env_inherit.get(name, default_env_rule)
+        # CIBW_INHERIT_<PLATFORM> rules win; CIBW_INHERIT rules also
+        # apply to the platform variable when no platform rule is set
+        plat_env_rule = self.env_platform_inherit.get(name, env_rule)
+
         return _resolve_cascade(
-            (
-                self.default_options.get(name),
-                InheritRule.NONE,
-            ),
-            (
-                self.default_platform_options.get(name),
-                InheritRule.NONE,
-            ),
+            (self.default_options.get(name), InheritRule.NONE),
+            (self.default_platform_options.get(name), InheritRule.NONE),
             (
                 self.config_options.get(name),
                 self.config_options_inherit.get(name, InheritRule.NONE),
@@ -704,22 +706,11 @@ class OptionsReader:
                 self.config_platform_options_inherit.get(name, InheritRule.NONE),
             ),
             *[
-                (
-                    o.options.get(name),
-                    o.inherit.get(name, InheritRule.NONE),
-                )
+                (o.options.get(name), o.inherit.get(name, InheritRule.NONE))
                 for o in self.active_config_overrides
             ],
-            (
-                self.env.get(envvar),
-                self.env_inherit.get(name, default_env_rule),
-            ),
-            (
-                self.env.get(plat_envvar) if env_plat else None,
-                # CIBW_INHERIT_<PLATFORM> rules win; CIBW_INHERIT rules also
-                # apply to the platform variable when no platform rule is set
-                self.env_platform_inherit.get(name, self.env_inherit.get(name, default_env_rule)),
-            ),
+            (self.env.get(envvar), env_rule),
+            (self.env.get(plat_envvar) if env_plat else None, plat_env_rule),
             ignore_empty=ignore_empty,
             option_format=option_format,
         )

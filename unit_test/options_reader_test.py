@@ -646,7 +646,7 @@ inherit = {before-all = "invalid"}
 """
     )
 
-    with pytest.raises(OptionsReaderError, match="must contain only"):
+    with pytest.raises(OptionsReaderError, match="must be one of"):
         OptionsReader(pyproject_toml, platform="linux", env={})
 
 
@@ -701,7 +701,7 @@ inherit = {before-all = ["append"]}
 """
     )
 
-    with pytest.raises(OptionsReaderError, match="must contain only"):
+    with pytest.raises(OptionsReaderError, match="must be one of"):
         OptionsReader(pyproject_toml, platform="linux", env={})
 
 

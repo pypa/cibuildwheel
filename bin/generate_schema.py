@@ -336,10 +336,14 @@ def inherit_ref_table(option_names: dict[str, Any]) -> dict[str, Any]:
 
 
 # any option can carry an inherit rule; derive the keys from the option list
-# so the schema stays in sync with the runtime
+# so the schema stays in sync with the runtime (must run before the overrides
+# and platform sections are merged into the properties below)
 schema["properties"]["inherit"]["properties"] = inherit_ref_table(schema["properties"])
 
 non_global_options = {k: {"$ref": f"#/properties/{k}"} for k in schema["properties"]}
+# placeholder pinning the key's position; each section's real (narrower)
+# inherit table is filled in below, once the section's option set is final
+non_global_options["inherit"] = {}
 del non_global_options["build"]
 del non_global_options["skip"]
 del non_global_options["test-skip"]
