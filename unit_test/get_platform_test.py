@@ -38,9 +38,7 @@ def patched_environment(
     ("arch", "free_threaded", "package_name"),
     [("AMD64", False, "python"), ("ARM64", True, "pythonarm64-freethreaded")],
 )
-def test_nuget_args_use_configured_sources(
-    arch: str, free_threaded: bool, package_name: str, tmp_path: Path
-) -> None:
+def test_get_nuget_args(arch: str, free_threaded: bool, package_name: str, tmp_path: Path) -> None:
     assert get_nuget_args("3.14.1", arch, free_threaded, tmp_path) == [
         package_name,
         "-Version",
