@@ -40,6 +40,28 @@ additionalProperties: false
 description: cibuildwheel's settings.
 type: object
 properties:
+  inherit:
+    type: object
+    additionalProperties: false
+    properties:
+      audit-command: {"$ref": "#/$defs/inherit"}
+      audit-requires: {"$ref": "#/$defs/inherit"}
+      before-all: {"$ref": "#/$defs/inherit"}
+      before-build: {"$ref": "#/$defs/inherit"}
+      xbuild-tools: {"$ref": "#/$defs/inherit"}
+      xbuild-files: {"$ref": "#/$defs/inherit"}
+      before-test: {"$ref": "#/$defs/inherit"}
+      config-settings: {"$ref": "#/$defs/inherit"}
+      container-engine: {"$ref": "#/$defs/inherit"}
+      environment: {"$ref": "#/$defs/inherit"}
+      environment-pass: {"$ref": "#/$defs/inherit"}
+      repair-wheel-command: {"$ref": "#/$defs/inherit"}
+      test-command: {"$ref": "#/$defs/inherit"}
+      test-extras: {"$ref": "#/$defs/inherit"}
+      test-sources: {"$ref": "#/$defs/inherit"}
+      test-requires: {"$ref": "#/$defs/inherit"}
+      test-environment: {"$ref": "#/$defs/inherit"}
+      test-runtime: {"$ref": "#/$defs/inherit"}
   audit-command:
     description: Execute a shell command to audit each wheel after it is repaired. Use {wheel} for each wheel path, or {abi3_wheel} to only audit abi3 wheels.
     type: string_array
@@ -315,28 +337,6 @@ items:
   additionalProperties: false
   properties:
     select: {}
-    inherit:
-      type: object
-      additionalProperties: false
-      properties:
-        audit-command: {"$ref": "#/$defs/inherit"}
-        audit-requires: {"$ref": "#/$defs/inherit"}
-        before-all: {"$ref": "#/$defs/inherit"}
-        before-build: {"$ref": "#/$defs/inherit"}
-        xbuild-tools: {"$ref": "#/$defs/inherit"}
-        xbuild-files: {"$ref": "#/$defs/inherit"}
-        before-test: {"$ref": "#/$defs/inherit"}
-        config-settings: {"$ref": "#/$defs/inherit"}
-        container-engine: {"$ref": "#/$defs/inherit"}
-        environment: {"$ref": "#/$defs/inherit"}
-        environment-pass: {"$ref": "#/$defs/inherit"}
-        repair-wheel-command: {"$ref": "#/$defs/inherit"}
-        test-command: {"$ref": "#/$defs/inherit"}
-        test-extras: {"$ref": "#/$defs/inherit"}
-        test-sources: {"$ref": "#/$defs/inherit"}
-        test-requires: {"$ref": "#/$defs/inherit"}
-        test-environment: {"$ref": "#/$defs/inherit"}
-        test-runtime: {"$ref": "#/$defs/inherit"}
 """
 )
 
