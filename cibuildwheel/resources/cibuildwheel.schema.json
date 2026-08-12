@@ -29,11 +29,15 @@
     "inherit": {
       "type": "object",
       "additionalProperties": false,
+      "description": "Merge values with lower-precedence layers instead of replacing them.",
       "properties": {
         "audit-command": {
           "$ref": "#/$defs/inherit"
         },
         "audit-requires": {
+          "$ref": "#/$defs/inherit"
+        },
+        "archs": {
           "$ref": "#/$defs/inherit"
         },
         "before-all": {
@@ -42,13 +46,16 @@
         "before-build": {
           "$ref": "#/$defs/inherit"
         },
-        "xbuild-tools": {
-          "$ref": "#/$defs/inherit"
-        },
-        "xbuild-files": {
-          "$ref": "#/$defs/inherit"
-        },
         "before-test": {
+          "$ref": "#/$defs/inherit"
+        },
+        "build": {
+          "$ref": "#/$defs/inherit"
+        },
+        "build-frontend": {
+          "$ref": "#/$defs/inherit"
+        },
+        "build-verbosity": {
           "$ref": "#/$defs/inherit"
         },
         "config-settings": {
@@ -57,13 +64,82 @@
         "container-engine": {
           "$ref": "#/$defs/inherit"
         },
+        "dependency-versions": {
+          "$ref": "#/$defs/inherit"
+        },
+        "enable": {
+          "$ref": "#/$defs/inherit"
+        },
         "environment": {
           "$ref": "#/$defs/inherit"
         },
         "environment-pass": {
           "$ref": "#/$defs/inherit"
         },
+        "manylinux-aarch64-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "manylinux-armv7l-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "manylinux-i686-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "manylinux-ppc64le-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "manylinux-pypy_aarch64-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "manylinux-pypy_i686-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "manylinux-pypy_x86_64-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "manylinux-riscv64-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "manylinux-s390x-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "manylinux-x86_64-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "musllinux-aarch64-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "musllinux-armv7l-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "musllinux-i686-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "musllinux-ppc64le-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "musllinux-riscv64-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "musllinux-s390x-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "musllinux-x86_64-image": {
+          "$ref": "#/$defs/inherit"
+        },
+        "xbuild-tools": {
+          "$ref": "#/$defs/inherit"
+        },
+        "xbuild-files": {
+          "$ref": "#/$defs/inherit"
+        },
+        "pyodide-version": {
+          "$ref": "#/$defs/inherit"
+        },
         "repair-wheel-command": {
+          "$ref": "#/$defs/inherit"
+        },
+        "skip": {
           "$ref": "#/$defs/inherit"
         },
         "test-command": {
@@ -75,7 +151,13 @@
         "test-sources": {
           "$ref": "#/$defs/inherit"
         },
+        "test-groups": {
+          "$ref": "#/$defs/inherit"
+        },
         "test-requires": {
+          "$ref": "#/$defs/inherit"
+        },
+        "test-skip": {
           "$ref": "#/$defs/inherit"
         },
         "test-environment": {
@@ -750,7 +832,130 @@
             ]
           },
           "inherit": {
-            "$ref": "#/properties/inherit"
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "audit-command": {
+                "$ref": "#/$defs/inherit"
+              },
+              "audit-requires": {
+                "$ref": "#/$defs/inherit"
+              },
+              "before-all": {
+                "$ref": "#/$defs/inherit"
+              },
+              "before-build": {
+                "$ref": "#/$defs/inherit"
+              },
+              "before-test": {
+                "$ref": "#/$defs/inherit"
+              },
+              "build-frontend": {
+                "$ref": "#/$defs/inherit"
+              },
+              "build-verbosity": {
+                "$ref": "#/$defs/inherit"
+              },
+              "config-settings": {
+                "$ref": "#/$defs/inherit"
+              },
+              "container-engine": {
+                "$ref": "#/$defs/inherit"
+              },
+              "dependency-versions": {
+                "$ref": "#/$defs/inherit"
+              },
+              "environment": {
+                "$ref": "#/$defs/inherit"
+              },
+              "environment-pass": {
+                "$ref": "#/$defs/inherit"
+              },
+              "manylinux-aarch64-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "manylinux-armv7l-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "manylinux-i686-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "manylinux-ppc64le-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "manylinux-pypy_aarch64-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "manylinux-pypy_i686-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "manylinux-pypy_x86_64-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "manylinux-riscv64-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "manylinux-s390x-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "manylinux-x86_64-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "musllinux-aarch64-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "musllinux-armv7l-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "musllinux-i686-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "musllinux-ppc64le-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "musllinux-riscv64-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "musllinux-s390x-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "musllinux-x86_64-image": {
+                "$ref": "#/$defs/inherit"
+              },
+              "xbuild-tools": {
+                "$ref": "#/$defs/inherit"
+              },
+              "xbuild-files": {
+                "$ref": "#/$defs/inherit"
+              },
+              "pyodide-version": {
+                "$ref": "#/$defs/inherit"
+              },
+              "repair-wheel-command": {
+                "$ref": "#/$defs/inherit"
+              },
+              "test-command": {
+                "$ref": "#/$defs/inherit"
+              },
+              "test-extras": {
+                "$ref": "#/$defs/inherit"
+              },
+              "test-sources": {
+                "$ref": "#/$defs/inherit"
+              },
+              "test-groups": {
+                "$ref": "#/$defs/inherit"
+              },
+              "test-requires": {
+                "$ref": "#/$defs/inherit"
+              },
+              "test-environment": {
+                "$ref": "#/$defs/inherit"
+              },
+              "test-runtime": {
+                "$ref": "#/$defs/inherit"
+              }
+            }
           },
           "audit-command": {
             "$ref": "#/properties/audit-command"
@@ -880,7 +1085,130 @@
       "additionalProperties": false,
       "properties": {
         "inherit": {
-          "$ref": "#/properties/inherit"
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "audit-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "audit-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "archs": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-all": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-build": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-test": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-frontend": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-verbosity": {
+              "$ref": "#/$defs/inherit"
+            },
+            "config-settings": {
+              "$ref": "#/$defs/inherit"
+            },
+            "container-engine": {
+              "$ref": "#/$defs/inherit"
+            },
+            "environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "environment-pass": {
+              "$ref": "#/$defs/inherit"
+            },
+            "manylinux-aarch64-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "manylinux-armv7l-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "manylinux-i686-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "manylinux-ppc64le-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "manylinux-pypy_aarch64-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "manylinux-pypy_i686-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "manylinux-pypy_x86_64-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "manylinux-riscv64-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "manylinux-s390x-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "manylinux-x86_64-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "musllinux-aarch64-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "musllinux-armv7l-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "musllinux-i686-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "musllinux-ppc64le-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "musllinux-riscv64-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "musllinux-s390x-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "musllinux-x86_64-image": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-tools": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-files": {
+              "$ref": "#/$defs/inherit"
+            },
+            "pyodide-version": {
+              "$ref": "#/$defs/inherit"
+            },
+            "repair-wheel-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-extras": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-sources": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-groups": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-runtime": {
+              "$ref": "#/$defs/inherit"
+            }
+          }
         },
         "audit-command": {
           "$ref": "#/properties/audit-command"
@@ -1022,7 +1350,76 @@
       "additionalProperties": false,
       "properties": {
         "inherit": {
-          "$ref": "#/properties/inherit"
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "audit-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "audit-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "archs": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-all": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-build": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-test": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-frontend": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-verbosity": {
+              "$ref": "#/$defs/inherit"
+            },
+            "config-settings": {
+              "$ref": "#/$defs/inherit"
+            },
+            "dependency-versions": {
+              "$ref": "#/$defs/inherit"
+            },
+            "environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-tools": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-files": {
+              "$ref": "#/$defs/inherit"
+            },
+            "pyodide-version": {
+              "$ref": "#/$defs/inherit"
+            },
+            "repair-wheel-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-extras": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-sources": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-groups": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-runtime": {
+              "$ref": "#/$defs/inherit"
+            }
+          }
         },
         "audit-command": {
           "$ref": "#/properties/audit-command"
@@ -1110,7 +1507,76 @@
       "additionalProperties": false,
       "properties": {
         "inherit": {
-          "$ref": "#/properties/inherit"
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "audit-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "audit-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "archs": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-all": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-build": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-test": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-frontend": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-verbosity": {
+              "$ref": "#/$defs/inherit"
+            },
+            "config-settings": {
+              "$ref": "#/$defs/inherit"
+            },
+            "dependency-versions": {
+              "$ref": "#/$defs/inherit"
+            },
+            "environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-tools": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-files": {
+              "$ref": "#/$defs/inherit"
+            },
+            "pyodide-version": {
+              "$ref": "#/$defs/inherit"
+            },
+            "repair-wheel-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-extras": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-sources": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-groups": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-runtime": {
+              "$ref": "#/$defs/inherit"
+            }
+          }
         },
         "audit-command": {
           "$ref": "#/properties/audit-command"
@@ -1198,7 +1664,76 @@
       "additionalProperties": false,
       "properties": {
         "inherit": {
-          "$ref": "#/properties/inherit"
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "audit-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "audit-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "archs": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-all": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-build": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-test": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-frontend": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-verbosity": {
+              "$ref": "#/$defs/inherit"
+            },
+            "config-settings": {
+              "$ref": "#/$defs/inherit"
+            },
+            "dependency-versions": {
+              "$ref": "#/$defs/inherit"
+            },
+            "environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-tools": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-files": {
+              "$ref": "#/$defs/inherit"
+            },
+            "pyodide-version": {
+              "$ref": "#/$defs/inherit"
+            },
+            "repair-wheel-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-extras": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-sources": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-groups": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-runtime": {
+              "$ref": "#/$defs/inherit"
+            }
+          }
         },
         "audit-command": {
           "$ref": "#/properties/audit-command"
@@ -1273,7 +1808,76 @@
       "additionalProperties": false,
       "properties": {
         "inherit": {
-          "$ref": "#/properties/inherit"
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "audit-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "audit-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "archs": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-all": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-build": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-test": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-frontend": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-verbosity": {
+              "$ref": "#/$defs/inherit"
+            },
+            "config-settings": {
+              "$ref": "#/$defs/inherit"
+            },
+            "dependency-versions": {
+              "$ref": "#/$defs/inherit"
+            },
+            "environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-tools": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-files": {
+              "$ref": "#/$defs/inherit"
+            },
+            "pyodide-version": {
+              "$ref": "#/$defs/inherit"
+            },
+            "repair-wheel-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-extras": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-sources": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-groups": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-runtime": {
+              "$ref": "#/$defs/inherit"
+            }
+          }
         },
         "audit-command": {
           "$ref": "#/properties/audit-command"
@@ -1361,7 +1965,76 @@
       "additionalProperties": false,
       "properties": {
         "inherit": {
-          "$ref": "#/properties/inherit"
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "audit-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "audit-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "archs": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-all": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-build": {
+              "$ref": "#/$defs/inherit"
+            },
+            "before-test": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-frontend": {
+              "$ref": "#/$defs/inherit"
+            },
+            "build-verbosity": {
+              "$ref": "#/$defs/inherit"
+            },
+            "config-settings": {
+              "$ref": "#/$defs/inherit"
+            },
+            "dependency-versions": {
+              "$ref": "#/$defs/inherit"
+            },
+            "environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-tools": {
+              "$ref": "#/$defs/inherit"
+            },
+            "xbuild-files": {
+              "$ref": "#/$defs/inherit"
+            },
+            "pyodide-version": {
+              "$ref": "#/$defs/inherit"
+            },
+            "repair-wheel-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-command": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-extras": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-sources": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-groups": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-requires": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-environment": {
+              "$ref": "#/$defs/inherit"
+            },
+            "test-runtime": {
+              "$ref": "#/$defs/inherit"
+            }
+          }
         },
         "audit-command": {
           "$ref": "#/properties/audit-command"

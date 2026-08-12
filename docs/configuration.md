@@ -259,11 +259,14 @@ CIBW_AUDIT_COMMAND: "twine check {wheel}"
 CIBW_INHERIT: "audit-requires; audit-command"
 ```
 
-To control a platform-specific environment variable, add the lowercase platform
-suffix to the option name. For example, this prepends `CIBW_BEFORE_ALL_LINUX` to
-the value accumulated from the lower-precedence layers:
+Rules in `CIBW_INHERIT` apply to both the plain `CIBW_<OPTION>` variable and
+the platform-specific `CIBW_<OPTION>_<PLATFORM>` variable. To set rules that
+apply only to the platform-specific variables, use `CIBW_INHERIT_<PLATFORM>`;
+those rules take precedence over `CIBW_INHERIT` for the platform-specific
+variables. For example, this prepends `CIBW_BEFORE_ALL_LINUX` to the value
+accumulated from the lower-precedence layers:
 
 ```yaml
 CIBW_BEFORE_ALL_LINUX: yum install -y libffi-devel
-CIBW_INHERIT: "before-all-linux: prepend"
+CIBW_INHERIT_LINUX: "before-all: prepend"
 ```

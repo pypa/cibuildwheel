@@ -786,6 +786,25 @@ def test_xbuild_tools_handling(tmp_path: Path, definition: str, expected: list[s
     assert local.xbuild_tools == expected
 
 
+def test_xbuild_tools_inherit_does_not_leak_sentinel(tmp_path: Path) -> None:
+    """An append rule must not merge the user's tools with the "\\u0000"
+    unset-sentinel default."""
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text("[tool.cibuildwheel]\n")
+
+    options = Options(
+        platform="ios",
+        command_line_arguments=args,
+        env={"CIBW_XBUILD_TOOLS": "cmake", "CIBW_INHERIT": "xbuild-tools"},
+    )
+
+    local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
+    assert local.xbuild_tools == ["cmake"]
+
+
 DEFAULT_XBUILD_FILES = {
     "numpy": [
         "numpy/_core/include/numpy/_numpyconfig.h",

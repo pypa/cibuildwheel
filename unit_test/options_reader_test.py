@@ -475,11 +475,7 @@ test-command = "pyproject-override"
     )
 
     with pytest.raises(OptionsReaderError):
-        print(
-            OptionsReader(
-                config_file_path=pyproject_toml, platform=cast("Any", platform), env={}
-            ).overrides
-        )
+        OptionsReader(config_file_path=pyproject_toml, platform=cast("Any", platform), env={})
 
 
 def test_config_settings(tmp_path: Path) -> None:
@@ -608,7 +604,8 @@ before-all = "config"
             "CIBW_BEFORE_ALL": "env",
             "CIBW_BEFORE_ALL_LINUX": "linux-env",
             # A key without a value defaults to append.
-            "CIBW_INHERIT": "before-all; before-all-linux: prepend",
+            "CIBW_INHERIT": "before-all",
+            "CIBW_INHERIT_LINUX": "before-all: prepend",
         },
     )
 
@@ -649,17 +646,120 @@ inherit = {before-all = "invalid"}
 """
     )
 
-    with pytest.raises(OptionsReaderError, match="must contain only"):
+    with pytest.raises(OptionsReaderError, match="must be one of"):
         OptionsReader(pyproject_toml, platform="linux", env={})
 
 
 def test_invalid_environment_inherit_rule() -> None:
-    options_reader = OptionsReader(platform="linux", env={"CIBW_INHERIT": "before-all: invalid"})
-
     with pytest.raises(
         errors.ConfigurationError, match="Failed to parse CIBW_INHERIT environment variable"
     ):
-        options_reader.get("before-all", option_format=ListFormat(" && "))
+        OptionsReader(platform="linux", env={"CIBW_INHERIT": "before-all: invalid"})
+
+
+def test_environment_inherit_applies_to_platform_variable(tmp_path: Path) -> None:
+    """A CIBW_INHERIT rule also covers CIBW_<OPTION>_<PLATFORM> variables."""
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+before-all = "config"
+"""
+    )
+
+    options_reader = OptionsReader(
+        pyproject_toml,
+        platform="linux",
+        env={"CIBW_BEFORE_ALL_LINUX": "linux-env", "CIBW_INHERIT": "before-all"},
+    )
+
+    assert (
+        options_reader.get("before-all", option_format=ListFormat(" && ")) == "config && linux-env"
+    )
+
+
+def test_config_inherit_unknown_key(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+inherit = {befor-all = "append"}
+before-all = "echo hi"
+"""
+    )
+
+    with pytest.raises(OptionsReaderError, match="Perhaps you meant 'before-all'"):
+        OptionsReader(pyproject_toml, platform="linux", env={})
+
+
+def test_config_inherit_non_string_rule(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+inherit = {before-all = ["append"]}
+"""
+    )
+
+    with pytest.raises(OptionsReaderError, match="must be one of"):
+        OptionsReader(pyproject_toml, platform="linux", env={})
+
+
+def test_environment_inherit_unknown_key() -> None:
+    with pytest.raises(errors.ConfigurationError, match="Perhaps you meant 'test-requires'"):
+        OptionsReader(platform="linux", env={"CIBW_INHERIT": "test_requires"})
+
+
+def test_environment_inherit_missing_colon() -> None:
+    # 'prepend' is read as another (invalid) option name, not as a rule
+    with pytest.raises(errors.ConfigurationError, match="'prepend' not supported"):
+        OptionsReader(platform="linux", env={"CIBW_INHERIT": "before-all prepend"})
+
+
+def test_environment_inherit_multiple_rules_for_key() -> None:
+    with pytest.raises(errors.ConfigurationError, match="single"):
+        OptionsReader(platform="linux", env={"CIBW_INHERIT": "before-all: none append"})
+
+
+def test_environment_inherit_unbalanced_quote() -> None:
+    with pytest.raises(
+        errors.ConfigurationError, match="Failed to parse CIBW_INHERIT environment variable"
+    ):
+        OptionsReader(platform="linux", env={"CIBW_INHERIT": 'before-all: "append'})
+
+
+def test_environment_inherit_platform_suffix_not_special() -> None:
+    # platform scoping uses CIBW_INHERIT_<PLATFORM>, not a suffix on the key
+    with pytest.raises(errors.ConfigurationError, match="before-all-linux"):
+        OptionsReader(platform="linux", env={"CIBW_INHERIT": "before-all-linux: prepend"})
+
+
+def test_environment_inherit_unmergeable_option() -> None:
+    options_reader = OptionsReader(
+        platform="linux",
+        env={"CIBW_CONTAINER_ENGINE": "podman", "CIBW_INHERIT": "container-engine"},
+    )
+
+    with pytest.raises(OptionsReaderError, match="merge"):
+        options_reader.get(
+            "container-engine",
+            option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+        )
+
+
+def test_overrides_validated_without_identifier(tmp_path: Path) -> None:
+    """Malformed overrides must fail fast, even on paths that never resolve
+    per-identifier options, e.g. --print-build-identifiers."""
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[[tool.cibuildwheel.overrides]]
+before-all = "echo hi"
+"""
+    )
+
+    with pytest.raises(OptionsReaderError, match="'select' must be set"):
+        OptionsReader(pyproject_toml, platform="linux", env={})
 
 
 def test_audit_command_option(tmp_path: Path, platform: PlatformName) -> None:

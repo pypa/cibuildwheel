@@ -143,6 +143,32 @@ def test_overrides_invalid_inherit_value(validator: validate_pyproject.api.Valid
         validator(example)
 
 
+def test_global_inherit_covers_all_options(validator: validate_pyproject.api.Validator) -> None:
+    example = tomllib.loads(
+        """
+        [tool.cibuildwheel]
+        inherit.enable = "append"
+        inherit.archs = "append"
+        inherit.audit-command = "append"
+        enable = ["pypy"]
+        """
+    )
+
+    assert validator(example) is not None
+
+
+def test_global_inherit_invalid_key(validator: validate_pyproject.api.Validator) -> None:
+    example = tomllib.loads(
+        """
+        [tool.cibuildwheel]
+        inherit.something = "append"
+        """
+    )
+
+    with pytest.raises(validate_pyproject.error_reporting.ValidationError):
+        validator(example)
+
+
 def test_docs_examples(validator: validate_pyproject.api.Validator) -> None:
     """
     Parse out all the configuration examples, build valid TOML out of them, and
