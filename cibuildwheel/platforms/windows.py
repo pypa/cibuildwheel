@@ -81,8 +81,6 @@ def get_nuget_args(
         package_name,
         "-Version",
         version,
-        "-FallbackSource",
-        "https://api.nuget.org/v3/index.json",
         "-OutputDirectory",
         str(output_directory),
     ]
