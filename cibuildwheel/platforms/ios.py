@@ -540,7 +540,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     f"that is compatible with {config.identifier}. "
                     "Skipping build step..."
                 )
-                test_wheel = compatible_wheel
+                repaired_wheel = test_wheel = compatible_wheel
             else:
                 if build_options.before_build:
                     log.step("Running before_build...")

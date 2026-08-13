@@ -139,6 +139,7 @@ def test_container_removed(container_engine: OCIContainerEngineConfig) -> None:
     ) as container:
         assert container.name is not None
         container_name = container.name
+        docker_containers_listing = ""
         for _ in range(timeout):
             docker_containers_listing = subprocess.run(
                 f"{container.engine.name} container ls",

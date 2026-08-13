@@ -76,9 +76,9 @@ class WindowsVersions:
         response.raise_for_status()
         api_info = response.json()
 
-        for resource in api_info["resources"]:
-            if resource["@type"] == "PackageBaseAddress/3.0.0":
-                endpoint = resource["@id"]
+        endpoint = next(
+            r["@id"] for r in api_info["resources"] if r["@type"] == "PackageBaseAddress/3.0.0"
+        )
 
         ARCH_DICT = {"32": "win32", "64": "win_amd64", "ARM64": "win_arm64"}
         PACKAGE_DICT = {"32": "pythonx86", "64": "python", "ARM64": "pythonarm64"}
