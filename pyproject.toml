@@ -120,6 +120,7 @@ warn_unused_configs = true
 strict = true
 enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
 warn_unreachable = false
+native_parser = true
 
 [[tool.mypy.overrides]]
 module = [
