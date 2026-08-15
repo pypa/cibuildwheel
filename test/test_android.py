@@ -619,24 +619,54 @@ def test_repair_error(
     assert error in capfd.readouterr().err
 
 
-# This also tests integration with pkgconf, because Meson uses it to find Python.
+# This also tests integration with pkgconf, which Meson uses to find Python and
+# OpenBLAS.
 @needs_emulator
 def test_meson(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
-    # Alter spam.filter to return the value of a Fortran function.
     new_meson_project(
-        spam_c_top_level_add="int fortran_func_();",
-        spam_c_function_add="sts = fortran_func_();",
         project_args_add="'fortran',",
-        extension_args_add="'fortran.f90', link_language: 'fortran',",
+        extension_args_add=dedent(
+            """\
+            'fortran.f90',
+            link_language: 'fortran',
+            dependencies: [dependency('openblas', method: 'pkg-config')],
+            """
+        ),
+        # Alter spam.filter to call an OpenBLAS function, and return the value of a
+        # Fortran function.
+        spam_c_top_level_add=dedent(
+            """\
+            #include <cblas.h>
+            int fortran_func_();
+            """
+        ),
+        spam_c_function_add=dedent(
+            """\
+            openblas_get_config();
+            sts = fortran_func_();
+            """
+        ),
     ).generate(tmp_path)
 
-    # TODO: remove once meson-python has a release with Android support.
-    pyproject_path = tmp_path / "pyproject.toml"
-    pyproject_path.write_text(
-        pyproject_path.read_text().replace(
-            "meson-python", "meson-python @ git+https://github.com/mesonbuild/meson-python@main"
+    # Add a before-build script to download OpenBLAS.
+    before_build = tmp_path / "cibw_before_build.sh"
+    before_build.write_text(
+        dedent(
+            """\
+            #!/bin/sh
+            set -eu
+
+            openblas_dir=$(pwd)/openblas
+            rm -rf $openblas_dir
+            mkdir -p $openblas_dir
+            pip install \\
+                --target $openblas_dir \\
+                --index-url https://chaquo.com/pypi-upstream/ \\
+                chaquopy-openblas==0.3.33
+            """
         )
     )
+    before_build.chmod(0o755)
 
     # Add Fortran code.
     (tmp_path / "fortran.f90").write_text(
@@ -652,7 +682,15 @@ def test_meson(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     script = 'import spam; print(f"result: {spam.filter("")}")'
     cibuildwheel_run(
         tmp_path,
-        add_env={**cp313_env, "CIBW_TEST_COMMAND": f"python -c '{script}'"},
+        add_env={
+            **cp313_env,
+            "CIBW_BEFORE_BUILD": str(before_build),
+            "CIBW_ENVIRONMENT": (
+                'PKG_CONFIG_PATH="$(pwd)/openblas/chaquopy/lib/pkgconfig" '
+                'AUDITWHEEL_LD_LIBRARY_PATH="$(pwd)/openblas/chaquopy/lib"'
+            ),
+            "CIBW_TEST_COMMAND": f"python -c '{script}'",
+        },
     )
     assert "result: 42" in capfd.readouterr().out
 
