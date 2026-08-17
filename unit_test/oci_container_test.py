@@ -85,6 +85,18 @@ def test_no_lf(container_engine: OCIContainerEngineConfig) -> None:
         assert container.call(["printf", "hello"], capture_output=True) == "hello"
 
 
+def test_abnormal_exit(container_engine: OCIContainerEngineConfig) -> None:
+    container = OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    )
+    with container:
+        # kill the shell without a newline, so the write below still goes
+        # through the same buffer and the call fails on read, not on write
+        container.bash_stdin.write(b"exit")
+        with pytest.raises(RuntimeError):
+            container.call(["echo", "hello"])
+
+
 def test_debug_info(container_engine: OCIContainerEngineConfig) -> None:
     container = OCIContainer(
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
