@@ -349,6 +349,20 @@ def test_podman_vfs(
         },
         "engine": {"cgroup_manager": "cgroupfs", "events_logger": "file"},
     }
+
+    # Setting CONTAINERS_CONF makes podman ignore its usual config files, so
+    # carry over the default OCI runtime; the fallback found on PATH can be
+    # too old for the OCI spec version podman generates (e.g. Ubuntu 24.04's
+    # crun 1.14.1 with podman 5.x).
+    oci_runtime = subprocess.run(
+        ["podman", "info", "--format", "{{.Host.OCIRuntime.Path}}"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    runtime_name = Path(oci_runtime).name
+    vfs_containers_conf_data["engine"]["runtime"] = runtime_name
+    vfs_containers_conf_data["engine"]["runtimes"] = {runtime_name: [oci_runtime]}
     # https://github.com/containers/storage/blob/main/docs/containers-storage.conf.5.md
     storage_root = vfs_path / ".local/share/containers/vfs-storage"
     run_root = vfs_path / ".local/share/containers/vfs-runroot"
