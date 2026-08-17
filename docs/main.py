@@ -12,7 +12,7 @@ def define_env(env: Any) -> None:  # noqa: ANN401
     "Hook function for mkdocs-macros"
 
     @env.macro  # type: ignore[untyped-decorator]
-    def subprocess_run(*args: str) -> str:
+    def subprocess_run(*args: str) -> str:  # type: ignore[misc]
         "Run a subprocess and return the stdout"
         env = os.environ.copy()
         scripts = sysconfig.get_path("scripts")

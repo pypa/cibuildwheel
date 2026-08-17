@@ -473,7 +473,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 print(
                     f"\nFound previously built wheel {compatible_wheel.name}, that's compatible with {config.identifier}. Skipping build step..."
                 )
-                built_wheel = compatible_wheel
+                repaired_wheel = compatible_wheel
             else:
                 if build_options.before_build:
                     log.step("Running before_build...")

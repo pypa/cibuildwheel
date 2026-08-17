@@ -540,7 +540,7 @@ def build(options: Options, tmp_path: Path) -> None:
                     f"that is compatible with {config.identifier}. "
                     "Skipping build step..."
                 )
-                test_wheel = compatible_wheel
+                repaired_wheel = compatible_wheel
             else:
                 if build_options.before_build:
                     log.step("Running before_build...")
@@ -632,8 +632,6 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 run_audit(tmp_dir=tmp_path, build_options=build_options, wheel=repaired_wheel)
 
-                test_wheel = repaired_wheel
-
             if build_options.test_command and build_options.test_selector(config.identifier):
                 if not config.is_simulator:
                     log.step("Skipping tests on non-simulator SDK")
@@ -693,7 +691,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         platform_tag,
                         "--target",
                         testbed_path / "iOSTestbed" / "app_packages",
-                        f"{test_wheel}{build_options.test_extras}",
+                        f"{repaired_wheel}{build_options.test_extras}",
                         *build_options.test_requires,
                         env=test_env,
                     )

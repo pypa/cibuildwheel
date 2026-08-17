@@ -116,10 +116,27 @@ files = [
     "bin/*.py",
     "noxfile.py",
 ]
+disallow_any_decorated = true
+disallow_any_unimported = true
+disallow_untyped_globals = true
+disallow_redefinition = true
 warn_unused_configs = true
 strict = true
-enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+enable_error_code = [
+  "deprecated",
+  "exhaustive-match",
+  "ignore-without-code",
+  "mutable-override",
+  "possibly-undefined",
+  "redundant-expr",
+  "redundant-self",
+  "truthy-bool",
+  "truthy-iterable",
+  "unimported-reveal",
+  "unused-awaitable",
+]
 warn_unreachable = false
+native_parser = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -129,6 +146,10 @@ module = [
     "bashlex.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["cibuildwheel.bashlex_eval"]
+disable_error_code = ["no-any-unimported"]
 
 
 [tool.pylint]

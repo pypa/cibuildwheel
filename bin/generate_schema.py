@@ -318,6 +318,8 @@ for value in schema["properties"].values():
         case {"type": "string_table_array"}:
             del value["type"]
             value["oneOf"] = string_table_array
+        case _:
+            pass
 
 overrides = yaml.safe_load(
     """
