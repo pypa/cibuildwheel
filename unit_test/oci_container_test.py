@@ -29,6 +29,7 @@ from cibuildwheel.oci_container import (
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from typing import Any
 
 # Test utilities
 
@@ -331,7 +332,7 @@ def test_podman_vfs(
     # This requires that we write configuration files and point to them
     # with environment variables before we run podman
     # https://github.com/containers/common/blob/main/docs/containers.conf.5.md
-    vfs_containers_conf_data = {
+    vfs_containers_conf_data: dict[str, dict[str, Any]] = {
         "containers": {
             "default_capabilities": [
                 "CHOWN",
