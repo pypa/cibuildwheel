@@ -10,7 +10,7 @@ attrs==26.1.0
     # via
     #   cattrs
     #   requests-cache
-auditwheel==6.7.0
+auditwheel==6.8.1
     # via -r cibuildwheel/resources/constraints.in
 build==1.5.0
     # via -r cibuildwheel/resources/constraints.in
@@ -18,7 +18,7 @@ cattrs==26.1.0
     # via requests-cache
 certifi==2026.7.22
     # via requests
-charset-normalizer==3.4.9
+charset-normalizer==3.5.1
     # via requests
 delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
@@ -26,7 +26,7 @@ delvewheel==1.13.0
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.3
     # via virtualenv
-filelock==3.32.2
+filelock==3.32.3
     # via
     #   python-discovery
     #   virtualenv
@@ -58,7 +58,7 @@ pip==26.2.1
     # via -r cibuildwheel/resources/constraints.in
 pkgconf==3.0.1.post0
     # via -r cibuildwheel/resources/constraints.in
-platformdirs==4.11.1
+platformdirs==4.11.3
     # via
     #   requests-cache
     #   virtualenv
@@ -70,7 +70,7 @@ pygments==2.20.0
     # via rich
 pyproject-hooks==1.2.0
     # via build
-python-discovery==1.5.1
+python-discovery==1.5.2
     # via virtualenv
 requests==2.34.2
     # via
@@ -90,5 +90,5 @@ urllib3==2.7.0
     # via
     #   requests
     #   requests-cache
-virtualenv==21.7.3
+virtualenv==21.7.4
     # via -r cibuildwheel/resources/constraints.in
