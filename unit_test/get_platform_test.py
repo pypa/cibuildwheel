@@ -8,7 +8,11 @@ import setuptools._distutils.util
 
 from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.errors import FatalError
-from cibuildwheel.platforms.windows import PythonConfiguration, setup_setuptools_cross_compile
+from cibuildwheel.platforms.windows import (
+    PythonConfiguration,
+    get_nuget_args,
+    setup_setuptools_cross_compile,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -28,6 +32,20 @@ def patched_environment(
         for envvar, val in environment.items():
             mp.setenv(name=envvar, value=val)
         yield
+
+
+@pytest.mark.parametrize(
+    ("arch", "free_threaded", "package_name"),
+    [("AMD64", False, "python"), ("ARM64", True, "pythonarm64-freethreaded")],
+)
+def test_get_nuget_args(arch: str, free_threaded: bool, package_name: str, tmp_path: Path) -> None:
+    assert get_nuget_args("3.14.1", arch, free_threaded, tmp_path) == [
+        package_name,
+        "-Version",
+        "3.14.1",
+        "-OutputDirectory",
+        str(tmp_path),
+    ]
 
 
 def test_x86(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
