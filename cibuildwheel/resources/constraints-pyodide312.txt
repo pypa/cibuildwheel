@@ -17,7 +17,7 @@ cattrs==26.1.0
     #   pyodide-lock
 certifi==2026.7.22
     # via requests
-charset-normalizer==3.4.9
+charset-normalizer==3.5.1
     # via requests
 click==8.1.8
     # via
@@ -26,7 +26,7 @@ click==8.1.8
     #   pyodide-cli
 distlib==0.4.3
     # via virtualenv
-filelock==3.32.2
+filelock==3.32.3
     # via
     #   python-discovery
     #   virtualenv
@@ -46,7 +46,7 @@ packaging==26.3
     #   wheel
 pip==26.2.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.11.1
+platformdirs==4.11.3
     # via
     #   pyodide-build
     #   virtualenv
@@ -62,7 +62,7 @@ pyodide-lock==0.2.0
     # via pyodide-build
 pyproject-hooks==1.2.0
     # via build
-python-discovery==1.5.1
+python-discovery==1.5.2
     # via virtualenv
 requests==2.34.2
     # via pyodide-build
@@ -76,11 +76,11 @@ typing-extensions==4.16.0
     # via cattrs
 urllib3==2.7.0
     # via requests
-virtualenv==21.7.3
+virtualenv==21.7.4
     # via
     #   build
     #   pyodide-build
-wheel==0.47.0
+wheel==0.48.0
     # via
     #   auditwheel-emscripten
     #   pyodide-build
