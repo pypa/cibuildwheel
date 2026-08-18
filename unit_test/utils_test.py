@@ -11,6 +11,7 @@ from cibuildwheel.util.file import copy_test_sources, remove_on_error
 from cibuildwheel.util.helpers import (
     FlexibleVersion,
     format_safe,
+    parse_arbitrary_key_value_string,
     parse_key_value_string,
     prepare_command,
     unwrap,
@@ -218,20 +219,61 @@ def test_parse_key_value_string_unknown_name() -> None:
     with pytest.raises(ValueError, match=r"Failed to parse 'key: value'. Unknown field name 'key'"):
         parse_key_value_string("key: value")
 
-    # Unknown fields can be enabled by passing "*".
-    assert parse_key_value_string(
-        "key: value",
-        kw_arg_names=["*"],
-    ) == {
-        "key": ["value"],
+
+def test_parse_arbitrary_key_value_string_basic() -> None:
+    assert parse_arbitrary_key_value_string("before-test: append; after-test: prepend") == {
+        "before-test": ["append"],
+        "after-test": ["prepend"],
     }
 
-    assert parse_key_value_string(
-        "key1: value1a value1b; key2: value2",
-        kw_arg_names=["*"],
+
+def test_parse_arbitrary_key_value_string_multiple_values() -> None:
+    assert parse_arbitrary_key_value_string(
+        "package1: some/header.h some/library.a; package2: other/header.h"
     ) == {
-        "key1": ["value1a", "value1b"],
-        "key2": ["value2"],
+        "package1": ["some/header.h", "some/library.a"],
+        "package2": ["other/header.h"],
+    }
+
+
+def test_parse_arbitrary_key_value_string_keys_without_values_default() -> None:
+    assert parse_arbitrary_key_value_string(
+        "before-build; before-test: prepend", default_value="append"
+    ) == {
+        "before-build": ["append"],
+        "before-test": ["prepend"],
+    }
+
+
+def test_parse_arbitrary_key_value_string_keys_without_values_no_default() -> None:
+    with pytest.raises(ValueError, match="No value specified"):
+        parse_arbitrary_key_value_string("before-build")
+
+
+def test_parse_arbitrary_key_value_string_empty() -> None:
+    assert parse_arbitrary_key_value_string("") == {}
+
+
+def test_parse_arbitrary_key_value_string_duplicate_keys() -> None:
+    assert parse_arbitrary_key_value_string("key: val1; key: val2") == {
+        "key": ["val1", "val2"],
+    }
+
+
+def test_parse_arbitrary_key_value_string_key_only_with_colon() -> None:
+    assert parse_arbitrary_key_value_string("key:") == {"key": []}
+
+
+def test_parse_arbitrary_key_value_string_quoted_values() -> None:
+    assert parse_arbitrary_key_value_string('key: "hello world"') == {"key": ["hello world"]}
+
+
+def test_parse_arbitrary_key_value_string_multiple_bare_keys_with_default() -> None:
+    """works, but should remain undocumented"""
+    assert parse_arbitrary_key_value_string("a b c", default_value="yes") == {
+        "a": ["yes"],
+        "b": ["yes"],
+        "c": ["yes"],
     }
 
 
