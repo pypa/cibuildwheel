@@ -1871,6 +1871,19 @@ Platform-specific environment variables are also available:<br/>
 
 ## Debugging
 
+### `log-fold-mode` {: #log-fold-mode env-var}
+> Control CI log folding.
+
+Set the host environment variable `CIBW_LOG_FOLD_MODE` to override automatic
+CI log-fold detection. Accepted values are `azure`, `github`, `travis`, and
+`disabled`. Use `disabled` to keep build steps expanded in the job log.
+
+#### Examples
+
+```shell
+export CIBW_LOG_FOLD_MODE=disabled
+```
+
 ### `debug-keep-container` {: #debug-keep-container env-var}
 > Keep the container after running for debugging.
 

@@ -169,6 +169,18 @@ class Logger:
                 self.fold_mode = "disabled"
                 self.colors_enabled = file_supports_color(sys.stdout)
 
+        match os.environ.get("CIBW_LOG_FOLD_MODE"):
+            case None:
+                pass
+            case "azure" | "github" | "travis" | "disabled" as fold_mode:
+                self.fold_mode = fold_mode
+            case invalid_fold_mode:
+                msg = (
+                    "CIBW_LOG_FOLD_MODE must be one of azure, github, travis, "
+                    f"or disabled; got {invalid_fold_mode!r}"
+                )
+                raise ValueError(msg)
+
         self.summary = []
 
     def build_start(self, identifier: str) -> None:
