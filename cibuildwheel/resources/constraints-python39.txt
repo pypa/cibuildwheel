@@ -32,7 +32,7 @@ filelock==3.19.1
     # via
     #   python-discovery
     #   virtualenv
-idna==3.18
+idna==3.19
     # via
     #   requests
     #   url-normalize
@@ -72,7 +72,7 @@ pyelftools==0.32
     # via
     #   abi3audit
     #   auditwheel
-pygments==2.20.0
+pygments==2.21.0
     # via rich
 pyproject-hooks==1.2.0
     # via build

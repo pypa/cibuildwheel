@@ -26,12 +26,12 @@ delvewheel==1.13.0
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.3
     # via virtualenv
-filelock==3.32.3; implementation_name != "graalpy"
+filelock==3.32.4; implementation_name != "graalpy"
 filelock==3.29.7; implementation_name == "graalpy"
     # via
     #   python-discovery
     #   virtualenv
-idna==3.18
+idna==3.19
     # via
     #   requests
     #   url-normalize
@@ -69,7 +69,7 @@ pyelftools==0.33
     # via
     #   abi3audit
     #   auditwheel
-pygments==2.20.0
+pygments==2.21.0
     # via rich
 pyproject-hooks==1.2.0
     # via build

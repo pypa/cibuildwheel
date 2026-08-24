@@ -28,11 +28,11 @@ distlib==0.4.3
     # via virtualenv
 exceptiongroup==1.3.1
     # via cattrs
-filelock==3.32.3
+filelock==3.32.4
     # via
     #   python-discovery
     #   virtualenv
-idna==3.18
+idna==3.19
     # via
     #   requests
     #   url-normalize
@@ -70,7 +70,7 @@ pyelftools==0.33
     # via
     #   abi3audit
     #   auditwheel
-pygments==2.20.0
+pygments==2.21.0
     # via rich
 pyproject-hooks==1.2.0
     # via build
