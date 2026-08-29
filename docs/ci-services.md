@@ -85,9 +85,6 @@ To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file 
 
 Commit this file, enable building of your repo on CircleCI, and push.
 
-!!! note
-    CircleCI doesn't enable free macOS containers for open source by default, but you can ask for access. See [here](https://circleci.com/docs/guides/integration/oss/) for more information.
-
 CircleCI will store the built wheels for you - you can access them from the project console. Check out the CircleCI [docs](https://circleci.com/docs/reference/configuration-reference/) for more info on this config file.
 
 ### Gitlab CI [linux] {: #gitlab-ci}
