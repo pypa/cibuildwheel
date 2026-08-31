@@ -483,6 +483,16 @@ def test_create_args_volume(tmp_path: Path, container_engine: OCIContainerEngine
             ("--some-option=value with spaces",),
         ),
         (
+            r"docker; create_args: --volume=C:\Users\foo\bar:/data",
+            "docker",
+            (r"--volume=C:\Users\foo\bar:/data",),
+        ),
+        (
+            r'docker; create_args: --volume="C:\Users\John Doe\data:/data"',
+            "docker",
+            (r"--volume=C:\Users\John Doe\data:/data",),
+        ),
+        (
             'docker; create_args: --some-option="value; with; semicolons" --another-option',
             "docker",
             ("--some-option=value; with; semicolons", "--another-option"),

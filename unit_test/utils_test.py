@@ -212,6 +212,24 @@ def test_parse_key_value_string() -> None:
         "create_args": [],
     }
 
+    # Windows host paths: backslashes must not be eaten as POSIX escapes
+    assert parse_key_value_string(
+        r"docker; create_args: --volume=C:\Users\foo\bar:/data",
+        positional_arg_names=["name"],
+        kw_arg_names=["create_args"],
+    ) == {
+        "name": ["docker"],
+        "create_args": [r"--volume=C:\Users\foo\bar:/data"],
+    }
+    assert parse_key_value_string(
+        r'docker; create_args: --volume="C:\Users\John Doe\data:/data"',
+        positional_arg_names=["name"],
+        kw_arg_names=["create_args"],
+    ) == {
+        "name": ["docker"],
+        "create_args": [r"--volume=C:\Users\John Doe\data:/data"],
+    }
+
 
 def test_parse_key_value_string_unknown_name() -> None:
     # Unknown fields are not allowed by default.

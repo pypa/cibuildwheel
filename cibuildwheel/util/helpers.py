@@ -116,6 +116,9 @@ def parse_key_value_string(
     shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";")
     shlexer.commenters = ""
     shlexer.whitespace_split = True
+    # POSIX shlex treats `\` as an escape, so unquoted Windows paths in
+    # create_args become C:Usersfoo. Spaces still need quotes.
+    shlexer.escape = "\0"
     parts = list(shlexer)
     # parts now looks like
     # ['docker', ';', 'create_args:', '--some-option=value', 'another-option']

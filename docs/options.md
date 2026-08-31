@@ -1192,7 +1192,7 @@ Options can be supplied after the name.
 
 | Option name | Description
 |---|---
-| `create_args` | Space-separated strings, which are passed to the container engine on the command line when it's creating the container. If you want to include spaces inside a parameter, use shell-style quoting.
+| `create_args` | Space-separated strings, which are passed to the container engine on the command line when it's creating the container. If you want to include spaces inside a parameter, use shell-style quoting. Backslashes are kept as-is, so Windows host paths such as `C:\cache` work without extra escaping.
 | `disable_host_mount` | By default, cibuildwheel will mount the root of the host filesystem as a volume at `/host` in the container. To disable the host mount, pass `true` to this option.
 
 
@@ -1217,6 +1217,9 @@ Options can be supplied after the name.
     # pass command line options to 'docker create'
     container-engine = { name = "docker", create-args = ["--gpus", "all"]}
 
+    # Windows host bind-mount; backslashes in the path are preserved
+    container-engine = { name = "docker", create-args = ["--volume=C:\\cache:/cache"] }
+
     # disable the /host mount
     container-engine = { name = "docker", disable-host-mount = true }
     ```
@@ -1229,6 +1232,9 @@ Options can be supplied after the name.
 
     # pass command line options to 'docker create'
     CIBW_CONTAINER_ENGINE: "docker; create_args: --gpus all"
+
+    # Windows host bind-mount; backslashes in the path are preserved
+    CIBW_CONTAINER_ENGINE: 'docker; create_args: --volume=C:\cache:/cache'
 
     # disable the /host mount
     CIBW_CONTAINER_ENGINE: "docker; disable_host_mount: true"

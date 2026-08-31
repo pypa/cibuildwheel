@@ -344,6 +344,12 @@ def test_toml_environment_quoting(tmp_path: Path, toml_assignment: str, result_v
             False,
         ),
         (
+            r'container-engine = "docker; create_args: --volume=C:\\Users\\foo\\cache:/cache"',
+            "docker",
+            (r"--volume=C:\Users\foo\cache:/cache",),
+            False,
+        ),
+        (
             'container-engine = {name = "docker", create-args = ["--some-option"]}',
             "docker",
             ("--some-option",),
