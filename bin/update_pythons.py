@@ -128,7 +128,7 @@ class GraalPyVersions:
             "list[dict[str, Any]]", github_api_request("repos/oracle/graalpython/releases")
         )
         gp_asset_re = re.compile(
-            r"^(?P<prefix>graalpy(?P<cpython>\d+\.\d+)?-(?P<graalpy>\d+\.\d+\.\d+))-"
+            r"^(?P<prefix>graalpy(?P<cpython>\d+\.\d+)?-(?P<graalpy>\d+(?:\.\d+)+))-"
         )
         cp_version_re = re.compile(r"Python (\d+\.\d+(?:\.\d+)?)")
         for release in releases:

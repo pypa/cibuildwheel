@@ -14,7 +14,7 @@ from cibuildwheel.oci_container import OCIPlatform
 from cibuildwheel.util import file
 
 DEFAULT_IDS = {"cp39", "cp310", "cp311", "cp312", "cp313", "cp314", "cp314t", "cp315", "cp315t"}
-ALL_IDS = DEFAULT_IDS | {"pp39", "pp310", "pp311", "pp312", "gp312_250"}
+ALL_IDS = DEFAULT_IDS | {"pp39", "pp310", "pp311", "pp312", "gp312_250", "gp313_253"}
 
 
 @pytest.fixture
@@ -162,6 +162,7 @@ before-all = "true"
             "pp311",
             "pp312",
             "gp312_250",
+            "gp313_253",
         }
     }
     assert kwargs["options"].build_options("cp310-manylinux_x86_64").before_all == ""
@@ -186,6 +187,7 @@ before-all = "true"
             "pp311",
             "pp312",
             "gp312_250",
+            "gp313_253",
         ]
     }
 

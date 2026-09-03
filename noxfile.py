@@ -20,7 +20,6 @@ import re
 import shutil
 import sys
 from pathlib import Path
-from typing import Any
 
 import nox
 
@@ -65,11 +64,12 @@ def tests(session: nox.Session) -> None:
         session.run("pytest", "test", "-x", "--durations", "0", "--timeout=2400", "test")
 
 
-# Packages held back for GraalPy until upstream fixes land. uv pip compile
-# can't express a per-implementation split, so the compiled pin is patched:
-# GraalPy (matching `graalpy_marker`) gets `held`, everything else
-# (`other_marker`) tracks the freshly compiled version.
-GRAALPY_HELD_BACK = (
+# Packages held back for GraalPy 25.0 (Python 3.12). uv pip compile can't
+# express a per-implementation split, so the compiled pin is patched: GraalPy
+# (matching `graalpy_marker`) gets `held`, everything else (`other_marker`)
+# tracks the freshly compiled version. These workarounds are fixed in GraalPy
+# 25.3 (Python 3.13).
+GRAALPY_25_0_HELD_BACK = (
     # Newer pip breaks GraalPy on macOS and Windows.
     {
         "package": "pip",
@@ -90,9 +90,9 @@ GRAALPY_HELD_BACK = (
 )
 
 
-def _pin_graalpy_workarounds(output_file: Path) -> None:
+def _pin_graalpy_25_0_workarounds(output_file: Path) -> None:
     text = output_file.read_text()
-    for pin in GRAALPY_HELD_BACK:
+    for pin in GRAALPY_25_0_HELD_BACK:
         assert isinstance(pin["package"], str)
         package = re.escape(pin["package"])
         graalpy_pins = "\n".join(
@@ -106,16 +106,6 @@ def _pin_graalpy_workarounds(output_file: Path) -> None:
             flags=re.MULTILINE,
         )
     output_file.write_text(text)
-
-
-def _graalpy_python_versions(build_platforms: dict[str, Any]) -> set[str]:
-    """Python minor versions (e.g. "3.12") that ship a GraalPy configuration."""
-    return {
-        ".".join(config["version"].split(".")[:2])
-        for platform in build_platforms.values()
-        for config in platform["python_configurations"]
-        if config["identifier"].startswith("gp")
-    }
 
 
 @nox.session(default=False, tags=["update"])
@@ -135,7 +125,6 @@ def update_constraints(session: nox.Session) -> None:
     env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
 
     build_platforms = nox.project.load_toml(resources / "build-platforms.toml")
-    graalpy_versions = _graalpy_python_versions(build_platforms)
 
     for minor_version in range(9, 16):
         python_version = f"3.{minor_version}"
@@ -150,8 +139,8 @@ def update_constraints(session: nox.Session) -> None:
             f"--output-file={output_file}",
             env=env,
         )
-        if python_version in graalpy_versions:
-            _pin_graalpy_workarounds(output_file)
+        if python_version == "3.12":
+            _pin_graalpy_25_0_workarounds(output_file)
 
     shutil.copyfile(
         resources / "constraints-python315.txt",
