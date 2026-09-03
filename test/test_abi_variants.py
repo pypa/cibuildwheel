@@ -54,7 +54,7 @@ def test_abi3(tmp_path: Path) -> None:
             "CIBW_BUILD": (
                 "cp314-*"
                 if utils.get_platform() == "pyodide"
-                else "cp39-* cp310-* pp311-* gp312_250-* cp312-* cp314t-*"
+                else "cp39-* cp310-* pp311-* gp313_253-* cp312-* cp314t-*"
             ),
             "CIBW_ENABLE": "all",
         },
@@ -78,7 +78,7 @@ def test_abi3(tmp_path: Path) -> None:
                 "cp310-abi3",  # <-- ABI3, works with 3.10 and 3.12
                 "cp314-cp314t",
                 "pp311-pypy311_pp73",
-                "graalpy312-graalpy250_312_native",
+                "graalpy313-graalpy253_313_native",
             ],
         )
 

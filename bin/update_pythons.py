@@ -125,7 +125,7 @@ class GraalPyVersions:
 
         releases = response.json()
         gp_asset_re = re.compile(
-            r"^(?P<prefix>graalpy(?P<cpython>\d+\.\d+)?-(?P<graalpy>\d+\.\d+\.\d+))-"
+            r"^(?P<prefix>graalpy(?P<cpython>\d+\.\d+)?-(?P<graalpy>\d+(?:\.\d+)+))-"
         )
         cp_version_re = re.compile(r"Python (\d+\.\d+(?:\.\d+)?)")
         for release in releases:

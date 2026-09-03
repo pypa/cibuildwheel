@@ -35,6 +35,7 @@ While cibuildwheel itself requires a recent Python version to run (we support th
 | PyPy 3.10 v7.3     | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
 | PyPy 3.11 v7.3     | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
 | GraalPy 3.12 v25.0 | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | N/A                          | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
+| GraalPy 3.13 v25.3 | N/A         | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | N/A                          | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
 
 <sup>**1** PyPy & GraalPy are only supported for manylinux wheels.</sup><br>
 <sup>**2** Windows arm64 support is experimental.</sup><br>
