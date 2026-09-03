@@ -323,6 +323,7 @@ def _expected_wheels(
         if EnableGroup.GraalPy in enable_groups and include_graalpy_in_expected_wheels:
             python_abi_tags += [
                 "graalpy312-graalpy250_312_native",
+                "graalpy313-graalpy253_313_native",
             ]
 
     if machine_arch not in PYPY_ARCHS:
