@@ -546,8 +546,13 @@ class OCIContainer:
         else:
             output_io = sys.stdout.buffer
 
-        while True:
+        return_code = None
+        while return_code is None:
             line = self.bash_stdout.readline()
+
+            if not line:
+                msg = "Failed to read the return code, the container shell has exited"
+                raise RuntimeError(msg)
 
             if line.endswith(bytes(end_of_message, encoding="utf8") + b"\n"):
                 # fmt: off
@@ -563,7 +568,6 @@ class OCIContainer:
                 # add the last line to output, without the footer
                 output_io.write(line[0:footer_offset])
                 output_io.flush()
-                break
             else:
                 output_io.write(line)
                 output_io.flush()

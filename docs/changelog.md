@@ -5,6 +5,42 @@ ref: changelog
 
 # Changelog
 
+### v4.2.0
+
+_4 August 2026_
+
+- 🌟 CPython 3.15 wheels are now built by default - without the `"cpython-prerelease"` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) set. It's time to build and upload these wheels to PyPI! This release includes CPython 3.15.0rc1, which is guaranteed to be ABI compatible with the final release. (#2944)
+- ✨ Adds Pyodide 3.15 support with the `cp315-pyodide_wasm32` build identifier, using Pyodide 315.0.0a2. These are also stable wrt. the final release. (#2958)
+- 🐛 Retries a failed download six times with exponential backoff, so short network outages no longer stop a build. A `4xx` response is still reported at once. (#2953)
+- 🐛 Accepts `default` as a [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) value on Pyodide, and accepts `pyodide-build` in the top-level table and in overrides (#2951)
+- 🛠 Holds pip back on GraalPy, where newer pip breaks the build (#2955)
+- 🛠 Updates Pyodide to 314.0.4 (#2949, #2952)
+- 🛠 Updates dependencies and container pins (#2952, #2960)
+- 💼 Updates CI action pins (#2948, #2954)
+- 🧪 Uses pp311 for the abi3 test, and deletes `test_overridden_pip_constraint`, which is not necessary since #2583 (#2956, #2957)
+
+### v4.1.1
+
+_24 July 2026_
+
+- ✨ Adds `pyodide-build` as a separate [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend), now the default frontend for Pyodide, with verbosity flags handling. Any other frontend is ignored with a warning on Pyodide. (#2609, #2945)
+- 🔐 Uses digests instead of tags for pinned container images, strengthening supply-chain security. The human-readable tags remain as comments in `pinned_docker_images.cfg`. (#2915)
+- 🐛 Fixes platform-specific [`test-runtime`](https://cibuildwheel.pypa.io/en/stable/options/#test-runtime) environment variables (e.g. `CIBW_TEST_RUNTIME_ANDROID`) not being honored (#2941)
+- 🐛 Fixes quoting of [`test-requires`](https://cibuildwheel.pypa.io/en/stable/options/#test-requires) and [`audit-requires`](https://cibuildwheel.pypa.io/en/stable/options/#audit-requires) so PEP 508 specifiers containing spaces work (#2913)
+- 🐛 Makes [`archs`](https://cibuildwheel.pypa.io/en/stable/options/#archs) parsing case-insensitive and platform-aware, so e.g. `arm64` works on Windows (#2920)
+- 🐛 Uses an absolute path for the `{project}` placeholder in [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) (#2934)
+- 🐛 Validates the [`pyodide-version`](https://cibuildwheel.pypa.io/en/stable/options/#pyodide-version) option against the build identifier with a clear error (#2925)
+- 🐛 Fixes PyPy installs on macOS after PyPy switched its downloads from `.tar.bz2` to `.tar.gz` (#2939)
+- 🐛 Makes a matching `python3-config` available in the build and test venvs on macOS (#2922)
+- 🛠 Updates dependencies and container pins (#2917, #2935, #2939)
+- 🛠 Updates Android tests to current Python versions and the new test repository URL (#2933)
+- 🛠 Drops the `orjson` dependency, no longer used by mypy 2+ (#2923)
+- 📚 Builds the docs with properdocs, a MkDocs fork (#2946)
+- 📚 Adds the missing `cp314-pyodide_wasm32` entry to the build identifier table (#2947)
+- 📚 Removes outdated notes about the `pip wheel` build frontend and ClearLinux (#2926)
+- 💼 Adds a "CI: PyPy EoL" PR label to run PyPy EoL tests on PRs (#2930)
+- 💼 Updates CI action pins and pre-commit hooks (#2914, #2932, #2938, #2940, #2942, #2943)
+
 ### v4.1.0
 
 _12 June 2026_

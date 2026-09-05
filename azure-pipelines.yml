@@ -12,7 +12,7 @@ pr:
       - .readthedocs.yml
       - .travis.yml
       - README.md
-      - mkdocs.yml
+      - properdocs.yml
       - noxfile.py
 
 jobs:

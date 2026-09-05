@@ -8,4 +8,4 @@ build:
     - asdf plugin add uv
     - asdf install uv latest
     - asdf global uv latest
-    - NO_COLOR=1 uv run --python 3.14 --managed-python --no-dev --group docs mkdocs build --strict --site-dir $READTHEDOCS_OUTPUT/html
+    - NO_COLOR=1 uv run --python 3.14 --managed-python --no-dev --group docs properdocs build --strict --site-dir $READTHEDOCS_OUTPUT/html

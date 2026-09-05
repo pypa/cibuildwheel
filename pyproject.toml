@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cibuildwheel"
-version = "4.1.0"
+version = "4.2.0"
 description = "Build Python wheels on CI with minimal configuration."
 readme = "README.md"
 license = "BSD-2-Clause"
@@ -68,7 +68,8 @@ docs = [
     "mkdocs-include-markdown-plugin==7.1.8",
     "mkdocs-intersphinx>=0.1.1; python_version >= '3.12'",
     "mkdocs-macros-plugin>=1.4.1",
-    "mkdocs==1.6.1",
+    "properdocs==1.6.7",
+    "properdocs-theme-readthedocs",
     "pymdown-extensions",
     "rich",
 ]
@@ -115,10 +116,27 @@ files = [
     "bin/*.py",
     "noxfile.py",
 ]
+disallow_any_decorated = true
+disallow_any_unimported = true
+disallow_untyped_globals = true
+disallow_redefinition = true
 warn_unused_configs = true
 strict = true
-enable_error_code = ["ignore-without-code", "redundant-expr", "truthy-bool"]
+enable_error_code = [
+  "deprecated",
+  "exhaustive-match",
+  "ignore-without-code",
+  "mutable-override",
+  "possibly-undefined",
+  "redundant-expr",
+  "redundant-self",
+  "truthy-bool",
+  "truthy-iterable",
+  "unimported-reveal",
+  "unused-awaitable",
+]
 warn_unreachable = false
+native_parser = true
 
 [[tool.mypy.overrides]]
 module = [
@@ -128,6 +146,10 @@ module = [
     "bashlex.*",
 ]
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["cibuildwheel.bashlex_eval"]
+disable_error_code = ["no-any-unimported"]
 
 
 [tool.pylint]
@@ -165,6 +187,7 @@ messages_control.disable = [
   "wrong-import-position",
   "unused-argument",  # Handled by Ruff
   "import-outside-toplevel",  # Handled by Ruff
+  "broad-exception-caught",  # Handled by Ruff
   "broad-exception-raised",  # Could be improved eventually
   "consider-using-in",  # MyPy can't narrow "in"
 ]
@@ -216,6 +239,7 @@ ignore = [
   "PT007",   # Lists of tuples in Pytest
   "PYI025",  # Set as AbstractSet
   "PTH123",  # open -> Path.open
+  "TRY002",  # Create your own exception
 ]
 flake8-unused-arguments.ignore-variadic-names = true
 flake8-tidy-imports.ban-relative-imports = "all"
@@ -233,7 +257,7 @@ future-annotations = true
 
 [tool.ruff.lint.per-file-ignores]
 "unit_test/*" = ["PLC1901", "TID252"]
-"test/*" = ["TID252"]
+"test/*" = ["TID252", "N999"]
 "bin/*" = ["TID251"]
 "cibuildwheel/resources/install_certifi.py" = ["PTH"]
 

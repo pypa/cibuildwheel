@@ -15,7 +15,17 @@ if TYPE_CHECKING:
     "frontend_name",
     [
         pytest.param("pip", marks=utils.skip_if_pyodide("No pip for pyodide")),
-        "build",
+        pytest.param(
+            "build",
+            marks=utils.skip_if_pyodide("pyodide only supports the pyodide-build frontend"),
+        ),
+        pytest.param(
+            "pyodide-build",
+            marks=pytest.mark.skipif(
+                utils.get_platform() != "pyodide",
+                reason="pyodide-build frontend is only valid on pyodide",
+            ),
+        ),
     ],
 )
 def test_build_frontend_args(
@@ -27,7 +37,7 @@ def test_build_frontend_args(
 
     # the build will fail because the frontend is called with '-h' - it prints the help message
     add_env = {"CIBW_BUILD_FRONTEND": f"{frontend_name}; args: -h"}
-    if utils.get_platform() == "pyodide":
+    if frontend_name == "pyodide-build":
         add_env["TERM"] = "dumb"  # disable color / style
         add_env["NO_COLOR"] = "1"
     with pytest.raises(subprocess.CalledProcessError):
@@ -40,7 +50,7 @@ def test_build_frontend_args(
     if frontend_name == "pip":
         assert "Usage:" in captured.out
         assert "Wheel Options:" in captured.out
-    elif utils.get_platform() == "pyodide":
+    elif frontend_name == "pyodide-build":
         assert "Usage: pyodide build" in captured.out
     else:
         assert "usage:" in captured.out

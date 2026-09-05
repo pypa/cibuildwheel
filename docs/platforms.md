@@ -188,6 +188,11 @@ repair-wheel-command = "pyodide auditwheel repair --libdir /path/to/libraries --
 
 The `--libdir` option specifies the directory containing cross-compiled shared libraries for WASM. You should not use the system library directories (e.g. `/usr/lib`), as those libraries are not built for WebAssembly.
 
+### Build frontend support {: #pyodide-build-frontend}
+
+The pyodide platform builds wheels by shelling out to `pyodide build`, via the `pyodide-build` [`build-frontend`](options.md#build-frontend), which itself is a meta build frontend and passes through commands to pypa/build with specialised handling. This is the only supported frontend for this platform, and is used by default. A global [`build-frontend`](options.md#build-frontend) setting naming another frontend is ignored with a warning on this platform.
+
+[`build-verbosity`](options.md#build-verbosity) is passed through to `pyodide build` as `-v`/`-vv`. It is capped at `-vv`. `pyodide build` has no `-vvv` flag.
 
 ## Android {: android}
 
@@ -236,7 +241,7 @@ machine – for example, if you're building on an ARM64 machine, then you can te
 ARM64 wheel. Wheels of other architectures can still be built, but testing will
 automatically be skipped.
 
-Any arguments specified using [`test-runtime`](options.md#test-runtime) will be passed as arguments to the Python script that starts the [testbed project](https://github.com/python/cpython/blob/main/Android/README.md#testing). cibuildwheel will automatically start the testbed project with `--site-packages` and `--cwd` arguments matching your test environment, as well as enabling verbose output with `-v` if [`build-verbosity`](options.md#build-verbosity) is enabled. The most common additional arguments to use will be `--managed minVersion` or `--managed maxVersion`, specifying the use of a managed Android emulator with the minimum or maximum supported Android version; or `--connected <serial>`, specifying the use of an existing booted Android emulator or device. By default, the testbed project will run with `--managed maxVersion`.
+Any arguments specified using [`test-runtime`](options.md#test-runtime) will be passed as arguments to the Python script that starts the [testbed project](https://github.com/python/cpython/blob/main/Platforms/Android/README.md#testing). cibuildwheel will automatically start the testbed project with `--site-packages` and `--cwd` arguments matching your test environment, as well as enabling verbose output with `-v` if [`build-verbosity`](options.md#build-verbosity) is enabled. The most common additional arguments to use will be `--managed minVersion` or `--managed maxVersion`, specifying the use of a managed Android emulator with the minimum or maximum supported Android version; or `--connected <serial>`, specifying the use of an existing booted Android emulator or device. By default, the testbed project will run with `--managed maxVersion`.
 
 Running an emulator requires the build machine to either be bare-metal or support
 nested virtualization. CI platforms known to meet this requirement are:
@@ -325,6 +330,6 @@ If tests have been configured, the test suite will be executed on the simulator 
 
 The iOS test environment can't support running shell scripts, so the [`test-command`](options.md#test-command) value must be specified as if it were a command line being passed to `python -m ...`.
 
-The test process uses the [same testbed used by CPython itself](https://github.com/python/cpython/tree/main/Apple/iOS#testing-python-on-ios) to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <test-command>`.
+The test process uses the [same testbed used by CPython itself](https://github.com/python/cpython/blob/main/Platforms/Apple/iOS/README.md#testing-python-on-ios) to run the CPython test suite. It is an Xcode project that has been configured to have a single Xcode "XCUnit" test - the result of which reports the success or failure of running `python -m <test-command>`.
 
 Any arguments specified using [`test-runtime`](options.md#test-runtime) will be passed as arguments to the Python script that starts the testbed project. The testbed project will be started with `-v` enabling verbose output if [`build-verbosity`](options.md#build-verbosity) is enabled; the most common additional argument to use will be `--simulator`, which allows the specification of a specific device or iOS version for the test simulator. By default, the testbed project will attempt to find an "SE class" simulator (i.e., an iPhone SE, iPhone 16e, or similar), running the newest iOS version available.

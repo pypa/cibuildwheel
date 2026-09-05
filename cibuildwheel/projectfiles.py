@@ -60,6 +60,8 @@ class Analyzer(ast.NodeVisitor):
             case ast.keyword(arg="python_requires", value=ast.Constant(value=str() as version)):
                 if unnested or name_main_unnested:
                     self.requires_python = version
+            case _:
+                pass
 
 
 def setup_py_python_requires(content: str) -> str | None:
@@ -68,7 +70,7 @@ def setup_py_python_requires(content: str) -> str | None:
         analyzer = Analyzer()
         analyzer.visit(tree)
         return analyzer.requires_python or None
-    except Exception:  # pylint: disable=broad-except
+    except Exception:  # noqa: BLE001
         return None
 
 

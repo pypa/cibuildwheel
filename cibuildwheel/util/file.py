@@ -9,6 +9,7 @@ __lazy_modules__ = {
     "tarfile",
     "typing",
     "urllib",
+    "urllib.error",
     "urllib.request",
     "zipfile",
 }
@@ -20,6 +21,7 @@ import shutil
 import ssl
 import tarfile
 import time
+import urllib.error
 import urllib.request
 from contextlib import contextmanager
 from pathlib import Path, PurePath
@@ -51,7 +53,7 @@ def remove_on_error(path: Path) -> Generator[None, None, None]:
                 shutil.rmtree(path)
             elif path.exists() or path.is_symlink():
                 path.unlink()
-        except BaseException as cleanup_exception:
+        except BaseException as cleanup_exception:  # noqa: BLE001
             msg = f"Failed to remove {path}. Please remove it manually."
             raise BaseExceptionGroup(msg, [original_exception, cleanup_exception]) from None
         raise
@@ -86,17 +88,24 @@ def download(url: str, dest: Path, *, sha256: str | None = None) -> None:
     # so we use certifi (this sounds odd but requests also does this by default)
     cafile = os.environ.get("SSL_CERT_FILE", certifi.where())
     context = ssl.create_default_context(cafile=cafile)
-    repeat_num = 3
+    # exponential backoff, so that a network outage of about a minute is survivable
+    repeat_num = 6
     for i in range(repeat_num):
         try:
             with urllib.request.urlopen(url, context=context) as response:
                 dest.write_bytes(response.read())
                 break
 
+        except urllib.error.HTTPError as error:
+            # a client error, such as a bad URL, will not fix itself
+            if i == repeat_num - 1 or 400 <= error.code < 500:
+                raise
+            time.sleep(3 * 2**i)
+
         except OSError:
             if i == repeat_num - 1:
                 raise
-            time.sleep(3)
+            time.sleep(3 * 2**i)
 
     if sha256:
         with dest.open("rb") as f:

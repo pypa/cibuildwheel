@@ -11,7 +11,7 @@
 - `nox -s tests -- test -k before_build` — single integration test/file via pytest `-k`.
 - `nox -s lint` — run all linters (pre-commit/prek).
 - `nox -s pylint` — run pylint separately (not in pre-commit).
-- `nox -s docs` — mkdocs serve (interactive) or build (non-interactive).
+- `nox -s docs` — properdocs serve (interactive) or build (non-interactive).
 - Set up local dev env at `.venv`: `uv sync` (dependency groups used).
 
 ## Project layout
@@ -19,7 +19,7 @@
 - `test/` — **integration tests** (expensive, run actual wheel builds).
 - `unit_test/` — **unit tests** (fast, no wheel builds).
 - `bin/` — maintainer scripts (update pins, generate README tables, schema, etc.).
-- `docs/` — mkdocs source.
+- `docs/` — properdocs (MkDocs fork) source.
 
 ## Testing specifics
 - Three test suites exist, run in this order by `bin/run_tests.py`:

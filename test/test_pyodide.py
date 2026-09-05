@@ -71,7 +71,9 @@ def test_pyodide_build(tmp_path: Path, use_pyproject_toml: bool) -> None:
     basic_project.generate(project_dir)
 
     # check for node in 1 case only to reduce CI load
-    add_env = {"CIBW_ENABLE": "pyodide-prerelease"}
+    # cp315 is a Pyodide prerelease embedding a prerelease CPython, so it is
+    # gated by `cpython-prerelease`.
+    add_env = {"CIBW_ENABLE": "cpython-prerelease"}
     if use_pyproject_toml:
         add_env["CIBW_TEST_COMMAND"] = f"python {{project}}/check_node.py {CIBW_CACHE_PATH}"
 
@@ -86,6 +88,7 @@ def test_pyodide_build(tmp_path: Path, use_pyproject_toml: bool) -> None:
     expected_wheels = [
         "spam-0.1.0-cp313-cp313-pyemscripten_2025_0_wasm32.whl",
         "spam-0.1.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+        "spam-0.1.0-cp315-cp315-pyemscripten_2026_5_wasm32.whl",
     ]
 
     print("actual_wheels", actual_wheels)
@@ -144,13 +147,14 @@ def test_pyodide_build_and_test(tmp_path: Path, expect_failure: bool) -> None:
             add_env={
                 "CIBW_TEST_REQUIRES": "pytest",
                 "CIBW_TEST_COMMAND": "python -m pytest {project}",
-                "CIBW_ENABLE": "pyodide-prerelease",
+                "CIBW_ENABLE": "cpython-prerelease",
             },
         )
         # check that the expected wheels are produced
         expected_wheels = [
             "spam-0.1.0-cp313-cp313-pyemscripten_2025_0_wasm32.whl",
             "spam-0.1.0-cp314-cp314-pyemscripten_2026_0_wasm32.whl",
+            "spam-0.1.0-cp315-cp315-pyemscripten_2026_5_wasm32.whl",
         ]
         assert set(actual_wheels) == set(expected_wheels)
 

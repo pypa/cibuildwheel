@@ -18,14 +18,14 @@ repos:
     exclude: ^cibuildwheel/resources/android/android.patch$
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: 0671d8ab202c4ac093b78433ae5baf74f3fc7246  # frozen: v0.15.15
+  rev: 39d9ac5938dadb73df0564a45f163e25ff9fa6e2  # frozen: v0.16.1
   hooks:
   - id: ruff-check
     args: ["--fix"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: d2823d321df3af8f878f7ee3414dc94d037145b9  # frozen: v2.1.0
+  rev: 41e691678310dfd3833f7ab4e180ddb014310356  # frozen: v2.3.0
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
@@ -77,7 +77,7 @@ repos:
     additional_dependencies: [cogapp>=3.5]
 
 - repo: https://github.com/henryiii/flake8-lazy
-  rev: 65b94e97b1091634368592d98072160842265fe4  # frozen: v0.8.2
+  rev: 5fed9a818f2583f0403aed779bf2b6c9aa8d25f4  # frozen: v0.8.5
   hooks:
   - id: flake8-lazy
     args: ["--apply=set"]
@@ -85,7 +85,7 @@ repos:
     exclude: "^cibuildwheel/resources/"
 
 - repo: https://github.com/codespell-project/codespell
-  rev: 2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a  # frozen: v2.4.2
+  rev: 57b21406f092110c18776e39b0bda50d37c945c8  # frozen: v2.4.3
   hooks:
   - id: codespell
     args: ["-w"]
@@ -93,7 +93,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 943377262562a12b57292fc98fabd7dbf81451fe  # frozen: 0.37.2
+  rev: 1a4bb160cab6417b3045e1b37b6b72449243e658  # frozen: 0.37.4
   hooks:
     - id: check-dependabot
     - id: check-github-actions

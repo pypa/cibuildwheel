@@ -360,6 +360,9 @@ def build_in_container(
                         ],
                         env=env,
                     )
+                case "pyodide-build":
+                    msg = "The 'pyodide-build' build frontend is not supported on this platform"
+                    raise errors.FatalError(msg)
                 case _:
                     assert_never(build_frontend)
 

@@ -23,7 +23,7 @@ on:
       - .travis.yml
       - README.md
       - azure-pipelines.yml
-      - mkdocs.yml
+      - properdocs.yml
       - noxfile.py
   workflow_dispatch:
     # allow manual runs on branches without a PR
@@ -34,19 +34,23 @@ concurrency:
   group: test-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # runners see short DNS/network outages; uv's default of 3 retries is too few
+  UV_HTTP_RETRIES: "6"
+
 jobs:
   lint:
     name: Linters (mypy, ruff, etc.)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
-    - uses: j178/prek-action@bdca6f102f98e2b4c7029491a53dfd366469e33d # v2.0.4
+    - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+    - uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
     - name: PyLint checks
       run: uvx nox -s pylint -- --output-format=github
 
@@ -55,14 +59,14 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       name: Install Python
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+    - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
     - name: Install dependencies
       run: uv sync --no-dev --group test
     - name: Generate a sample project
@@ -117,16 +121,16 @@ jobs:
           test_select: android
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       name: Install Python ${{ matrix.python_version }}
       with:
         python-version: ${{ matrix.python_version }}
         allow-prereleases: true
 
-    - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+    - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
 
     - name: Free up disk space
       if: runner.os == 'Linux' && matrix.test_select != 'android'
@@ -139,7 +143,7 @@ jobs:
     # for oci_container unit tests
     - name: Set up QEMU
       if: runner.os == 'Linux'
-      uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
+      uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
 
     - name: Set up Xcode
       if: ${{ startsWith(matrix.os, 'macos-15') }}
@@ -167,6 +171,9 @@ jobs:
           fi
           if [[ -n "$GITHUB_PR_LABEL_CI_GRAALPY" ]]; then
             CIBW_ENABLE+=" graalpy"
+          fi
+          if [[ -n "$GITHUB_PR_LABEL_CI_PYPY_EOL" ]]; then
+            CIBW_ENABLE+=" pypy-eol"
           fi
         fi
         echo "CIBW_ENABLE=${CIBW_ENABLE}" >> $GITHUB_ENV
@@ -247,13 +254,13 @@ jobs:
     outputs:
       archs: ${{ steps.archs.outputs.archs }}
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+    - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
     - name: Install dependencies
       run: uv sync --no-dev --group test
     - name: Get qemu emulated architectures
@@ -272,18 +279,18 @@ jobs:
       matrix:
         arch: ${{ fromJSON(needs.emulated-archs.outputs.archs) }}
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       with:
         python-version: "3.x"
-    - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+    - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
     - name: Install dependencies
       run: uv sync --no-dev --group test
 
     - name: Set up QEMU
-      uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3 # v4.1.0
+      uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
 
     - name: Run the emulation tests
       env:
@@ -296,14 +303,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
-    - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+    - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       name: Install Python 3.12
       with:
         python-version: '3.12'
-    - uses: astral-sh/setup-uv@fac544c07dec837d0ccb6301d7b5580bf5edae39 # v8.2.0
+    - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
 
     - name: Install dependencies
       run: uv sync --no-dev --group test
@@ -321,13 +328,13 @@ jobs:
         output-dir: wheelhouse
       env:
         CIBW_PLATFORM: pyodide
-        CIBW_ENABLE: pyodide-prerelease
+        CIBW_ENABLE: cpython-prerelease
 
     - name: Run tests with 'CIBW_PLATFORM' set to 'pyodide'
       run: uv run --no-sync ./bin/run_tests.py
       env:
         CIBW_PLATFORM: pyodide
-        CIBW_ENABLE: pyodide-prerelease
+        CIBW_ENABLE: cpython-prerelease
 
   test-uv-extras:
     name: Test uv extra on ${{ matrix.os }} ${{ matrix.test_select }}
@@ -348,7 +355,7 @@ jobs:
         - os: macos-15
           test_select: android
     steps:
-    - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
     - name: Download a sample project

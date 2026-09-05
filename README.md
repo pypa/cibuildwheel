@@ -22,25 +22,24 @@ What does it do?
 
 While cibuildwheel itself requires a recent Python version to run (we support the last three releases), it can target the following versions to build wheels:
 
-|                          | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64  | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | manylinux<br/>musllinux armv7l | Android | iOS | Pyodide        |
-| ------------------------ | ----------- | ------------------- | ------------- | ------------- | -------------- | ------------------------------ | ---------------------------- | ------------------------------- | ------------------------------- | ----------------------------- | ------------------------------ | ------- | --- | -------------- |
-| CPython 3.9              | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | N/A     | N/A | N/A            |
-| CPython 3.10             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | N/A     | N/A | N/A            |
-| CPython 3.11             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | N/A     | N/A | N/A            |
-| CPython 3.12             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | N/A     | N/A | ✅<sup>3</sup> |
-| CPython 3.13             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | ✅      | ✅  | ✅             |
-| CPython 3.14             | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | ✅      | ✅  | ✅             |
-| CPython 3.15<sup>5</sup> | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | ✅      | ✅  | N/A            |
-| PyPy 3.9 v7.3            | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
-| PyPy 3.10 v7.3           | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
-| PyPy 3.11 v7.3           | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
-| GraalPy 3.12 v25.0       | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | N/A                          | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
+|                    | macOS Intel | macOS Apple Silicon | Windows 64bit | Windows 32bit | Windows Arm64  | manylinux<br/>musllinux x86_64 | manylinux<br/>musllinux i686 | manylinux<br/>musllinux aarch64 | manylinux<br/>musllinux ppc64le | manylinux<br/>musllinux s390x | manylinux<br/>musllinux armv7l | Android | iOS | Pyodide        |
+|--------------------| ----------- | ------------------- | ------------- | ------------- | -------------- | ------------------------------ | ---------------------------- | ------------------------------- | ------------------------------- | ----------------------------- | ------------------------------ | ------- | --- | -------------- |
+| CPython 3.9        | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | N/A     | N/A | N/A            |
+| CPython 3.10       | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | N/A     | N/A | N/A            |
+| CPython 3.11       | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | N/A     | N/A | N/A            |
+| CPython 3.12       | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | N/A     | N/A | ✅<sup>3</sup> |
+| CPython 3.13       | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | ✅      | ✅  | ✅             |
+| CPython 3.14       | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | ✅      | ✅  | ✅             |
+| CPython 3.15       | ✅          | ✅                  | ✅            | ✅            | ✅<sup>2</sup> | ✅                             | ✅                           | ✅                              | ✅                              | ✅                            | ✅<sup>4</sup>                 | ✅      | ✅  | ✅             |
+| PyPy 3.9 v7.3      | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
+| PyPy 3.10 v7.3     | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
+| PyPy 3.11 v7.3     | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | ✅<sup>1</sup>               | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
+| GraalPy 3.12 v25.0 | ✅          | ✅                  | ✅            | N/A           | N/A            | ✅<sup>1</sup>                 | N/A                          | ✅<sup>1</sup>                  | N/A                             | N/A                           | N/A                            | N/A     | N/A | N/A            |
 
 <sup>**1** PyPy & GraalPy are only supported for manylinux wheels.</sup><br>
 <sup>**2** Windows arm64 support is experimental.</sup><br>
 <sup>**3** Not supported on PyPI, uses old `pyodide` tag instead of `pyemscripten`. Requires `pyodide-eol` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable).</sup><br>
 <sup>**4** manylinux armv7l support is experimental. As there are no RHEL based image for this architecture, it's using an Ubuntu based image instead.</sup><br>
-<sup>**5** Python 3.15 requires opt-in using [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable).</sup><br>
 
 - Builds manylinux, musllinux, macOS, Windows, pyemscripten, iOS, and Android wheels
 - Supports CPython, PyPy, and GraalPy
@@ -98,7 +97,7 @@ jobs:
       - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==4.1.0
+        run: python -m pip install cibuildwheel==4.2.0
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -189,8 +188,8 @@ Here are some repos that use cibuildwheel.
 |-----------------------------------|----|----|:------|
 | [scikit-learn][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | The machine learning library. A complex but clean config using many of cibuildwheel's features to build a large project with Cython and C++ extensions.  |
 | [duckdb][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | DuckDB is an analytical in-process SQL database management system |
-| [pytorch-fairseq][]               | ![github icon][] | ![apple icon][] ![linux icon][] | Facebook AI Research Sequence-to-Sequence Toolkit written in Python. |
 | [NumPy][]                         | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | The fundamental package for scientific computing with Python. |
+| [pytorch-fairseq][]               | ![github icon][] | ![apple icon][] ![linux icon][] | Facebook AI Research Sequence-to-Sequence Toolkit written in Python. |
 | [NCNN][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | ncnn is a high-performance neural network inference framework optimized for the mobile platform |
 | [Matplotlib][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | The venerable Matplotlib, a Python library with C++ portions |
 | [Tornado][]                       | ![github icon][] | ![linux icon][] ![apple icon][] ![windows icon][] | Tornado is a Python web framework and asynchronous networking library. Uses stable ABI for a small C extension. |
@@ -200,8 +199,8 @@ Here are some repos that use cibuildwheel.
 
 [scikit-learn]: https://github.com/scikit-learn/scikit-learn
 [duckdb]: https://github.com/duckdb/duckdb
-[pytorch-fairseq]: https://github.com/facebookresearch/fairseq
 [NumPy]: https://github.com/numpy/numpy
+[pytorch-fairseq]: https://github.com/facebookresearch/fairseq
 [NCNN]: https://github.com/Tencent/ncnn
 [Matplotlib]: https://github.com/matplotlib/matplotlib
 [Tornado]: https://github.com/tornadoweb/tornado
@@ -238,6 +237,42 @@ Changelog
 =========
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
+
+### v4.2.0
+
+_4 August 2026_
+
+- 🌟 CPython 3.15 wheels are now built by default - without the `"cpython-prerelease"` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) set. It's time to build and upload these wheels to PyPI! This release includes CPython 3.15.0rc1, which is guaranteed to be ABI compatible with the final release. (#2944)
+- ✨ Adds Pyodide 3.15 support with the `cp315-pyodide_wasm32` build identifier, using Pyodide 315.0.0a2. These are also stable wrt. the final release. (#2958)
+- 🐛 Retries a failed download six times with exponential backoff, so short network outages no longer stop a build. A `4xx` response is still reported at once. (#2953)
+- 🐛 Accepts `default` as a [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) value on Pyodide, and accepts `pyodide-build` in the top-level table and in overrides (#2951)
+- 🛠 Holds pip back on GraalPy, where newer pip breaks the build (#2955)
+- 🛠 Updates Pyodide to 314.0.4 (#2949, #2952)
+- 🛠 Updates dependencies and container pins (#2952, #2960)
+- 💼 Updates CI action pins (#2948, #2954)
+- 🧪 Uses pp311 for the abi3 test, and deletes `test_overridden_pip_constraint`, which is not necessary since #2583 (#2956, #2957)
+
+### v4.1.1
+
+_24 July 2026_
+
+- ✨ Adds `pyodide-build` as a separate [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend), now the default frontend for Pyodide, with verbosity flags handling. Any other frontend is ignored with a warning on Pyodide. (#2609, #2945)
+- 🔐 Uses digests instead of tags for pinned container images, strengthening supply-chain security. The human-readable tags remain as comments in `pinned_docker_images.cfg`. (#2915)
+- 🐛 Fixes platform-specific [`test-runtime`](https://cibuildwheel.pypa.io/en/stable/options/#test-runtime) environment variables (e.g. `CIBW_TEST_RUNTIME_ANDROID`) not being honored (#2941)
+- 🐛 Fixes quoting of [`test-requires`](https://cibuildwheel.pypa.io/en/stable/options/#test-requires) and [`audit-requires`](https://cibuildwheel.pypa.io/en/stable/options/#audit-requires) so PEP 508 specifiers containing spaces work (#2913)
+- 🐛 Makes [`archs`](https://cibuildwheel.pypa.io/en/stable/options/#archs) parsing case-insensitive and platform-aware, so e.g. `arm64` works on Windows (#2920)
+- 🐛 Uses an absolute path for the `{project}` placeholder in [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) (#2934)
+- 🐛 Validates the [`pyodide-version`](https://cibuildwheel.pypa.io/en/stable/options/#pyodide-version) option against the build identifier with a clear error (#2925)
+- 🐛 Fixes PyPy installs on macOS after PyPy switched its downloads from `.tar.bz2` to `.tar.gz` (#2939)
+- 🐛 Makes a matching `python3-config` available in the build and test venvs on macOS (#2922)
+- 🛠 Updates dependencies and container pins (#2917, #2935, #2939)
+- 🛠 Updates Android tests to current Python versions and the new test repository URL (#2933)
+- 🛠 Drops the `orjson` dependency, no longer used by mypy 2+ (#2923)
+- 📚 Builds the docs with properdocs, a MkDocs fork (#2946)
+- 📚 Adds the missing `cp314-pyodide_wasm32` entry to the build identifier table (#2947)
+- 📚 Removes outdated notes about the `pip wheel` build frontend and ClearLinux (#2926)
+- 💼 Adds a "CI: PyPy EoL" PR label to run PyPy EoL tests on PRs (#2930)
+- 💼 Updates CI action pins and pre-commit hooks (#2914, #2932, #2938, #2940, #2942, #2943)
 
 ### v4.1.0
 
@@ -316,25 +351,7 @@ _2 April 2026_
 - ✨ cibuildwheel prints the selected build identifiers at the start of the build. (#2785)
 - 🔐 The GitHub Action now references other actions with a full SHA (#2744)
 
-### v3.4.0
-
-_5 March 2026_
-
-- 🌟 You can now build wheels using `uv` as a build frontend. This should improve performance, especially if your project has lots of build dependencies. To use, set [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) to `uv`. (#2322)
-- ⚠️ We no longer support running on Travis CI. It may continue working but we don't run tests there anymore so we can't be sure. (#2682)
-- ✨ Improvements to building rust wheels on Android (#2650)
-- 🛠 Update Pyodide to 0.29.3 (#2719, #2733)
-- 🐛 Fix bug with the GitHub Action on Windows, where PATH was getting unnecessarily changed, causing issues with meson builds. (#2723)
-- ✨ Add support for quiet setting on `build` and `uv` from the cibuildwheel `build-verbosity` setting. (#2737)
-- 📚 Docs updates, including guidance on using Meson on Windows (#2718)
-
-### v3.3.1
-
-_5 January 2026_
-
-- 🛠 Update dependencies and container pins, including updating to CPython 3.14.2. (#2708)
-
-<!-- [[[end]]] (sum: s3fkxPyqwC) -->
+<!-- [[[end]]] (sum: fEuiF50wvg) -->
 
 ---
 

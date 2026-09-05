@@ -12,13 +12,19 @@ basic_project = test_projects.new_c_project()
 
 
 def test_podman(
-    tmp_path: Path, capfd: pytest.CaptureFixture[str], request: pytest.FixtureRequest
+    tmp_path: Path,
+    capfd: pytest.CaptureFixture[str],
+    request: pytest.FixtureRequest,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
 
     if not request.config.getoption("--run-podman"):
         pytest.skip("needs --run-podman option to run")
+
+    # we can't use images cached in the docker_warmup_fixture autouse fixture
+    monkeypatch.delenv("CIBW_INTERNAL_PINNED_DOCKER_IMAGES", raising=False)
 
     project_dir = tmp_path / "project"
     basic_project.generate(project_dir)

@@ -29,6 +29,7 @@ from cibuildwheel.oci_container import (
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterator
+    from typing import Any
 
 # Test utilities
 
@@ -82,6 +83,18 @@ def test_no_lf(container_engine: OCIContainerEngineConfig) -> None:
         engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
     ) as container:
         assert container.call(["printf", "hello"], capture_output=True) == "hello"
+
+
+def test_abnormal_exit(container_engine: OCIContainerEngineConfig) -> None:
+    container = OCIContainer(
+        engine=container_engine, image=DEFAULT_IMAGE, oci_platform=DEFAULT_OCI_PLATFORM
+    )
+    with container:
+        # kill the shell without a newline, so the write below still goes
+        # through the same buffer and the call fails on read, not on write
+        container.bash_stdin.write(b"exit")
+        with pytest.raises(RuntimeError):
+            container.call(["echo", "hello"])
 
 
 def test_debug_info(container_engine: OCIContainerEngineConfig) -> None:
@@ -139,6 +152,7 @@ def test_container_removed(container_engine: OCIContainerEngineConfig) -> None:
     ) as container:
         assert container.name is not None
         container_name = container.name
+        docker_containers_listing = ""
         for _ in range(timeout):
             docker_containers_listing = subprocess.run(
                 f"{container.engine.name} container ls",
@@ -330,7 +344,7 @@ def test_podman_vfs(
     # This requires that we write configuration files and point to them
     # with environment variables before we run podman
     # https://github.com/containers/common/blob/main/docs/containers.conf.5.md
-    vfs_containers_conf_data = {
+    vfs_containers_conf_data: dict[str, dict[str, Any]] = {
         "containers": {
             "default_capabilities": [
                 "CHOWN",
@@ -348,6 +362,20 @@ def test_podman_vfs(
         },
         "engine": {"cgroup_manager": "cgroupfs", "events_logger": "file"},
     }
+
+    # Setting CONTAINERS_CONF makes podman ignore its usual config files, so
+    # carry over the default OCI runtime; the fallback found on PATH can be
+    # too old for the OCI spec version podman generates (e.g. Ubuntu 24.04's
+    # crun 1.14.1 with podman 5.x).
+    oci_runtime = subprocess.run(
+        ["podman", "info", "--format", "{{.Host.OCIRuntime.Path}}"],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    runtime_name = Path(oci_runtime).name
+    vfs_containers_conf_data["engine"]["runtime"] = runtime_name
+    vfs_containers_conf_data["engine"]["runtimes"] = {runtime_name: [oci_runtime]}
     # https://github.com/containers/storage/blob/main/docs/containers-storage.conf.5.md
     storage_root = vfs_path / ".local/share/containers/vfs-storage"
     run_root = vfs_path / ".local/share/containers/vfs-runroot"

@@ -64,8 +64,8 @@ When setting the options, you can use shell-style globbing syntax, as per [fnmat
 | Python 3.11   | cp311-macosx_x86_64<br/>cp311-macosx_universal2<br/>cp311-macosx_arm64 | cp311-win_amd64<br/>cp311-win32<br/>cp311-win_arm64 | cp311-manylinux_x86_64<br/>cp311-manylinux_i686<br/>cp311-musllinux_x86_64<br/>cp311-musllinux_i686 | cp311-manylinux_aarch64<br/>cp311-manylinux_ppc64le<br/>cp311-manylinux_s390x<br/>cp311-manylinux_armv7l<br/>cp311-manylinux_riscv64<br/>cp311-musllinux_aarch64<br/>cp311-musllinux_ppc64le<br/>cp311-musllinux_s390x<br/>cp311-musllinux_armv7l<br/>cp311-musllinux_riscv64 |                                                  |                                                                                                   |                      |
 | Python 3.12   | cp312-macosx_x86_64<br/>cp312-macosx_universal2<br/>cp312-macosx_arm64 | cp312-win_amd64<br/>cp312-win32<br/>cp312-win_arm64 | cp312-manylinux_x86_64<br/>cp312-manylinux_i686<br/>cp312-musllinux_x86_64<br/>cp312-musllinux_i686 | cp312-manylinux_aarch64<br/>cp312-manylinux_ppc64le<br/>cp312-manylinux_s390x<br/>cp312-manylinux_armv7l<br/>cp312-manylinux_riscv64<br/>cp312-musllinux_aarch64<br/>cp312-musllinux_ppc64le<br/>cp312-musllinux_s390x<br/>cp312-musllinux_armv7l<br/>cp312-musllinux_riscv64 |                                                  |                                                                                                   | cp312-pyodide_wasm32 |
 | Python 3.13   | cp313-macosx_x86_64<br/>cp313-macosx_universal2<br/>cp313-macosx_arm64 | cp313-win_amd64<br/>cp313-win32<br/>cp313-win_arm64 | cp313-manylinux_x86_64<br/>cp313-manylinux_i686<br/>cp313-musllinux_x86_64<br/>cp313-musllinux_i686 | cp313-manylinux_aarch64<br/>cp313-manylinux_ppc64le<br/>cp313-manylinux_s390x<br/>cp313-manylinux_armv7l<br/>cp313-manylinux_riscv64<br/>cp313-musllinux_aarch64<br/>cp313-musllinux_ppc64le<br/>cp313-musllinux_s390x<br/>cp313-musllinux_armv7l<br/>cp313-musllinux_riscv64 | cp313-android_arm64_v8a<br/>cp313-android_x86_64 | cp313-ios_arm64_iphoneos<br/>cp313-ios_arm64_iphonesimulator<br/>cp313-ios_x86_64_iphonesimulator | cp313-pyodide_wasm32 |
-| Python 3.14   | cp314-macosx_x86_64<br/>cp314-macosx_universal2<br/>cp314-macosx_arm64<br><br>cp314t-macosx_x86_64<br/>cp314t-macosx_universal2<br/>cp314t-macosx_arm64 | cp314-win_amd64<br/>cp314-win32<br/>cp314-win_arm64<br><br>cp314t-win_amd64<br/>cp314t-win32<br/>cp314t-win_arm64 | cp314-manylinux_x86_64<br/>cp314-manylinux_i686<br/>cp314-musllinux_x86_64<br/>cp314-musllinux_i686<br><br>cp314t-manylinux_x86_64<br/>cp314t-manylinux_i686<br/>cp314t-musllinux_x86_64<br/>cp314t-musllinux_i686 | cp314-manylinux_aarch64<br/>cp314-manylinux_ppc64le<br/>cp314-manylinux_s390x<br/>cp314-manylinux_armv7l<br/>cp314-manylinux_riscv64<br/>cp314-musllinux_aarch64<br/>cp314-musllinux_ppc64le<br/>cp314-musllinux_s390x<br/>cp314-musllinux_armv7l<br/>cp314-musllinux_riscv64<br><br>cp314t-manylinux_aarch64<br/>cp314t-manylinux_ppc64le<br/>cp314t-manylinux_s390x<br/>cp314t-manylinux_armv7l<br/>cp314t-manylinux_riscv64<br/>cp314t-musllinux_aarch64<br/>cp314t-musllinux_ppc64le<br/>cp314t-musllinux_s390x<br/>cp314t-musllinux_armv7l<br/>cp314t-musllinux_riscv64 | cp314-android_arm64_v8a<br/>cp314-android_x86_64 | cp314-ios_arm64_iphoneos<br/>cp314-ios_arm64_iphonesimulator<br/>cp314-ios_x86_64_iphonesimulator |                      |
-| Python 3.15   | cp315-macosx_x86_64<br/>cp315-macosx_universal2<br/>cp315-macosx_arm64<br><br>cp315t-macosx_x86_64<br/>cp315t-macosx_universal2<br/>cp315t-macosx_arm64 | cp315-win_amd64<br/>cp315-win32<br/>cp315-win_arm64<br><br>cp315t-win_amd64<br/>cp315t-win32<br/>cp315t-win_arm64 | cp315-manylinux_x86_64<br/>cp315-manylinux_i686<br/>cp315-musllinux_x86_64<br/>cp315-musllinux_i686<br><br>cp315t-manylinux_x86_64<br/>cp315t-manylinux_i686<br/>cp315t-musllinux_x86_64<br/>cp315t-musllinux_i686 | cp315-manylinux_aarch64<br/>cp315-manylinux_ppc64le<br/>cp315-manylinux_s390x<br/>cp315-manylinux_armv7l<br/>cp315-manylinux_riscv64<br/>cp315-musllinux_aarch64<br/>cp315-musllinux_ppc64le<br/>cp315-musllinux_s390x<br/>cp315-musllinux_armv7l<br/>cp315-musllinux_riscv64<br><br>cp315t-manylinux_aarch64<br/>cp315t-manylinux_ppc64le<br/>cp315t-manylinux_s390x<br/>cp315t-manylinux_armv7l<br/>cp315t-manylinux_riscv64<br/>cp315t-musllinux_aarch64<br/>cp315t-musllinux_ppc64le<br/>cp315t-musllinux_s390x<br/>cp315t-musllinux_armv7l<br/>cp315t-musllinux_riscv64 | cp315-android_arm64_v8a<br/>cp315-android_x86_64 | cp315-ios_arm64_iphoneos<br/>cp315-ios_arm64_iphonesimulator<br/>cp315-ios_x86_64_iphonesimulator |                      |
+| Python 3.14   | cp314-macosx_x86_64<br/>cp314-macosx_universal2<br/>cp314-macosx_arm64<br><br>cp314t-macosx_x86_64<br/>cp314t-macosx_universal2<br/>cp314t-macosx_arm64 | cp314-win_amd64<br/>cp314-win32<br/>cp314-win_arm64<br><br>cp314t-win_amd64<br/>cp314t-win32<br/>cp314t-win_arm64 | cp314-manylinux_x86_64<br/>cp314-manylinux_i686<br/>cp314-musllinux_x86_64<br/>cp314-musllinux_i686<br><br>cp314t-manylinux_x86_64<br/>cp314t-manylinux_i686<br/>cp314t-musllinux_x86_64<br/>cp314t-musllinux_i686 | cp314-manylinux_aarch64<br/>cp314-manylinux_ppc64le<br/>cp314-manylinux_s390x<br/>cp314-manylinux_armv7l<br/>cp314-manylinux_riscv64<br/>cp314-musllinux_aarch64<br/>cp314-musllinux_ppc64le<br/>cp314-musllinux_s390x<br/>cp314-musllinux_armv7l<br/>cp314-musllinux_riscv64<br><br>cp314t-manylinux_aarch64<br/>cp314t-manylinux_ppc64le<br/>cp314t-manylinux_s390x<br/>cp314t-manylinux_armv7l<br/>cp314t-manylinux_riscv64<br/>cp314t-musllinux_aarch64<br/>cp314t-musllinux_ppc64le<br/>cp314t-musllinux_s390x<br/>cp314t-musllinux_armv7l<br/>cp314t-musllinux_riscv64 | cp314-android_arm64_v8a<br/>cp314-android_x86_64 | cp314-ios_arm64_iphoneos<br/>cp314-ios_arm64_iphonesimulator<br/>cp314-ios_x86_64_iphonesimulator | cp314-pyodide_wasm32 |
+| Python 3.15   | cp315-macosx_x86_64<br/>cp315-macosx_universal2<br/>cp315-macosx_arm64<br><br>cp315t-macosx_x86_64<br/>cp315t-macosx_universal2<br/>cp315t-macosx_arm64 | cp315-win_amd64<br/>cp315-win32<br/>cp315-win_arm64<br><br>cp315t-win_amd64<br/>cp315t-win32<br/>cp315t-win_arm64 | cp315-manylinux_x86_64<br/>cp315-manylinux_i686<br/>cp315-musllinux_x86_64<br/>cp315-musllinux_i686<br><br>cp315t-manylinux_x86_64<br/>cp315t-manylinux_i686<br/>cp315t-musllinux_x86_64<br/>cp315t-musllinux_i686 | cp315-manylinux_aarch64<br/>cp315-manylinux_ppc64le<br/>cp315-manylinux_s390x<br/>cp315-manylinux_armv7l<br/>cp315-manylinux_riscv64<br/>cp315-musllinux_aarch64<br/>cp315-musllinux_ppc64le<br/>cp315-musllinux_s390x<br/>cp315-musllinux_armv7l<br/>cp315-musllinux_riscv64<br><br>cp315t-manylinux_aarch64<br/>cp315t-manylinux_ppc64le<br/>cp315t-manylinux_s390x<br/>cp315t-manylinux_armv7l<br/>cp315t-manylinux_riscv64<br/>cp315t-musllinux_aarch64<br/>cp315t-musllinux_ppc64le<br/>cp315t-musllinux_s390x<br/>cp315t-musllinux_armv7l<br/>cp315t-musllinux_riscv64 | cp315-android_arm64_v8a<br/>cp315-android_x86_64 | cp315-ios_arm64_iphoneos<br/>cp315-ios_arm64_iphonesimulator<br/>cp315-ios_x86_64_iphonesimulator | cp315-pyodide_wasm32 |
 | PyPy3.9 v7.3  | pp39-macosx_x86_64<br/>pp39-macosx_arm64                               | pp39-win_amd64                                      | pp39-manylinux_x86_64<br/>pp39-manylinux_i686                                                       | pp39-manylinux_aarch64                                                                                                                                                                                                                                                        |                                                  |                                                                                                   |                      |
 | PyPy3.10 v7.3 | pp310-macosx_x86_64<br/>pp310-macosx_arm64                             | pp310-win_amd64                                     | pp310-manylinux_x86_64<br/>pp310-manylinux_i686                                                     | pp310-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
 | PyPy3.11 v7.3 | pp311-macosx_x86_64<br/>pp311-macosx_arm64                             | pp311-win_amd64                                     | pp311-manylinux_x86_64<br/>pp311-manylinux_i686                                                     | pp311-manylinux_aarch64                                                                                                                                                                                                                                                       |                                                  |                                                                                                   |                      |
@@ -357,13 +357,11 @@ values are:
 
 
 - `cpython-prerelease`: Enables beta versions of Pythons if any are available
-  (May-July, approximately).
+  (May-July, approximately). This also covers Pyodide versions built against a
+  beta CPython, which is the case for the current Pyodide prerelease.
 - `pypy`: Enable PyPy.
 - `pypy-eol`: Enable PyPy versions that have passed end of life (if still available).
 - `graalpy`: Enable GraalPy.
-- `pyodide-prerelease`: Pyodide versions that haven't released yet, if one is
-  available. Safe if you are shipping a site with an early build, not for
-  general distribution.
 - `pyodide-eol`: Enable Pyodide versions that are no longer the current stable
   release (if still available).
 - `all`: Enable all of the above.
@@ -481,7 +479,11 @@ files (from workspaces) are not supported.
     are building GraalPy wheels, use `build` or `pip` as the build frontend
     instead of `build[uv]` or `uv`.
 
-On Android and Pyodide, the "pip" frontend is not supported.
+On Android, the "pip" frontend is not supported.
+
+On Pyodide, `pyodide-build` is the default and only supported frontend; setting
+another frontend produces a warning and uses `pyodide-build` instead. See
+[Pyodide build frontend support](platforms.md#pyodide-build-frontend) for details.
 
 You can specify extra arguments to pass to the build frontend using the
 optional `args` option.
@@ -1916,14 +1918,14 @@ will not produce more logging about the build itself. Other levels only affect
 the build frontend output, which is usually things like resolving and
 downloading dependencies. The settings are:
 
-|             | build | pip    | uv    | desc                                   |
-|-------------|-------|--------|-------|----------------------------------------|
-| -2          | `-qq` | `-qq`  | `-qq` | even more quiet, where supported       |
-| -1          | `-q`  | `-q`   | `-q`  | quiet mode, where supported            |
-| 0 (default) |       |        |       | default for build tool                 |
-| 1           |       | `-v`   |       | print backend output                   |
-| 2           | `-v`  | `-vv`  | `-v`  | print log messages e.g. resolving info |
-| 3           | `-vv` | `-vvv` | `-vv` | print even more debug info             |
+|             | build | pip    | uv    | pyodide-build | desc                                   |
+|-------------|-------|--------|-------|---------------|----------------------------------------|
+| -2          | `-qq` | `-qq`  | `-qq` |               | even more quiet, where supported       |
+| -1          | `-q`  | `-q`   | `-q`  |               | quiet mode, where supported            |
+| 0 (default) |       |        |       |               | default for build tool                 |
+| 1           |       | `-v`   |       | `-v`          | print backend output                   |
+| 2           | `-v`  | `-vv`  | `-v`  | `-vv`         | print log messages e.g. resolving info |
+| 3           | `-vv` | `-vvv` | `-vv` |               | print even more debug info             |
 
 Settings that are not supported for a specific frontend will log a warning.
 The default build frontend is `build`, which does show build backend output by

@@ -83,7 +83,7 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
 
             if retry_count == max_retries - 1:
                 print(f"GitHub API request failed (Network error: {e}). Check network connection.")
-                raise e
+                raise
 
     # Should never be reached but to keep the type checker happy
     msg = "Unexpected execution path in github_api_request"
