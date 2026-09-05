@@ -249,16 +249,31 @@ class OptionFormat:
 class ListFormat(OptionFormat):
     """
     A format that joins lists with a separator.
+
+    Set `null_value` if you need a string that represents nothing. It's preserved
+    as-is but when merging, the null value is discarded in favor of the other value.
     """
 
-    def __init__(self, sep: str, quote: Callable[[str], str] | None = None) -> None:
+    def __init__(
+        self,
+        sep: str,
+        quote: Callable[[str], str] | None = None,
+        null_value: str | None = None,
+    ) -> None:
         self.sep = sep
         self.quote = quote or (lambda s: s)
+        self.null_value = null_value
 
     def format_list(self, value: SettingList) -> str:
+        if self.null_value is not None and value == [self.null_value]:
+            return self.null_value
         return self.sep.join(self.quote(str(v)) for v in value)
 
     def merge_values(self, before: str, after: str) -> str:
+        if before == self.null_value:
+            return after
+        if after == self.null_value:
+            return before
         return f"{before}{self.sep}{after}"
 
 
@@ -908,7 +923,8 @@ class Options:
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
             xbuild_tools: list[str] | None = shlex.split(
                 self.reader.get(
-                    "xbuild-tools", option_format=ListFormat(sep=" ", quote=shlex.quote)
+                    "xbuild-tools",
+                    option_format=ListFormat(sep=" ", quote=shlex.quote, null_value="\u0000"),
                 )
             )
             # ["\u0000"] is a sentinel value used as a default, because TOML
