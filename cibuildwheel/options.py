@@ -517,6 +517,7 @@ class OptionsReader:
         self.config_platform_options = config_platform_options
         self.config_platform_options_inherit = parse_inherit(config_platform_options.get("inherit"))
         self._validate_inherit_options(self.config_platform_options_inherit)
+        self.overrides = self._parse_overrides()
 
         self.current_identifier: str | None = None
 
@@ -588,8 +589,7 @@ class OptionsReader:
 
         return global_options, platform_options
 
-    @functools.cached_property
-    def overrides(self) -> list[Override]:
+    def _parse_overrides(self) -> list[Override]:
         config_overrides = self.config_options.get("overrides")
         overrides: list[Override] = []
 

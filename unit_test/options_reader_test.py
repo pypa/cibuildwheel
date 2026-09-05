@@ -475,11 +475,7 @@ test-command = "pyproject-override"
     )
 
     with pytest.raises(OptionsReaderError):
-        print(
-            OptionsReader(
-                config_file_path=pyproject_toml, platform=cast("Any", platform), env={}
-            ).overrides
-        )
+        OptionsReader(config_file_path=pyproject_toml, platform=cast("Any", platform), env={})
 
 
 def test_config_settings(tmp_path: Path) -> None:
