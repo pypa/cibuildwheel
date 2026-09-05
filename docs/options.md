@@ -1871,18 +1871,34 @@ Platform-specific environment variables are also available:<br/>
 
 ## Debugging
 
-### `log-fold-mode` {: #log-fold-mode env-var}
-> Control CI log folding.
+### `build-verbosity` {: #build-verbosity env-var toml}
+> Increase/decrease the output of the build
 
-Set the host environment variable `CIBW_LOG_FOLD_MODE` to override automatic
-CI log-fold detection. Accepted values are `azure`, `github`, `travis`, and
-`disabled`. Use `disabled` to keep build steps expanded in the job log.
+This setting controls `-v`/`-q` flags to the build frontend. Since there is
+no communication between the build backend and the build frontend, build
+messages from the build backend will always be shown with `1`; higher levels
+will not produce more logging about the build itself. Other levels only affect
+the build frontend output, which is usually things like resolving and
+downloading dependencies. The settings are:
 
-#### Examples
+|             | build | pip    | uv    | pyodide-build | desc                                   |
+|-------------|-------|--------|-------|---------------|----------------------------------------|
+| -2          | `-qq` | `-qq`  | `-qq` |               | even more quiet, where supported       |
+| -1          | `-q`  | `-q`   | `-q`  |               | quiet mode, where supported            |
+| 0 (default) |       |        |       |               | default for build tool                 |
+| 1           |       | `-v`   |       | `-v`          | print backend output                   |
+| 2           | `-v`  | `-vv`  | `-v`  | `-vv`         | print log messages e.g. resolving info |
+| 3           | `-vv` | `-vvv` | `-vv` |               | print even more debug info             |
 
-```shell
-export CIBW_LOG_FOLD_MODE=disabled
-```
+Settings that are not supported for a specific frontend will log a warning.
+The default build frontend is `build`, which does show build backend output by
+default.
+
+On Android and iOS, a positive verbosity level will also show more detailed logs from
+the test harness.
+
+Platform-specific environment variables are also available:<br/>
+`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_ANDROID` | `CIBW_BUILD_VERBOSITY_IOS` | `CIBW_BUILD_VERBOSITY_PYODIDE`
 
 ### `debug-keep-container` {: #debug-keep-container env-var}
 > Keep the container after running for debugging.
@@ -1915,34 +1931,18 @@ This option can also be set using the [command-line option](#command-line) `--de
 export CIBW_DEBUG_TRACEBACK=TRUE
 ```
 
-### `build-verbosity` {: #build-verbosity env-var toml}
-> Increase/decrease the output of the build
+### `log-fold-mode` {: #log-fold-mode env-var}
+> Control CI log folding.
 
-This setting controls `-v`/`-q` flags to the build frontend. Since there is
-no communication between the build backend and the build frontend, build
-messages from the build backend will always be shown with `1`; higher levels
-will not produce more logging about the build itself. Other levels only affect
-the build frontend output, which is usually things like resolving and
-downloading dependencies. The settings are:
+Set the host environment variable `CIBW_LOG_FOLD_MODE` to override automatic
+CI log-fold detection. Accepted values are `azure`, `github`, `travis`, and
+`disabled`. Use `disabled` to keep build steps expanded in the job log.
 
-|             | build | pip    | uv    | pyodide-build | desc                                   |
-|-------------|-------|--------|-------|---------------|----------------------------------------|
-| -2          | `-qq` | `-qq`  | `-qq` |               | even more quiet, where supported       |
-| -1          | `-q`  | `-q`   | `-q`  |               | quiet mode, where supported            |
-| 0 (default) |       |        |       |               | default for build tool                 |
-| 1           |       | `-v`   |       | `-v`          | print backend output                   |
-| 2           | `-v`  | `-vv`  | `-v`  | `-vv`         | print log messages e.g. resolving info |
-| 3           | `-vv` | `-vvv` | `-vv` |               | print even more debug info             |
+#### Examples
 
-Settings that are not supported for a specific frontend will log a warning.
-The default build frontend is `build`, which does show build backend output by
-default.
-
-On Android and iOS, a positive verbosity level will also show more detailed logs from
-the test harness.
-
-Platform-specific environment variables are also available:<br/>
-`CIBW_BUILD_VERBOSITY_MACOS` | `CIBW_BUILD_VERBOSITY_WINDOWS` | `CIBW_BUILD_VERBOSITY_LINUX` | `CIBW_BUILD_VERBOSITY_ANDROID` | `CIBW_BUILD_VERBOSITY_IOS` | `CIBW_BUILD_VERBOSITY_PYODIDE`
+```shell
+export CIBW_LOG_FOLD_MODE=disabled
+```
 
 #### Examples
 
