@@ -449,9 +449,19 @@ def parse_inherit(config: str | dict[str, str] | None) -> dict[str, InheritRule]
         return {}
 
     if isinstance(config, str):
-        parsed = parse_arbitrary_key_value_string(config, default_value="append")
-        inherit_dict = {k: "".join(v) for k, v in parsed.items()}
+        try:
+            parsed = parse_arbitrary_key_value_string(config, default_value="append")
+        except ValueError as e:
+            raise OptionsReaderError(str(e)) from e
+
+        if not all(len(values) == 1 for values in parsed.values()):
+            msg = "'inherit' must specify exactly one rule per option"
+            raise OptionsReaderError(msg)
+        inherit_dict = {key: values[0] for key, values in parsed.items()}
     elif isinstance(config, dict):
+        if not all(isinstance(value, str) for value in config.values()):
+            msg = "'inherit' must contain only string values"
+            raise OptionsReaderError(msg)
         inherit_dict = config
     else:
         msg = "'inherit' must be a string or a table"

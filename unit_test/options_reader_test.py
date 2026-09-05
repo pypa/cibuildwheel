@@ -649,6 +649,19 @@ inherit = {before-all = "invalid"}
         OptionsReader(pyproject_toml, platform="linux", env={})
 
 
+def test_invalid_config_inherit_rule_type(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+inherit = {before-all = ["append"]}
+"""
+    )
+
+    with pytest.raises(OptionsReaderError, match="must contain only string values"):
+        OptionsReader(pyproject_toml, platform="linux", env={})
+
+
 def test_invalid_config_inherit_option(tmp_path: Path) -> None:
     pyproject_toml = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
@@ -667,6 +680,22 @@ inherit = {before-buld = "append"}
 
 def test_invalid_environment_inherit_rule() -> None:
     options_reader = OptionsReader(platform="linux", env={"CIBW_INHERIT": "before-all: invalid"})
+
+    with pytest.raises(
+        errors.ConfigurationError, match="Failed to parse CIBW_INHERIT environment variable"
+    ):
+        options_reader.get("before-all", option_format=ListFormat(" && "))
+
+
+@pytest.mark.parametrize(
+    "inherit",
+    [
+        "before-all: pre pend",
+        "before-all: 'append",
+    ],
+)
+def test_malformed_environment_inherit(inherit: str) -> None:
+    options_reader = OptionsReader(platform="linux", env={"CIBW_INHERIT": inherit})
 
     with pytest.raises(
         errors.ConfigurationError, match="Failed to parse CIBW_INHERIT environment variable"
