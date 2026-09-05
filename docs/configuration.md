@@ -66,10 +66,11 @@ placed in `[tool.cibuildwheel]` and are lower case, with dashes, following
 common [TOML](https://toml.io) practice. Anything placed in subsections
 named after a platform will only affect those platforms. Platform-specific
 values replace the corresponding global value for that platform; table options
-are not merged key by key. Lists can be used instead of strings for items that
-are naturally a list. Multiline strings also work just like in the environment
-variables. Environment variable overrides, such as `CIBW_TEST_COMMAND` and
-`CIBW_TEST_COMMAND_LINUX`, will take precedence if defined.
+are not merged key by key unless you configure [inheritance](#inherit). Lists can
+be used instead of strings for items that are naturally a list. Multiline strings
+also work just like in the environment variables. Environment variable overrides,
+such as `CIBW_TEST_COMMAND` and `CIBW_TEST_COMMAND_LINUX`, take precedence if
+defined.
 
 The example above using environment variables could have been written like this:
 
@@ -113,9 +114,9 @@ trigger new containers, one per image.
 
     The ``output-dir``, ``build``, ``skip``, ``test_skip`` selectors, and architectures cannot be overridden.
 
-You can specify a table of overrides in `inherit={}`, any list or table in this
-list will inherit from previous overrides or the main configuration. The valid
-options are `"none"` (the default), `"append"`, and `"prepend"`.
+By default, values in an override replace values from the main configuration or
+earlier overrides. You can instead [extend a list or table option](#inherit) by
+setting an `inherit` rule for it.
 
 #### Examples:
 
@@ -175,14 +176,50 @@ This example will provide the command `"pyproject-before && pyproject && pyproje
 on Python 3.11, and will have `environment = {FOO="BAZ", "PYTHON"="MONTY", "HAM"="EGGS"}`.
 
 
-## Extending existing options {: #inherit }
+## Option inheritance {: #inherit }
 
-In the TOML configuration, you can choose how tables and lists are inherited.
-By default, all values are overridden completely (`"none"`) but sometimes you'd
-rather `"append"` or `"prepend"` to an existing list or table. You can do this
-with the `inherit` table in overrides. For example, if you want to add an environment
-variable for CPython 3.11, without `inherit` you'd have to repeat all the
-original environment variables in the override. With `inherit`, it's just:
+As cibuildwheel reads its configuration, each layer normally replaces the value
+from the previous layer. The layers, from lowest to highest precedence, are:
+
+1. cibuildwheel's defaults
+2. `[tool.cibuildwheel]`
+3. `[tool.cibuildwheel.<platform>]`
+4. matching `[[tool.cibuildwheel.overrides]]` entries, in order
+5. `CIBW_<OPTION>`
+6. `CIBW_<OPTION>_<PLATFORM>`
+
+For list and table options, you can use an `inherit` rule to merge a value with
+the value accumulated from the preceding layers instead. The available rules
+are `"none"` (replace the previous value, the default), `"append"`, and
+`"prepend"`.
+
+In `pyproject.toml`, set the rule in the same table as the value it applies to.
+For example, this adds Twine checks to the default audit configuration:
+
+```toml
+[tool.cibuildwheel]
+inherit.audit-requires = "append"
+inherit.audit-command = "append"
+audit-requires = ["twine"]
+audit-command = "twine check {wheel}"
+```
+
+Inheritance can also combine global and platform-specific configuration. This
+example runs a Linux-specific setup command before the global command:
+
+```toml
+[tool.cibuildwheel]
+before-all = "make -C third_party_lib"
+
+[tool.cibuildwheel.linux]
+inherit.before-all = "prepend"
+before-all = "yum install -y libffi-devel"
+```
+
+The same mechanism remains available in overrides. For example, if you want to
+add an environment variable for CPython 3.11, without `inherit` you'd have to
+repeat all the original environment variables in the override. With `inherit`,
+it's just:
 
 ```toml
 [[tool.cibuildwheel.overrides]]
@@ -210,7 +247,23 @@ repair-wheel-command = "echo 'After repair'"
 ```
 
 As seen in this example, you can have multiple overrides match - they match top
-to bottom, with the config being accumulated. If you need platform-specific
-inheritance, you can use `select = "*-????linux_*"` for Linux, `select =
-"*-win_*"` for Windows, and `select = "*-macosx_*"` for macOS. As always,
-environment variables will completely override any TOML configuration.
+to bottom, with the config being accumulated.
+
+For environment variables, specify the rules in `CIBW_INHERIT`. Rules are
+separated by semicolons and use lowercase option names. A rule without an
+explicit value defaults to `append`:
+
+```yaml
+CIBW_AUDIT_REQUIRES: twine
+CIBW_AUDIT_COMMAND: "twine check {wheel}"
+CIBW_INHERIT: "audit-requires; audit-command"
+```
+
+To control a platform-specific environment variable, add the lowercase platform
+suffix to the option name. For example, this prepends `CIBW_BEFORE_ALL_LINUX` to
+the value accumulated from the lower-precedence layers:
+
+```yaml
+CIBW_BEFORE_ALL_LINUX: yum install -y libffi-devel
+CIBW_INHERIT: "before-all-linux: prepend"
+```

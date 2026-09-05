@@ -1446,10 +1446,11 @@ Run shell commands to verify your wheels once they are built. Multiple commands 
     audit-requires = ["twine"]
     audit-command = "twine check {wheel}"
 
-    # Add an additional audit command using overrides, keeping the default abi3audit check
-    [[tool.cibuildwheel.overrides]]
-    select = "*"
+    # Add an additional audit command, keeping the default abi3audit check
+    [tool.cibuildwheel]
+    inherit.audit-requires = "append"
     inherit.audit-command = "append"
+    audit-requires = ["twine"]
     audit-command = "twine check {wheel}"
     ```
 
@@ -1465,6 +1466,11 @@ Run shell commands to verify your wheels once they are built. Multiple commands 
     # Use twine check to validate wheel metadata
     CIBW_AUDIT_REQUIRES: "twine"
     CIBW_AUDIT_COMMAND: "twine check {wheel}"
+
+    # Add twine check to the default audit configuration
+    CIBW_AUDIT_REQUIRES: "twine"
+    CIBW_AUDIT_COMMAND: "twine check {wheel}"
+    CIBW_INHERIT: "audit-requires; audit-command"
     ```
 
 

@@ -883,6 +883,7 @@ def test_test_runtime_platform_environment(
         ("", None),
         ("xbuild-tools = []", []),
         ('xbuild-tools = ["cmake", "rustc"]', ["cmake", "rustc"]),
+        ('inherit.xbuild-tools = "append"\nxbuild-tools = ["cmake"]', ["cmake"]),
     ],
 )
 def test_xbuild_tools_handling(tmp_path: Path, definition: str, expected: list[str] | None) -> None:
@@ -903,6 +904,10 @@ def test_xbuild_tools_handling(tmp_path: Path, definition: str, expected: list[s
 
     local = options.build_options("cp313-ios_13_0_arm64_iphoneos")
     assert local.xbuild_tools == expected
+
+    summary = options.summary(["cp313-ios_13_0_arm64_iphoneos"], skip_unset=True)
+    # The summary should distinguish explicit values, including [], from the unset default.
+    assert ("xbuild_tools:" in summary) is (expected is not None)
 
 
 DEFAULT_XBUILD_FILES = {
