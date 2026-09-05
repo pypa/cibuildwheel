@@ -67,7 +67,7 @@ def test_linux_container_split(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) 
 
     def container_engines(
         step: cibuildwheel.platforms.linux.BuildStep,
-    ) -> list[OCIContainerEngineConfig]:
+    ) -> list[OCIContainerEngineConfig | None]:
         return [options.build_options(c.identifier).container_engine for c in step.platform_configs]
 
     pprint(build_steps)

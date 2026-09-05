@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import platform
 import textwrap
 
@@ -31,6 +32,8 @@ dockcross_only_project = test_projects.new_c_project(
 def test(tmp_path: Path) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
+    if os.environ.get("CIBW_CONTAINER_ENGINE", "docker") == "none":
+        pytest.skip("the test is only relevant for CIBW_CONTAINER_ENGINE != 'none'")
     if platform.machine() not in ["x86_64", "i686"]:
         pytest.skip(
             "this test is currently only possible on x86_64/i686 due to availability of alternative images"
