@@ -653,6 +653,22 @@ inherit = {before-all = "invalid"}
         OptionsReader(pyproject_toml, platform="linux", env={})
 
 
+def test_invalid_config_inherit_option(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+inherit = {before-buld = "append"}
+"""
+    )
+
+    with pytest.raises(
+        OptionsReaderError,
+        match="Unknown option 'before-buld' in 'inherit'",
+    ):
+        OptionsReader(pyproject_toml, platform="linux", env={})
+
+
 def test_invalid_environment_inherit_rule() -> None:
     options_reader = OptionsReader(platform="linux", env={"CIBW_INHERIT": "before-all: invalid"})
 
@@ -660,6 +676,26 @@ def test_invalid_environment_inherit_rule() -> None:
         errors.ConfigurationError, match="Failed to parse CIBW_INHERIT environment variable"
     ):
         options_reader.get("before-all", option_format=ListFormat(" && "))
+
+
+def test_invalid_environment_inherit_option() -> None:
+    options_reader = OptionsReader(
+        platform="linux", env={"CIBW_INHERIT": "before-all-plan9: append"}
+    )
+
+    with pytest.raises(
+        errors.ConfigurationError,
+        match="Unknown option 'before-all-plan9' in 'inherit'",
+    ):
+        options_reader.get("before-all", option_format=ListFormat(" && "))
+
+
+def test_environment_inherit_option_for_other_platform() -> None:
+    options_reader = OptionsReader(
+        platform="linux", env={"CIBW_INHERIT": "test-command-macos: append"}
+    )
+
+    assert options_reader.get("before-all", option_format=ListFormat(" && ")) == ""
 
 
 def test_audit_command_option(tmp_path: Path, platform: PlatformName) -> None:

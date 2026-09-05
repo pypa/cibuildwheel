@@ -513,17 +513,42 @@ class OptionsReader:
 
         self.config_options = config_options
         self.config_options_inherit = parse_inherit(config_options.get("inherit"))
+        self._validate_inherit_options(self.config_options_inherit)
         self.config_platform_options = config_platform_options
         self.config_platform_options_inherit = parse_inherit(config_platform_options.get("inherit"))
+        self._validate_inherit_options(self.config_platform_options_inherit)
 
         self.current_identifier: str | None = None
+
+    @functools.cached_property
+    def _known_option_names(self) -> set[str]:
+        return self.default_options.keys() - PLATFORMS
+
+    def _validate_inherit_options(
+        self, inherit: Mapping[str, InheritRule], *, allow_platform_suffixes: bool = False
+    ) -> None:
+        allowed_names = self._known_option_names.copy()
+        if allow_platform_suffixes:
+            allowed_names.update(
+                f"{option_name}-{platform}"
+                for option_name in self._known_option_names
+                for platform in PLATFORMS
+            )
+
+        for name in inherit:
+            if name not in allowed_names:
+                msg = f"Unknown option {name!r} in 'inherit'."
+                matches = difflib.get_close_matches(name, allowed_names, 1, 0.7)
+                if matches:
+                    msg += f" Perhaps you meant {matches[0]!r}?"
+                raise OptionsReaderError(msg)
 
     def _validate_global_option(self, name: str) -> None:
         """
         Raises an error if an option with this name is not allowed in the
         [tool.cibuildwheel] section of a config file.
         """
-        allowed_option_names = self.default_options.keys() | PLATFORMS | {"inherit", "overrides"}
+        allowed_option_names = self._known_option_names | PLATFORMS | {"inherit", "overrides"}
 
         if name not in allowed_option_names:
             msg = f"Option {name!r} not supported in a config file."
@@ -542,9 +567,7 @@ class OptionsReader:
             msg = f"{name!r} is not allowed in {disallowed_platform_options}"
             raise OptionsReaderError(msg)
 
-        allowed_option_names = (
-            self.default_options.keys() | self.default_platform_options.keys() | {"inherit"}
-        )
+        allowed_option_names = self._known_option_names | {"inherit"}
 
         if name not in allowed_option_names:
             msg = f"Option {name!r} not supported in the {self.platform!r} section"
@@ -587,7 +610,9 @@ class OptionsReader:
 
                 inherit = config_override.pop("inherit", {})
 
-                overrides.append(Override(select, config_override, parse_inherit(inherit)))
+                parsed_inherit = parse_inherit(inherit)
+                self._validate_inherit_options(parsed_inherit)
+                overrides.append(Override(select, config_override, parsed_inherit))
 
         return overrides
 
@@ -595,7 +620,9 @@ class OptionsReader:
     def env_inherit(self) -> dict[str, InheritRule]:
         env_inherit_str = self.env.get("CIBW_INHERIT", "")
         try:
-            return parse_inherit(env_inherit_str)
+            result = parse_inherit(env_inherit_str)
+            self._validate_inherit_options(result, allow_platform_suffixes=True)
+            return result
         except OptionsReaderError as e:
             msg = f"Failed to parse CIBW_INHERIT environment variable. {e}"
             raise errors.ConfigurationError(msg) from e
