@@ -723,6 +723,28 @@ def test_environment_inherit_option_for_other_platform() -> None:
     assert options_reader.get("before-all", option_format=ListFormat(" && ")) == ""
 
 
+def test_unsupported_inherit(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        """\
+[tool.cibuildwheel]
+inherit.container-engine = "append"
+container-engine = "podman"
+"""
+    )
+
+    options_reader = OptionsReader(pyproject_toml, platform="linux", env={})
+
+    with pytest.raises(
+        OptionsReaderError,
+        match="Option 'container-engine' does not support inheritance",
+    ):
+        options_reader.get(
+            "container-engine",
+            option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+        )
+
+
 def test_audit_command_option(tmp_path: Path, platform: PlatformName) -> None:
     pyproject_toml: Path = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(

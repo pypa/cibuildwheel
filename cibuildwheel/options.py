@@ -230,17 +230,20 @@ class OptionFormat:
     can be parsed from rich TOML values and how they're merged together.
     """
 
-    class NotSupported(Exception):
+    class FormatNotSupported(Exception):
+        pass
+
+    class MergeNotSupported(Exception):
         pass
 
     def format_list(self, value: SettingList) -> str:  # noqa: ARG002
-        raise OptionFormat.NotSupported
+        raise OptionFormat.FormatNotSupported
 
     def format_table(self, table: SettingTable) -> str:  # noqa: ARG002
-        raise OptionFormat.NotSupported
+        raise OptionFormat.FormatNotSupported
 
     def merge_values(self, before: str, after: str) -> str:  # noqa: ARG002
-        raise OptionFormat.NotSupported
+        raise OptionFormat.MergeNotSupported
 
 
 class ListFormat(OptionFormat):
@@ -290,7 +293,7 @@ class ShlexTableFormat(OptionFormat):
 
     def merge_values(self, before: str, after: str) -> str:
         if not self.allow_merge:
-            raise OptionFormat.NotSupported
+            raise OptionFormat.MergeNotSupported
 
         before_dict = self.parse_table(before)
         after_dict = self.parse_table(after)
@@ -418,9 +421,9 @@ def _stringify_setting(
             assert isinstance(setting, Mapping)  # MyPy 1.15 doesn't narrow this for us
             try:
                 if option_format is None:
-                    raise OptionFormat.NotSupported
+                    raise OptionFormat.FormatNotSupported
                 return option_format.format_table(setting)
-            except OptionFormat.NotSupported:
+            except OptionFormat.FormatNotSupported:
                 msg = (
                     f"Error converting {setting!r} to a string: this setting doesn't accept a table"
                 )
@@ -430,9 +433,9 @@ def _stringify_setting(
         case [*_]:
             try:
                 if option_format is None:
-                    raise OptionFormat.NotSupported
+                    raise OptionFormat.FormatNotSupported
                 return option_format.format_list(setting)
-            except OptionFormat.NotSupported:
+            except OptionFormat.FormatNotSupported:
                 msg = (
                     f"Error converting {setting!r} to a string: this setting doesn't accept a list"
                 )
@@ -698,41 +701,45 @@ class OptionsReader:
 
         # get the option from the default, then the config file, then finally the environment.
         # platform-specific options are preferred, if they're allowed.
-        return _resolve_cascade(
-            (
-                self.default_options.get(name),
-                InheritRule.NONE,
-            ),
-            (
-                self.default_platform_options.get(name),
-                InheritRule.NONE,
-            ),
-            (
-                self.config_options.get(name),
-                self.config_options_inherit.get(name, InheritRule.NONE),
-            ),
-            (
-                self.config_platform_options.get(name),
-                self.config_platform_options_inherit.get(name, InheritRule.NONE),
-            ),
-            *[
+        try:
+            return _resolve_cascade(
                 (
-                    o.options.get(name),
-                    o.inherit.get(name, InheritRule.NONE),
-                )
-                for o in self.active_config_overrides
-            ],
-            (
-                self.env.get(envvar),
-                self.env_inherit.get(name, default_env_rule),
-            ),
-            (
-                self.env.get(plat_envvar) if env_plat else None,
-                self.env_platform_inherit.get(name, default_env_rule),
-            ),
-            ignore_empty=ignore_empty,
-            option_format=option_format,
-        )
+                    self.default_options.get(name),
+                    InheritRule.NONE,
+                ),
+                (
+                    self.default_platform_options.get(name),
+                    InheritRule.NONE,
+                ),
+                (
+                    self.config_options.get(name),
+                    self.config_options_inherit.get(name, InheritRule.NONE),
+                ),
+                (
+                    self.config_platform_options.get(name),
+                    self.config_platform_options_inherit.get(name, InheritRule.NONE),
+                ),
+                *[
+                    (
+                        o.options.get(name),
+                        o.inherit.get(name, InheritRule.NONE),
+                    )
+                    for o in self.active_config_overrides
+                ],
+                (
+                    self.env.get(envvar),
+                    self.env_inherit.get(name, default_env_rule),
+                ),
+                (
+                    self.env.get(plat_envvar) if env_plat else None,
+                    self.env_platform_inherit.get(name, default_env_rule),
+                ),
+                ignore_empty=ignore_empty,
+                option_format=option_format,
+            )
+        except OptionFormat.MergeNotSupported:
+            msg = f"Option {name!r} does not support inheritance"
+            raise OptionsReaderError(msg) from None
 
 
 class Options:
