@@ -340,6 +340,27 @@ items:
 """
 )
 
+INHERITABLE_OPTIONS = frozenset(
+    {
+        "audit-command",
+        "audit-requires",
+        "before-all",
+        "before-build",
+        "before-test",
+        "config-settings",
+        "environment",
+        "environment-pass",
+        "repair-wheel-command",
+        "test-command",
+        "test-environment",
+        "test-extras",
+        "test-groups",
+        "test-requires",
+        "test-sources",
+        "xbuild-tools",
+    }
+)
+
 for key, value in schema["properties"].items():
     value["title"] = f"CIBW_{key.replace('-', '_').upper()}"
 
@@ -371,6 +392,19 @@ def as_object(d: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def inherit_schema(options: dict[str, Any]) -> dict[str, Any]:
+    properties = {
+        name: {"$ref": "#/$defs/inherit"} for name in options if name in INHERITABLE_OPTIONS
+    }
+    return {
+        "description": "How options at this configuration level inherit previous values.",
+        "oneOf": [
+            {"type": "string"},
+            as_object(properties),
+        ],
+    }
+
+
 oses = {
     "linux": as_object(non_global_options),
     "windows": as_object(not_linux),
@@ -392,6 +426,14 @@ for os_name, command in [
     }
 
 del oses["linux"]["properties"]["dependency-versions"]
+
+schema["properties"]["inherit"] = {
+    **inherit_schema(schema["properties"]),
+    "title": "CIBW_INHERIT",
+}
+overrides["items"]["properties"]["inherit"] = inherit_schema(overrides["items"]["properties"])
+for os_schema in oses.values():
+    os_schema["properties"]["inherit"] = inherit_schema(os_schema["properties"])
 
 schema["properties"]["overrides"] = overrides
 schema["properties"] |= oses
