@@ -14,11 +14,9 @@ from cibuildwheel.errors import FatalError
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Iterator, Mapping
-    from typing import Final, Literal
+    from typing import Literal
 
     from cibuildwheel.typing import PathOrStr
-
-_IS_WIN: Final[bool] = sys.platform.startswith("win")
 
 
 @typing.overload
@@ -47,9 +45,9 @@ def call(
 ) -> str | None:
     """
     Run subprocess.run, but print the commands first. Takes the commands as
-    *args. Uses shell=True on Windows due to a bug. Also converts to
-    Paths to strings, due to Windows behavior at least on older Pythons.
-    https://bugs.python.org/issue8557
+    *args. Resolves the executable with shutil.which so PATH/PATHEXT lookup
+    matches across platforms (https://github.com/python/cpython/issues/52803).
+    Path arguments are converted to strings.
     """
     args_ = [str(arg) for arg in args]
     # print the command executing for the logs
@@ -67,7 +65,14 @@ def call(
         result = subprocess.run(
             args_,
             check=True,
-            shell=_IS_WIN,
+            # Workaround for PyPy 3.9 https://github.com/pypy/pypy/issues/4958
+            # shutil.which resolved to an uppercase suffix but pypy can't
+            # create a venv when called like that.
+            executable=(
+                f"{executable[:-4]}.exe"
+                if sys.platform == "win32" and executable.endswith(".EXE")
+                else None
+            ),
             env=env,
             cwd=cwd,
             capture_output=capture_stdout,
