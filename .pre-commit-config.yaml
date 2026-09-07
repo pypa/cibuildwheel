@@ -18,14 +18,14 @@ repos:
     exclude: ^cibuildwheel/resources/android/android.patch$
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: 39d9ac5938dadb73df0564a45f163e25ff9fa6e2  # frozen: v0.16.1
+  rev: 321478e58f4938179c6b86e4ddfa923d1547a49b  # frozen: v0.16.6
   hooks:
   - id: ruff-check
     args: ["--fix"]
   - id: ruff-format
 
 - repo: https://github.com/pre-commit/mirrors-mypy
-  rev: 41e691678310dfd3833f7ab4e180ddb014310356  # frozen: v2.3.0
+  rev: 7ff8d35ae36a7d2b968f2f90b4c723e292e594ee  # frozen: v2.3.1
   hooks:
   - id: mypy
     name: mypy 3.11 on cibuildwheel/
@@ -56,7 +56,7 @@ repos:
     additional_dependencies: *mypy-dependencies
 
 - repo: https://github.com/shellcheck-py/shellcheck-py
-  rev: 745eface02aef23e168a8afb6b5737818efbea95  # frozen: v0.11.0.1
+  rev: a6564f5d57444e123433a5c9af733e3975c77229  # frozen: v0.11.0.1-1
   hooks:
   - id: shellcheck
 
@@ -77,7 +77,7 @@ repos:
     additional_dependencies: [cogapp>=3.5]
 
 - repo: https://github.com/henryiii/flake8-lazy
-  rev: 5fed9a818f2583f0403aed779bf2b6c9aa8d25f4  # frozen: v0.8.5
+  rev: 3b5e52593dfaec56e6e4a48f237bafcf3d0b83ea  # frozen: v0.9.0
   hooks:
   - id: flake8-lazy
     args: ["--apply=set"]
@@ -93,7 +93,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: 1a4bb160cab6417b3045e1b37b6b72449243e658  # frozen: 0.37.4
+  rev: c4654a7e007c9619a5eb63c39a456572a0fa1851  # frozen: 0.38.0
   hooks:
     - id: check-dependabot
     - id: check-github-actions
