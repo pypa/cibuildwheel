@@ -14,7 +14,6 @@ __lazy_modules__ = {
     "cibuildwheel.util.packaging",
     "collections",
     "configparser",
-    "contextlib",
     "difflib",
     "packaging",
     "packaging.specifiers",
