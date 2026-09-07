@@ -12,9 +12,9 @@ attrs==26.1.0
     #   requests-cache
 auditwheel==6.8.2
     # via -r cibuildwheel/resources/constraints.in
-build==1.5.0
+build==1.6.0
     # via -r cibuildwheel/resources/constraints.in
-cattrs==26.1.0
+cattrs==26.2.0
     # via requests-cache
 certifi==2026.7.22
     # via requests
