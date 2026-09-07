@@ -11,7 +11,7 @@ build==1.5.0
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-cattrs==26.1.0
+cattrs==26.2.0
     # via
     #   pyodide-build
     #   pyodide-lock
