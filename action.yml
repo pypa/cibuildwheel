@@ -21,6 +21,13 @@ inputs:
     description: 'Comma-separated list of extras to install'
     required: false
     default: ''
+  python-path:
+    description: >-
+      Python interpreter used to install cibuildwheel. Skips actions/setup-python when set.
+      Must be Python 3.11+ with pip. Defaults to setup-python on X64/ARM64, and "python3"
+      on other architectures where no toolcache build exists.
+    required: false
+    default: ''
 branding:
   icon: package
   color: yellow
@@ -30,6 +37,7 @@ runs:
   steps:
     - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
       id: python
+      if: inputs.python-path == '' && (runner.arch == 'X64' || runner.arch == 'ARM64')
       with:
         python-version: "3.11 - 3.14"
         update-environment: false
@@ -119,7 +127,7 @@ runs:
         EOF
       shell: bash
       env:
-        PYTHON: ${{ steps.python.outputs.python-path }}
+        PYTHON: ${{ inputs.python-path || steps.python.outputs.python-path || 'python3' }}
         INPUT_PACKAGE_DIR: ${{ inputs.package-dir }}
         INPUT_OUTPUT_DIR: ${{ inputs.output-dir }}
         INPUT_CONFIG_FILE: ${{ inputs.config-file }}

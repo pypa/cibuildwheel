@@ -28,6 +28,12 @@ To build Linux, macOS, and Windows wheels using GitHub Actions, create a `.githu
     comma-separated list of extras to install additional packages.
     For example, `extras: "uv"` to install UV into the virtual environment.
 
+    The action uses `actions/setup-python` to get a Python for cibuildwheel
+    itself. On architectures without a toolcache build, such as riscv64
+    self-hosted runners, it falls back to the `python3` on `PATH` instead.
+    Set `python-path` to use a specific interpreter and skip setup-python.
+    The interpreter must be Python 3.11+ with pip.
+
 !!! tab "pipx"
     The GitHub Actions runners have pipx installed, so you can easily build in
     just one line. This is internally how the action works; the main benefit of
