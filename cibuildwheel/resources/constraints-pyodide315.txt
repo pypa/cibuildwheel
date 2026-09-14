@@ -11,7 +11,7 @@ build==1.5.0
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-cattrs==26.1.0
+cattrs==26.2.0
     # via
     #   pyodide-build
     #   pyodide-lock
@@ -26,7 +26,7 @@ click==8.1.8
     #   pyodide-cli
 distlib==0.4.3
     # via virtualenv
-filelock==3.32.5
+filelock==3.32.6
     # via
     #   python-discovery
     #   virtualenv
@@ -46,7 +46,7 @@ packaging==26.3
     #   wheel
 pip==26.2.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.11.7
+platformdirs==4.11.8
     # via
     #   pyodide-build
     #   virtualenv
@@ -76,7 +76,7 @@ typing-extensions==4.16.0
     # via cattrs
 urllib3==2.7.0
     # via requests
-virtualenv==21.7.8
+virtualenv==21.7.9
     # via
     #   build
     #   pyodide-build
