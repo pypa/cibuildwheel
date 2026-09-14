@@ -12,9 +12,9 @@ attrs==26.1.0
     #   requests-cache
 auditwheel==6.8.2
     # via -r cibuildwheel/resources/constraints.in
-build==1.5.0
+build==1.6.1
     # via -r cibuildwheel/resources/constraints.in
-cattrs==26.1.0
+cattrs==26.2.0
     # via requests-cache
 certifi==2026.7.22
     # via requests
@@ -26,7 +26,7 @@ delvewheel==1.13.1
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.3
     # via virtualenv
-filelock==3.32.5; implementation_name != "graalpy"
+filelock==3.32.6; implementation_name != "graalpy"
 filelock==3.29.7; implementation_name == "graalpy"
     # via
     #   python-discovery
@@ -61,7 +61,7 @@ pip==26.0.1; implementation_name == "graalpy" and platform_system == "Windows"
     # via -r cibuildwheel/resources/constraints.in
 pkgconf==3.0.1.post0
     # via -r cibuildwheel/resources/constraints.in
-platformdirs==4.11.7
+platformdirs==4.11.8
     # via
     #   requests-cache
     #   virtualenv
@@ -93,5 +93,5 @@ urllib3==2.7.0
     # via
     #   requests
     #   requests-cache
-virtualenv==21.7.8
+virtualenv==21.7.9
     # via -r cibuildwheel/resources/constraints.in

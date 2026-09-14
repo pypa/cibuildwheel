@@ -63,8 +63,8 @@ ref: working-examples
 | [aioquic][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | QUIC and HTTP/3 implementation in Python |
 | [OpenTimelineIO][]                | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Open Source API and interchange format for editorial timeline information. |
 | [SimpleJSON][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | simplejson is a simple, fast, extensible JSON encoder/decoder for Python  |
-| [PyTables][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python package to manage extremely large amounts of data |
 | [google neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | WebGL-based viewer for volumetric data |
+| [PyTables][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python package to manage extremely large amounts of data |
 | [Parselmouth][]                   | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python interface to the Praat software package, using pybind11, C++17 and CMake, with the core Praat static library built only once and shared between wheels. |
 | [H3-py][]                         | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Python bindings for H3, a hierarchical hexagonal geospatial indexing system |
 | [time-machine][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Time mocking library using only the CPython C API. |
@@ -174,8 +174,8 @@ ref: working-examples
 [aioquic]: https://github.com/aiortc/aioquic
 [OpenTimelineIO]: https://github.com/AcademySoftwareFoundation/OpenTimelineIO
 [SimpleJSON]: https://github.com/simplejson/simplejson
-[PyTables]: https://github.com/PyTables/PyTables
 [google neuroglancer]: https://github.com/google/neuroglancer
+[PyTables]: https://github.com/PyTables/PyTables
 [Parselmouth]: https://github.com/YannickJadoul/Parselmouth
 [H3-py]: https://github.com/uber/h3-py
 [time-machine]: https://github.com/adamchainz/time-machine
