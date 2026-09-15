@@ -43,7 +43,7 @@ This option can also be set using the [command-line option](#command-line) `--pl
     This is even more convenient if you store your cibuildwheel config in [`pyproject.toml`](configuration.md#configuration-file).
 
     You can also run a single identifier with `--only <identifier>`. This will
-    not require `--platform` or `--arch`, and will override any build/skip
+    not require `--platform` or `--archs`, and will override any build/skip
     configuration.
 
 ### `build`, `skip` {: #build-skip toml env-var }
