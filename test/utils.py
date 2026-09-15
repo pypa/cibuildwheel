@@ -331,6 +331,14 @@ def _expected_wheels(
 
     if machine_arch not in GRAALPY_ARCHS:
         python_abi_tags = [tag for tag in python_abi_tags if not tag.startswith("graalpy")]
+    elif platform == "macos" and machine_arch == "x86_64":
+        # GraalPy no longer supports Intel macOS. Keep expectations only for
+        # older releases that were published for this platform.
+        python_abi_tags = [
+            tag
+            for tag in python_abi_tags
+            if not tag.startswith("graalpy") or tag == "graalpy312-graalpy250_312_native"
+        ]
 
     if single_python:
         python_tag = "cp{}{}-".format(*SINGLE_PYTHON_VERSION)
