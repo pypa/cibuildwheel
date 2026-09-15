@@ -153,7 +153,7 @@ def main_inner(global_options: GlobalOptions) -> None:
         metavar="IDENTIFIER",
         help="""
             Force a single wheel build when given an identifier. Overrides
-            CIBW_BUILD/CIBW_SKIP. --platform and --arch cannot be specified
+            CIBW_BUILD/CIBW_SKIP. --platform and --archs cannot be specified
             if this is given.
         """,
     )
@@ -323,7 +323,7 @@ def _compute_platform(args: CommandLineArguments) -> PlatformName:
         msg = "--platform cannot be specified with --only, it is computed from --only"
         raise errors.ConfigurationError(msg)
     if args.only and args.archs is not None:
-        msg = "--arch cannot be specified with --only, it is computed from --only"
+        msg = "--archs cannot be specified with --only, it is computed from --only"
         raise errors.ConfigurationError(msg)
 
     if platform_option_value not in PLATFORMS | {"auto"}:
