@@ -1,4 +1,5 @@
 import re
+import shlex
 import textwrap
 from pathlib import Path, PurePath
 from unittest.mock import Mock, call
@@ -7,6 +8,7 @@ import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.ci import fix_ansi_codes_for_github_actions
+from cibuildwheel.util.cmd import format_command_for_display
 from cibuildwheel.util.file import copy_test_sources, remove_on_error
 from cibuildwheel.util.helpers import (
     FlexibleVersion,
@@ -496,3 +498,41 @@ class TestIsAbi3Wheel:
 
     def test_none_platform_wheel(self) -> None:
         assert is_abi3_wheel("foo-1.0-cp310-none-win_amd64.whl") is False
+
+
+class TestFormatCommandForDisplay:
+    @pytest.mark.parametrize(
+        ("args", "expected"),
+        [
+            # ordinary arguments are left bare
+            (["python", "-m", "pip", "install", "."], "python -m pip install ."),
+            # whitespace still has to be delimited
+            (["echo", "hello world"], "echo 'hello world'"),
+            # single quotes are shown verbatim inside double quotes, rather
+            # than being exploded into '"'"' by shlex.quote
+            (["sh", "-c", "echo 'hi'"], """sh -c "echo 'hi'\""""),
+            # double quotes alone read fine inside shlex.quote's single quotes
+            (["sh", "-c", 'echo "hi"'], "sh -c 'echo \"hi\"'"),
+            # empty arguments must stay visible
+            (["cmd", ""], "cmd ''"),
+            # shell metacharacters are quoted so the line can't be misread
+            (["sh", "-c", "a && b | c > d"], "sh -c 'a && b | c > d'"),
+        ],
+    )
+    def test_quoting(self, args: list[str], expected: str) -> None:
+        assert format_command_for_display(args) == expected
+
+    def test_issue_1055(self) -> None:
+        # https://github.com/pypa/cibuildwheel/issues/1055
+        command = """python -c "import sys; print('hello')\""""
+        displayed = format_command_for_display(["sh", "-c", command])
+        assert displayed == '''sh -c "python -c \\"import sys; print('hello')\\""'''
+        assert """'"'"'""" not in displayed
+
+    def test_expandable_arguments_fall_back_to_shlex(self) -> None:
+        # double quotes would let the shell expand these, so don't use them
+        for arg in ("it's $HOME", "it's `pwd`", "it's a back\\slash"):
+            assert format_command_for_display([arg]) == shlex.quote(arg)
+
+    def test_accepts_paths(self) -> None:
+        assert format_command_for_display(["ls", PurePath("/a b/c")]) == "ls '/a b/c'"
