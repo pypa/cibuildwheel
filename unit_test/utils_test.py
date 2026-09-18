@@ -1,7 +1,7 @@
 import re
 import shlex
 import textwrap
-from pathlib import Path, PurePath
+from pathlib import Path, PurePath, PurePosixPath
 from unittest.mock import Mock, call
 
 import pytest
@@ -535,4 +535,5 @@ class TestFormatCommandForDisplay:
             assert format_command_for_display([arg]) == shlex.quote(arg)
 
     def test_accepts_paths(self) -> None:
-        assert format_command_for_display(["ls", PurePath("/a b/c")]) == "ls '/a b/c'"
+        # PurePosixPath, so the expected string doesn't depend on the host OS
+        assert format_command_for_display(["ls", PurePosixPath("/a b/c")]) == "ls '/a b/c'"
