@@ -18,6 +18,7 @@ def test_build() -> None:
     assert build_selector("cp314-manylinux_x86_64")
     assert build_selector("cp315-manylinux_x86_64")
     assert build_selector("pp311-manylinux_x86_64")
+    assert build_selector("pp312-manylinux_x86_64")
     assert build_selector("cp36-manylinux_i686")
     assert build_selector("cp37-manylinux_i686")
     assert build_selector("cp36-macosx_intel")
@@ -63,6 +64,7 @@ def test_build_filter_pypy() -> None:
         skip_config="",
         enable=frozenset([EnableGroup.PyPy]),
     )
+    assert build_selector("pp312-manylinux_x86_64")
     assert build_selector("pp311-manylinux_x86_64")
     assert not build_selector("pp310-manylinux_x86_64")
     assert not build_selector("pp38-manylinux_x86_64")
@@ -75,6 +77,7 @@ def test_build_filter_pypy_eol() -> None:
         skip_config="",
         enable=frozenset([EnableGroup.PyPyEoL]),
     )
+    assert not build_selector("pp312-manylinux_x86_64")
     assert not build_selector("pp311-manylinux_x86_64")
     assert build_selector("pp310-manylinux_x86_64")
     assert build_selector("pp38-manylinux_x86_64")
@@ -87,8 +90,9 @@ def test_build_filter_pypy_all() -> None:
         skip_config="",
         enable=frozenset([EnableGroup.PyPyEoL, EnableGroup.PyPy]),
     )
-    assert build_selector("pp310-manylinux_x86_64")
+    assert build_selector("pp312-manylinux_x86_64")
     assert build_selector("pp311-manylinux_x86_64")
+    assert build_selector("pp310-manylinux_x86_64")
     assert build_selector("pp38-manylinux_x86_64")
     assert build_selector("pp39-manylinux_x86_64")
 
@@ -120,20 +124,21 @@ def test_build_filter_pyodide_eol() -> None:
 def test_skip() -> None:
     build_selector = BuildSelector(
         build_config="*",
-        skip_config="pp310-* cp3?-manylinux_i686 cp36-win* *-win32",
+        skip_config="pp311-* cp3?-manylinux_i686 cp36-win* *-win32",
         enable=frozenset([EnableGroup.PyPy]),
     )
 
-    assert not build_selector("pp310-manylinux_x86_64")
-    assert build_selector("pp311-manylinux_x86_64")
+    assert not build_selector("pp311-manylinux_x86_64")
+    assert build_selector("pp312-manylinux_x86_64")
     assert not build_selector("pp37-manylinux_i686")
     assert not build_selector("pp38-manylinux_i686")
     assert build_selector("cp36-manylinux_x86_64")
     assert build_selector("cp37-manylinux_x86_64")
     assert not build_selector("cp36-manylinux_i686")
     assert not build_selector("cp37-manylinux_i686")
-    assert not build_selector("pp39-macosx_10_6_intel")
-    assert build_selector("pp311-macosx_10_6_intel")
+    assert not build_selector("pp310-macosx_10_6_intel")
+    assert not build_selector("pp311-macosx_10_6_intel")
+    assert build_selector("pp312-macosx_10_6_intel")
     assert build_selector("cp36-macosx_10_6_intel")
     assert build_selector("cp37-macosx_10_6_intel")
     assert not build_selector("cp36-win32")

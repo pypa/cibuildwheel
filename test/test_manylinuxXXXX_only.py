@@ -93,6 +93,10 @@ def test(manylinux_image: str, tmp_path: Path) -> None:
         # We just have a manylinux_2_31/manylinux_2_35 image for armv7l
         add_env["CIBW_ARCHS"] = "aarch64"
 
+    if manylinux_image == "manylinux2014":
+        # no PyPy 3.11 / 3.12
+        add_env["CIBW_SKIP"] = "pp311-* pp312-*"
+
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
 
     platform_tag_map = {
@@ -108,5 +112,9 @@ def test(manylinux_image: str, tmp_path: Path) -> None:
     if platform.machine() == "aarch64":
         # We just have a manylinux_2_31/manylinux_2_35 image for armv7l
         expected_wheels = [w for w in expected_wheels if "armv7l" not in w]
+
+    if manylinux_image == "manylinux2014":
+        # no PyPy 3.11 / 3.12
+        expected_wheels = [w for w in expected_wheels if "pp311" not in w and "pp312" not in w]
 
     assert set(actual_wheels) == set(expected_wheels)
