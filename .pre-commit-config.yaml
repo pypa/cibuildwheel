@@ -18,7 +18,7 @@ repos:
     exclude: ^cibuildwheel/resources/android/android.patch$
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: 321478e58f4938179c6b86e4ddfa923d1547a49b  # frozen: v0.16.6
+  rev: a56c0b927e6465d37cae3e97d35d4d18ab2b96cd  # frozen: v0.16.9
   hooks:
   - id: ruff-check
     args: ["--fix"]
@@ -93,7 +93,7 @@ repos:
 
 
 - repo: https://github.com/python-jsonschema/check-jsonschema
-  rev: c4654a7e007c9619a5eb63c39a456572a0fa1851  # frozen: 0.38.0
+  rev: 4f85d46a92dc17713078e5de73f8a13190edf6fc  # frozen: 0.38.2
   hooks:
     - id: check-dependabot
     - id: check-github-actions
