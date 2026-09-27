@@ -7,6 +7,7 @@ from __future__ import annotations
 __lazy_modules__ = {"io", "json", "urllib", "urllib.error", "urllib.request"}
 
 import json
+import os
 import time
 import typing
 import urllib.error
@@ -62,6 +63,8 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
         "Accept": "application/vnd.github.v3+json",
         "User-Agent": f"cibuildwheel/{cibw_version}",
     }
+    if token := os.environ.get("GITHUB_TOKEN"):
+        headers["Authorization"] = f"Bearer {token}"
     request = urllib.request.Request(api_url, headers=headers)
 
     for retry_count in range(max_retries):
@@ -75,7 +78,7 @@ def github_api_request(path: str, *, max_retries: int = 3) -> dict[str, Any]:
                 and e.headers.get("x-ratelimit-remaining") == "0"
             ):
                 reset_time = int(e.headers.get("x-ratelimit-reset", 0))
-                wait_time = max(0, reset_time - int(e.headers.get("date", 0)))
+                wait_time = max(0, reset_time - int(time.time()))
                 print(f"Github rate limit exceeded. Waiting for {wait_time} seconds.")
                 time.sleep(wait_time)
             else:

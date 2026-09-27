@@ -49,6 +49,8 @@ jobs:
       run: uvx nox --force-color -s update_constraints
     - name: "Run update: python configs"
       run: uvx nox --force-color -s update_pins
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
     - name: "Run update: docs user projects"
       run: uvx nox --force-color -s update_proj -- --auth=${{ secrets.GITHUB_TOKEN }}
 

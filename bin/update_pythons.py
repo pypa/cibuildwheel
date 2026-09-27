@@ -21,7 +21,7 @@ import operator
 import re
 import tomllib
 from pathlib import Path
-from typing import Any, Final, Literal, NotRequired, TypedDict
+from typing import Any, Final, Literal, NotRequired, TypedDict, cast
 from xml.etree import ElementTree as ET
 
 import click
@@ -32,7 +32,11 @@ from packaging.version import Version
 from rich.logging import RichHandler
 from rich.syntax import Syntax
 
-from cibuildwheel.extra import dump_python_configurations, get_pyodide_xbuildenv_info
+from cibuildwheel.extra import (
+    dump_python_configurations,
+    get_pyodide_xbuildenv_info,
+    github_api_request,
+)
 from cibuildwheel.platforms.android import android_triplet
 
 TYPE_CHECKING = False
@@ -120,10 +124,9 @@ class WindowsVersions:
 
 class GraalPyVersions:
     def __init__(self) -> None:
-        response = requests.get("https://api.github.com/repos/oracle/graalpython/releases")
-        response.raise_for_status()
-
-        releases = response.json()
+        releases = cast(
+            "list[dict[str, Any]]", github_api_request("repos/oracle/graalpython/releases")
+        )
         gp_asset_re = re.compile(
             r"^(?P<prefix>graalpy(?P<cpython>\d+\.\d+)?-(?P<graalpy>\d+\.\d+\.\d+))-"
         )
@@ -377,16 +380,10 @@ class MavenVersions:
 
 class CPythonIOSVersions:
     def __init__(self) -> None:
-        response = requests.get(
-            "https://api.github.com/repos/beeware/Python-Apple-support/releases",
-            headers={
-                "Accept": "application/vnd.github+json",
-                "X-Github-Api-Version": "2022-11-28",
-            },
+        releases_info = cast(
+            "list[dict[str, Any]]",
+            github_api_request("repos/beeware/Python-Apple-support/releases"),
         )
-        response.raise_for_status()
-
-        releases_info = response.json()
         self.versions_dict: dict[Version, dict[int, str]] = {}
 
         # Each release has a name like "3.13-b4"
