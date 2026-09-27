@@ -5,13 +5,13 @@ attrs==26.1.0
     #   cattrs
     #   pyodide-build
     #   pyodide-lock
-auditwheel-emscripten==0.2.5
+auditwheel-emscripten==0.3.0
     # via pyodide-build
 build==1.5.0
     # via
     #   -r .nox/update_constraints/tmp/constraints-pyodide.in
     #   pyodide-build
-cattrs==26.1.0
+cattrs==26.2.0
     # via
     #   pyodide-build
     #   pyodide-lock
@@ -26,11 +26,11 @@ click==8.1.8
     #   pyodide-cli
 distlib==0.4.3
     # via virtualenv
-filelock==3.32.5
+filelock==4.0.3
     # via
     #   python-discovery
     #   virtualenv
-idna==3.19
+idna==3.20
     # via requests
 leb128==1.0.9
     # via auditwheel-emscripten
@@ -46,13 +46,13 @@ packaging==26.3
     #   wheel
 pip==26.2.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.11.7
+platformdirs==4.11.12
     # via
     #   pyodide-build
     #   virtualenv
 pygments==2.21.0
     # via rich
-pyodide-build==0.39.0
+pyodide-build==0.39.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
 pyodide-cli==0.5.0
     # via
@@ -60,9 +60,9 @@ pyodide-cli==0.5.0
     #   pyodide-build
 pyodide-lock==0.2.1
     # via pyodide-build
-pyproject-hooks==1.2.0
+pyproject-hooks==1.3.3
     # via build
-python-discovery==1.6.0
+python-discovery==1.6.1
     # via virtualenv
 requests==2.34.2
     # via pyodide-build
@@ -74,9 +74,9 @@ ruamel-yaml==0.19.1
     # via pyodide-build
 typing-extensions==4.16.0
     # via cattrs
-urllib3==2.7.0
+urllib3==2.8.0
     # via requests
-virtualenv==21.7.8
+virtualenv==21.12.0
     # via
     #   build
     #   pyodide-build
