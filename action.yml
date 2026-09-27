@@ -23,9 +23,8 @@ inputs:
     default: ''
   python-path:
     description: >-
-      Path to a Python 3.11+ interpreter with pip. Setting this skips
-      setup-python. Defaults to setup-python on X64/ARM64 and python3 on other
-      architectures.
+      Python interpreter used to install cibuildwheel. If unset, uses
+      actions/setup-python on X64/ARM64, and "python3" on other architectures.
     required: false
     default: ''
 branding:
