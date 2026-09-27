@@ -46,7 +46,7 @@ An easy way to do it in Python 3 is through the `optional` named argument of `Ex
 myextension = Extension(
     "myextension",
     ["myextension.c"],
-    optional=os.environ.get('CIBUILDWHEEL', '0') != '1',
+    optional=os.environ.get("CIBUILDWHEEL", "0") != "1",
 )
 ```
 
@@ -253,7 +253,7 @@ class BuildPyCommand(setuptools.command.build_py.build_py):
 
 setuptools.setup(
     cmdclass={
-        'build_py': BuildPyCommand,
+        "build_py": BuildPyCommand,
     },
     # Usual setup() args.
     # ...
@@ -447,13 +447,15 @@ Additionally, Visual Studio 2019 started linking to an even newer DLL, `VCRUNTIM
 To add the `/d2FH4-` flag to a standard `setup.py` using `setuptools`, the `extra_compile_args` option can be used:
 
 ```python
-    ext_modules=[
+ext_modules = (
+    [
         Extension(
-            'c_module',
-            sources=['extension.c'],
-            extra_compile_args=['/d2FH4-'] if sys.platform == 'win32' else []
+            "c_module",
+            sources=["extension.c"],
+            extra_compile_args=["/d2FH4-"] if sys.platform == "win32" else [],
         )
     ],
+)
 ```
 
 To investigate the dependencies of a C extension (i.e., the `.pyd` file, a DLL in disguise) on Windows, [Dependency Walker](http://www.dependencywalker.com/) is a great tool. For diagnosing a failing import, the [dlltracer](https://pypi.org/project/dlltracer/) tool may also provide additional details.
