@@ -6,12 +6,14 @@ __lazy_modules__ = {
     "packaging",
     "packaging.utils",
     "shlex",
+    "zipfile",
 }
 
 import shlex
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 from typing import TypeVar
+from zipfile import ZipFile
 
 from packaging.utils import parse_wheel_filename
 
@@ -197,3 +199,59 @@ def is_abi3_wheel(wheel_name: str) -> bool:
     """Check if a wheel uses the abi3 stable ABI based on its filename."""
     _, _, _, tags = parse_wheel_filename(wheel_name)
     return any(tag.abi == "abi3" for tag in tags)
+
+
+_IMPORTABLE_SUFFIXES = (".py", ".pyc", ".pyi", ".pyd", ".so")
+_INIT_NAMES = {f"__init__{suffix}" for suffix in _IMPORTABLE_SUFFIXES}
+
+
+def pep420_namespace_packages(wheel: Path) -> tuple[str, ...]:
+    """Return dotted names of PEP 420 namespace packages in ``wheel``.
+
+    A directory is a namespace package when it contains importable modules (or
+    subpackages) but no ``__init__`` module. Nested namespaces collapse so that
+    ``foo.bar`` covers both ``foo`` and ``foo.bar``, which is the form
+    delvewheel wants for ``--namespace-pkg``.
+    """
+    with ZipFile(wheel) as zf:
+        names = {name.replace("\\", "/") for name in zf.namelist()}
+
+    package_dirs: set[str] = set()
+    for name in names:
+        if name.endswith("/"):
+            continue
+        parts = name.split("/")
+        root = parts[0]
+        if root.endswith((".dist-info", ".data")):
+            continue
+        if not parts[-1].endswith(_IMPORTABLE_SUFFIXES):
+            continue
+        for depth in range(1, len(parts)):
+            package_dirs.add("/".join(parts[:depth]))
+
+    namespaces: set[str] = set()
+    for package_dir in package_dirs:
+        if not any(f"{package_dir}/{init_name}" in names for init_name in _INIT_NAMES):
+            namespaces.add(package_dir.replace("/", "."))
+
+    collapsed: list[str] = []
+    for name in sorted(namespaces, key=lambda item: item.count("."), reverse=True):
+        if any(kept == name or kept.startswith(f"{name}.") for kept in collapsed):
+            continue
+        collapsed.append(name)
+    return tuple(sorted(collapsed))
+
+
+def with_delvewheel_namespace_pkgs(command: str, packages: Sequence[str]) -> str:
+    """Add ``--namespace-pkg`` to a delvewheel repair command when needed.
+
+    delvewheel's default strategy writes a top-level ``__init__.py`` so it can
+    call ``os.add_dll_directory``. That turns a PEP 420 namespace package into
+    a regular package. ``--namespace-pkg`` selects the alternate strategy.
+
+    The delimiter is ``;`` because delvewheel only runs on Windows. Existing
+    ``--namespace-pkg`` flags and non-delvewheel commands are left unchanged.
+    """
+    if not packages or "delvewheel" not in command or "--namespace-pkg" in command:
+        return command
+    return f'{command} --namespace-pkg "{";".join(packages)}"'

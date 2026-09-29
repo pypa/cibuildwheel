@@ -5,6 +5,10 @@ ref: changelog
 
 # Changelog
 
+### Unreleased
+
+- 🐛 Passes `--namespace-pkg` to delvewheel when a Windows wheel contains PEP 420 namespace packages, so the repair step no longer injects a top-level `__init__.py` (#2983)
+
 ### v4.2.1
 
 _5 September 2026_

@@ -52,7 +52,12 @@ from cibuildwheel.util.file import (
     remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap
-from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
+from cibuildwheel.util.packaging import (
+    find_compatible_wheel,
+    get_pip_version,
+    pep420_namespace_packages,
+    with_delvewheel_namespace_pkgs,
+)
 from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
 
 TYPE_CHECKING = False
@@ -559,8 +564,12 @@ def build(options: Options, tmp_path: Path) -> None:
 
                 if build_options.repair_command:
                     log.step("Repairing wheel...")
-                    repair_command_prepared = prepare_command(
+                    repair_command = with_delvewheel_namespace_pkgs(
                         build_options.repair_command,
+                        pep420_namespace_packages(built_wheel),
+                    )
+                    repair_command_prepared = prepare_command(
+                        repair_command,
                         wheel=built_wheel,
                         dest_dir=repaired_wheel_dir,
                         package=build_options.package_dir,

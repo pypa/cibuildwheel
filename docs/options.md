@@ -992,6 +992,8 @@ The command is run on each built wheel (except for pure Python ones) before test
 !!! note
     Since cibuildwheel 4.0, `delvewheel` is the default `repair-wheel-command` on Windows, so extension-module DLLs are bundled automatically. If a wheel has a platform tag but contains no extension module (for example, a package that sets a platform tag but ships a pre-built DLL itself), `delvewheel` may error. In that case, set `repair-wheel-command = ""` to skip the repair step.
 
+    For PEP 420 implicit namespace packages, delvewheel's default strategy would create a top-level `__init__.py` and turn the namespace into a regular package. When the repair command invokes delvewheel and does not already pass `--namespace-pkg`, cibuildwheel inspects the built wheel and adds that flag for any directories that contain modules but no `__init__.py`.
+
 The following placeholders must be used inside the command and will be replaced by cibuildwheel:
 
 - `{wheel}` for the absolute path to the built wheel
