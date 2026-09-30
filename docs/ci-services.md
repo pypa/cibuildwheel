@@ -27,6 +27,11 @@ To build Linux, macOS, and Windows wheels using GitHub Actions, create a `.githu
     locations (those values are the defaults). You can also pass a
     comma-separated list of extras to install additional packages.
     For example, `extras: "uv"` to install UV into the virtual environment.
+    On self-hosted runners with an architecture not supported by
+    `setup-python` (for example, native `riscv64`), the action uses the
+    runner's system `python3`. To choose an interpreter explicitly, pass its
+    path with `python-path`. The interpreter must be Python 3.11+ with pip;
+    setting `python-path` skips `setup-python` entirely.
 
 !!! tab "pipx"
     The GitHub Actions runners have pipx installed, so you can easily build in

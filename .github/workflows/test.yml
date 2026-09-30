@@ -224,6 +224,8 @@ jobs:
         package-dir: sample_proj
         output-dir: wheelhouse_config_file
         config-file: sample_proj/cibw.toml
+        # Exercise the system-Python override on Linux.
+        python-path: ${{ runner.os == 'Linux' && 'python3' || '' }}
 
     - name: Check Action artifacts
       shell: bash
