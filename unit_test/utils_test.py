@@ -534,6 +534,34 @@ class TestFormatCommandForDisplay:
         for arg in ("it's $HOME", "it's `pwd`", "it's a back\\slash"):
             assert format_command_for_display([arg]) == shlex.quote(arg)
 
+    @pytest.mark.parametrize(
+        "args",
+        [
+            ["python", "-m", "pip", "install", "."],
+            ["cmd", "", "hello world", "\ttab\nnewline"],
+            ["sh", "-c", "a && b | c > d; e & f"],
+            ["sh", "-c", "echo 'hi'"],
+            ["sh", "-c", 'echo "hi"'],
+            ["sh", "-c", """echo "it's" 'a "quote"'"""],
+            ["it's $HOME", "it's `pwd`", "it's a back\\slash", "$'\\n'"],
+            ["'", '"', "''", '""', "'\"'\"'", "\\", "\\\\\"'"],
+            ["!", "!!", "*.whl", "~", "#comment", "a=b", "{a,b}", "(x)", "[y]"],
+            ['"\'" "\\"" \'$\' "`"', "unicode 'ü' \"✓\""],
+            # the command from https://github.com/pypa/cibuildwheel/issues/1055
+            [
+                "sh",
+                "-c",
+                (
+                    """python -c "import sys,glob; open('requirements.txt', 'w').write("""
+                    """glob.glob('wheelhouse/MyApp-*cp'+''.join(map(str, sys.version_info[:2]))"""
+                    """+'-*.whl')[0])\""""
+                ),
+            ],
+        ],
+    )
+    def test_round_trips_through_shlex(self, args: list[str]) -> None:
+        assert shlex.split(format_command_for_display(args)) == args
+
     def test_accepts_paths(self) -> None:
         # PurePosixPath, so the expected string doesn't depend on the host OS
         assert format_command_for_display(["ls", PurePosixPath("/a b/c")]) == "ls '/a b/c'"
