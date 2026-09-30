@@ -77,7 +77,7 @@ def test_abi3(tmp_path: Path) -> None:
                 "cp39-cp39",
                 "cp310-abi3",  # <-- ABI3, works with 3.10 and 3.12
                 "cp314-cp314t",
-                "pp311-pypy311_pp73",
+                "pp311-pypy311_pp80",
                 "graalpy312-graalpy250_312_native",
             ],
         )

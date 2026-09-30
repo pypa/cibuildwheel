@@ -317,7 +317,8 @@ def _expected_wheels(
             ]
         if EnableGroup.PyPy in enable_groups:
             python_abi_tags += [
-                "pp311-pypy311_pp73",
+                "pp311-pypy311_pp80",
+                "pp312-pypy312_pp80",
             ]
 
         if EnableGroup.GraalPy in enable_groups and include_graalpy_in_expected_wheels:

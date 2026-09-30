@@ -347,14 +347,13 @@ def setup_python(
     # CPython 3.14.0 needs 10.15.
     if config_is_arm64:
         default_target = "11.0"
-    elif Version(python_configuration.version) >= Version("3.14"):
+    elif Version(python_configuration.version) >= Version("3.14") or (
+        python_configuration.identifier.startswith("pp")
+        and Version(python_configuration.version) >= Version("3.9")
+    ):
         default_target = "10.15"
     elif Version(python_configuration.version) >= Version("3.12"):
         default_target = "10.13"
-    elif python_configuration.identifier.startswith("pp") and Version(
-        python_configuration.version
-    ) >= Version("3.9"):
-        default_target = "10.15"
     else:
         default_target = "10.9"
     env.setdefault("MACOSX_DEPLOYMENT_TARGET", default_target)
