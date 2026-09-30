@@ -2,7 +2,7 @@
 #    nox -s update_constraints
 abi3audit==0.0.26
     # via -r cibuildwheel/resources/constraints.in
-abi3info==2025.11.29
+abi3info==2026.9.25
     # via abi3audit
 altgraph==0.17.5
     # via macholib
@@ -14,11 +14,11 @@ auditwheel==6.8.2
     # via -r cibuildwheel/resources/constraints.in
 build==1.6.1
     # via -r cibuildwheel/resources/constraints.in
-cattrs==26.2.0
+cattrs==26.2.1
     # via requests-cache
 certifi==2026.7.22
     # via requests
-charset-normalizer==3.5.1
+charset-normalizer==3.5.2
     # via requests
 delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
@@ -28,7 +28,7 @@ distlib==0.4.3
     # via virtualenv
 exceptiongroup==1.3.1
     # via cattrs
-filelock==4.0.3
+filelock==4.0.7
     # via
     #   python-discovery
     #   virtualenv
@@ -52,6 +52,7 @@ packaging==26.3
     #   auditwheel
     #   build
     #   delocate
+    #   virtualenv
 patchelf==0.19.1.0
     # via -r cibuildwheel/resources/constraints.in
 pefile==2024.8.26
@@ -62,7 +63,7 @@ pip==26.2.1
     # via -r cibuildwheel/resources/constraints.in
 pkgconf==3.0.7.post0
     # via -r cibuildwheel/resources/constraints.in
-platformdirs==4.11.12
+platformdirs==4.12.2
     # via
     #   requests-cache
     #   virtualenv
@@ -98,7 +99,7 @@ urllib3==2.8.0
     # via
     #   requests
     #   requests-cache
-virtualenv==21.12.0
+virtualenv==21.14.1
     # via -r cibuildwheel/resources/constraints.in
 zipp==4.1.0
     # via importlib-metadata
