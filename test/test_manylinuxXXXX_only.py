@@ -94,8 +94,8 @@ def test(manylinux_image: str, tmp_path: Path) -> None:
         add_env["CIBW_ARCHS"] = "aarch64"
 
     if manylinux_image == "manylinux2014":
-        # no PyPy 3.11 / 3.12
-        add_env["CIBW_SKIP"] = "pp311-* pp312-*"
+        # no PyPy 3.11 / 3.12 or GraalPy 3.13
+        add_env["CIBW_SKIP"] = "pp311-* pp312-* gp313_*"
 
     actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env)
 
@@ -114,7 +114,11 @@ def test(manylinux_image: str, tmp_path: Path) -> None:
         expected_wheels = [w for w in expected_wheels if "armv7l" not in w]
 
     if manylinux_image == "manylinux2014":
-        # no PyPy 3.11 / 3.12
-        expected_wheels = [w for w in expected_wheels if "pp311" not in w and "pp312" not in w]
+        # no PyPy 3.11 / 3.12 or GraalPy 3.13
+        expected_wheels = [
+            w
+            for w in expected_wheels
+            if "pp311" not in w and "pp312" not in w and "graalpy313" not in w
+        ]
 
     assert set(actual_wheels) == set(expected_wheels)
