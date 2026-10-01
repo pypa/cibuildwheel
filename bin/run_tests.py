@@ -61,6 +61,7 @@ if __name__ == "__main__":
     if (
         sys.platform.startswith("linux")
         and os.environ.get("CIBW_PLATFORM", "linux") == "linux"
+        and os.environ.get("CIBW_CONTAINER_ENGINE", "docker") != "none"
         and args.test_select in ["all", "native"]
     ):
         # run the docker unit tests only on Linux
