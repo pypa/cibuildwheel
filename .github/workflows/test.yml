@@ -185,7 +185,7 @@ jobs:
         path: sample_proj
 
     - name: Run a sample build (GitHub Action)
-      uses: ./
+      uses: $/
       with:
         package-dir: sample_proj
         output-dir: wheelhouse
@@ -196,7 +196,7 @@ jobs:
         CIBW_TEST_RUNTIME: ${{ matrix.test_runtime }}
 
     - name: Run a sample build (GitHub Action, only)
-      uses: ./
+      uses: $/
       if: matrix.test_select == ''
       with:
         package-dir: sample_proj
@@ -216,7 +216,7 @@ jobs:
         EOF
 
     - name: Run a sample build (GitHub Action, config-file)
-      uses: ./
+      uses: $/
       env:
         CIBW_PLATFORM: ${{ matrix.test_select }}
         CIBW_TEST_RUNTIME: ${{ matrix.test_runtime }}
@@ -324,7 +324,7 @@ jobs:
         path: sample_proj
 
     - name: Run a sample build (GitHub Action)
-      uses: ./
+      uses: $/
       with:
         package-dir: sample_proj
         output-dir: wheelhouse
@@ -366,7 +366,7 @@ jobs:
         name: sample_proj
         path: sample_proj
     - name: Run a sample build (GitHub Action)
-      uses: ./
+      uses: $/
       with:
         extras: uv
         package-dir: sample_proj
