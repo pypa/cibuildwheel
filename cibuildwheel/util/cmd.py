@@ -13,10 +13,40 @@ from cibuildwheel.errors import FatalError
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
-    from collections.abc import Iterator, Mapping
-    from typing import Literal
+    from collections.abc import Iterable, Iterator, Mapping
+    from typing import Final, Literal
 
     from cibuildwheel.typing import PathOrStr
+
+# characters that no shell treats specially, so they never need quoting
+_BARE_CHARS: Final[frozenset[str]] = frozenset(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@%+=:,./-_"
+)
+# characters that a shell would still act on inside double quotes
+_ACTIVE_IN_DOUBLE_QUOTES: Final[frozenset[str]] = frozenset("`$\\")
+
+
+def format_command_for_display(args: Iterable[PathOrStr]) -> str:
+    """
+    Render a command as a string that's pleasant to read in a log.
+
+    This is for display only. Don't build a command out of it - use
+    shlex.quote for anything that will actually be run.
+
+    shlex.quote always uses single quotes, so an argument that itself contains
+    a single quote comes out as unreadable '"'"' soup. Where it's unambiguous
+    we leave the argument bare, or wrap it in double quotes so its single
+    quotes survive intact, and otherwise fall back to shlex.quote.
+    """
+    return " ".join(_quote_for_display(str(arg)) for arg in args)
+
+
+def _quote_for_display(arg: str) -> str:
+    if arg and _BARE_CHARS.issuperset(arg):
+        return arg
+    if "'" in arg and _ACTIVE_IN_DOUBLE_QUOTES.isdisjoint(arg):
+        return '"' + arg.replace('"', '\\"') + '"'
+    return shlex.quote(arg)
 
 
 @typing.overload
@@ -51,7 +81,7 @@ def call(
     """
     args_ = [str(arg) for arg in args]
     # print the command executing for the logs
-    print("+ " + " ".join(shlex.quote(a) for a in args_))
+    print("+ " + format_command_for_display(args_))
     # workaround platform behaviour differences outlined
     # in https://github.com/python/cpython/issues/52803
     path_env = env if env is not None else os.environ

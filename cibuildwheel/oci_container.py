@@ -38,7 +38,7 @@ from typing import Literal, assert_never
 from cibuildwheel.ci import CIProvider, detect_ci_provider
 from cibuildwheel.errors import OCIEngineTooOldError
 from cibuildwheel.logger import log
-from cibuildwheel.util.cmd import call
+from cibuildwheel.util.cmd import call, format_command_for_display
 from cibuildwheel.util.helpers import FlexibleVersion, parse_key_value_string, strtobool
 
 TYPE_CHECKING = False
@@ -518,7 +518,7 @@ class OCIContainer:
         end_of_message = str(uuid.uuid4())
 
         # log the command we're executing
-        print(f"    + {command}")
+        print(f"    + {format_command_for_display(args)}")
 
         # Write a command to the remote shell. First we change the
         # cwd, if that's required. Then, we use the `env` utility to run
