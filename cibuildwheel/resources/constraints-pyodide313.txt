@@ -26,7 +26,7 @@ click==8.1.8
     #   pyodide-cli
 distlib==0.4.3
     # via virtualenv
-filelock==4.0.7
+filelock==4.0.9
     # via
     #   python-discovery
     #   virtualenv
@@ -77,7 +77,7 @@ typing-extensions==4.16.0
     # via cattrs
 urllib3==2.8.0
     # via requests
-virtualenv==21.14.1
+virtualenv==21.14.5
     # via
     #   build
     #   pyodide-build
