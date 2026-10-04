@@ -745,6 +745,46 @@ container-engine = "podman"
         )
 
 
+@pytest.mark.parametrize(
+    ("config", "env"),
+    [
+        (
+            'inherit.test-runtime = "append"\ntest-runtime = "args: --configured"',
+            {},
+        ),
+        (
+            "",
+            {"CIBW_INHERIT": "test-runtime", "CIBW_TEST_RUNTIME": "args: --environment"},
+        ),
+        (
+            'test-runtime = "args: --configured"',
+            {"CIBW_INHERIT": "test-runtime", "CIBW_TEST_RUNTIME": ""},
+        ),
+    ],
+    ids=["toml-empty-before", "environment-empty-before", "environment-empty-after"],
+)
+def test_unsupported_inherit_with_empty_value(
+    tmp_path: Path, config: str, env: dict[str, str]
+) -> None:
+    """
+    checks that inherit still raises an error for unsupported options,
+    even when one of the values is empty
+    """
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(f"[tool.cibuildwheel]\n{config}\n")
+
+    options_reader = OptionsReader(pyproject_toml, platform="linux", env=env)
+
+    with pytest.raises(
+        OptionsReaderError,
+        match="Option 'test-runtime' does not support inheritance",
+    ):
+        options_reader.get(
+            "test-runtime",
+            option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
+        )
+
+
 def test_audit_command_option(tmp_path: Path, platform: PlatformName) -> None:
     pyproject_toml: Path = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(

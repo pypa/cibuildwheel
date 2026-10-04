@@ -270,10 +270,11 @@ class ListFormat(OptionFormat):
         return self.sep.join(self.quote(str(v)) for v in value)
 
     def merge_values(self, before: str, after: str) -> str:
-        if before == self.null_value:
+        if not before or before == self.null_value:
             return after
-        if after == self.null_value:
+        if not after or after == self.null_value:
             return before
+
         return f"{before}{self.sep}{after}"
 
 
@@ -309,6 +310,11 @@ class ShlexTableFormat(OptionFormat):
     def merge_values(self, before: str, after: str) -> str:
         if not self.allow_merge:
             raise OptionFormat.MergeNotSupported
+
+        if not before:
+            return after
+        if not after:
+            return before
 
         before_dict = self.parse_table(before)
         after_dict = self.parse_table(after)
@@ -352,6 +358,10 @@ class EnvironmentFormat(OptionFormat):
         return " ".join(f'{k}="{v}"' for k, v in table.items())
 
     def merge_values(self, before: str, after: str) -> str:
+        if not before:
+            return after
+        if not after:
+            return before
         return f"{before} {after}"
 
 
@@ -405,24 +415,14 @@ def _apply_inherit_rule(
     if rule == InheritRule.NONE:
         return after
 
-    if not before:
-        # if before is None, we can just return after
-        # if before is an empty string, we shouldn't add any separator
-        return after
-
-    if not after:
-        # if after is an empty string, we shouldn't add any separator
-        return before
-
     if not option_format:
-        msg = f"Don't know how to merge {before!r} and {after!r} with {rule}"
-        raise OptionsReaderError(msg)
+        raise OptionFormat.MergeNotSupported
 
     match rule:
         case InheritRule.APPEND:
-            return option_format.merge_values(before, after)
+            return option_format.merge_values(before or "", after)
         case InheritRule.PREPEND:
-            return option_format.merge_values(after, before)
+            return option_format.merge_values(after, before or "")
         case _:
             assert_never(rule)
 
