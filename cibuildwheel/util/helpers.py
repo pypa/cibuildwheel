@@ -98,6 +98,22 @@ def unwrap_preserving_paragraphs(text: str) -> str:
     return "\n\n".join(paragraphs)
 
 
+def _split_key_value_fields(key_value_string: str) -> list[list[str]]:
+    """
+    Splits "docker; create_args: --some-option=value another-option" into
+    [['docker'], ['create_args:', '--some-option=value', 'another-option']].
+    """
+    shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";")
+    shlexer.commenters = ""
+    shlexer.whitespace_split = True
+    parts = list(shlexer)
+    # parts now looks like
+    # ['docker', ';', 'create_args:', '--some-option=value', 'another-option']
+
+    # split by semicolon
+    return [list(group) for k, group in itertools.groupby(parts, lambda x: x == ";") if not k]
+
+
 def parse_key_value_string(
     key_value_string: str,
     positional_arg_names: Sequence[str] | None = None,
@@ -113,18 +129,8 @@ def parse_key_value_string(
 
     all_field_names = [*positional_arg_names, *kw_arg_names]
 
-    shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";")
-    shlexer.commenters = ""
-    shlexer.whitespace_split = True
-    parts = list(shlexer)
-    # parts now looks like
-    # ['docker', ';', 'create_args:', '--some-option=value', 'another-option']
-
-    # split by semicolon
-    fields = [list(group) for k, group in itertools.groupby(parts, lambda x: x == ";") if not k]
-
     result: defaultdict[str, list[str]] = defaultdict(list)
-    for field_i, field in enumerate(fields):
+    for field_i, field in enumerate(_split_key_value_fields(key_value_string)):
         # check to see if the option name is specified
         field_name, sep, first_value = field[0].partition(":")
         if sep:
@@ -163,17 +169,8 @@ def parse_arbitrary_key_value_string(
     interpreted as keys. Keys without a value will be assigned the
     default_value if provided, otherwise throw an error.
     """
-    shlexer = shlex.shlex(key_value_string, posix=True, punctuation_chars=";")
-    shlexer.commenters = ""
-    shlexer.whitespace_split = True
-    parts = list(shlexer)
-    # parts now looks like
-    # ['before-build', ';', 'before-test:', 'append', ';', 'after-test:', 'prepend']
-
-    # split by semicolon
     result: defaultdict[str, list[str]] = defaultdict(list)
-    fields = [list(group) for k, group in itertools.groupby(parts, lambda x: x == ";") if not k]
-    for field in fields:
+    for field in _split_key_value_fields(key_value_string):
         # check to see if the option name is specified
         field_name, sep, first_value = field[0].partition(":")
         if sep:

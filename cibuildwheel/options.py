@@ -461,29 +461,26 @@ def _stringify_setting(
 
 
 def parse_inherit(config: str | dict[str, str] | None) -> dict[str, InheritRule]:
-    inherit_dict: dict[str, str]
-
-    if config is None:
-        return {}
-
-    if isinstance(config, str):
-        try:
-            parsed = parse_arbitrary_key_value_string(config, default_value="append")
-        except ValueError as e:
-            raise OptionsReaderError(str(e)) from e
-
-        if not all(len(values) == 1 for values in parsed.values()):
-            msg = "'inherit' must specify exactly one rule per option"
-            raise OptionsReaderError(msg)
-        inherit_dict = {key: values[0] for key, values in parsed.items()}
-    elif isinstance(config, dict):
-        if not all(isinstance(value, str) for value in config.values()):
+    match config:
+        case None:
+            return {}
+        case str():
+            try:
+                parsed = parse_arbitrary_key_value_string(config, default_value="append")
+            except ValueError as e:
+                raise OptionsReaderError(str(e)) from e
+            if not all(len(values) == 1 for values in parsed.values()):
+                msg = "'inherit' must specify exactly one rule per option"
+                raise OptionsReaderError(msg)
+            inherit_dict = {key: values[0] for key, values in parsed.items()}
+        case dict() if all(isinstance(value, str) for value in config.values()):
+            inherit_dict = config
+        case dict():
             msg = "'inherit' must contain only string values"
             raise OptionsReaderError(msg)
-        inherit_dict = config
-    else:
-        msg = "'inherit' must be a string or a table"
-        raise OptionsReaderError(msg)
+        case _:
+            msg = "'inherit' must be a string or a table"
+            raise OptionsReaderError(msg)
 
     if not all(v in {"none", "append", "prepend"} for v in inherit_dict.values()):
         msg = "'inherit' must contain only {'none', 'append', 'prepend'} values"
@@ -633,8 +630,13 @@ class OptionsReader:
                     msg = "'select' must be set in an override"
                     raise OptionsReaderError(msg)
 
-                if isinstance(select, list):
+                if isinstance(select, str):
+                    pass
+                elif isinstance(select, list) and all(isinstance(item, str) for item in select):
                     select = " ".join(select)
+                else:
+                    msg = "'select' must be a string or a list of strings"
+                    raise OptionsReaderError(msg)
 
                 inherit = config_override.pop("inherit", {})
 

@@ -478,6 +478,24 @@ test-command = "pyproject-override"
         OptionsReader(config_file_path=pyproject_toml, platform=cast("Any", platform), env={})
 
 
+@pytest.mark.parametrize("select", ["", 'select = ""', "select = []"])
+def test_overrides_empty_select(tmp_path: Path, select: str) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(f"[[tool.cibuildwheel.overrides]]\n{select}\n")
+
+    with pytest.raises(OptionsReaderError, match="'select' must be set in an override"):
+        OptionsReader(config_file_path=pyproject_toml, platform="linux", env={})
+
+
+@pytest.mark.parametrize("select", ["123", '["cp312-*", 123]', "[123]"])
+def test_overrides_invalid_select_type(tmp_path: Path, select: str) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(f"[[tool.cibuildwheel.overrides]]\nselect = {select}\n")
+
+    with pytest.raises(OptionsReaderError, match="'select' must be a string or a list of strings"):
+        OptionsReader(config_file_path=pyproject_toml, platform="linux", env={})
+
+
 def test_config_settings(tmp_path: Path) -> None:
     pyproject_toml: Path = tmp_path / "pyproject.toml"
     pyproject_toml.write_text(
