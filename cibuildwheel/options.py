@@ -553,13 +553,11 @@ class OptionsReader:
     def _validate_inherit_options(
         self, inherit: Mapping[str, InheritRule], *, allow_platform_suffixes: bool = False
     ) -> None:
-        allowed_names = self._known_option_names.copy()
+        allowed_names = self._known_option_names
         if allow_platform_suffixes:
-            allowed_names.update(
-                f"{option_name}-{platform}"
-                for option_name in self._known_option_names
-                for platform in PLATFORMS
-            )
+            allowed_names = allowed_names | {
+                f"{n}-{p}" for n in self._known_option_names for p in PLATFORMS
+            }
 
         for name in inherit:
             if name not in allowed_names:
