@@ -26,7 +26,7 @@ delvewheel==1.13.1
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.3
     # via virtualenv
-filelock==4.0.9
+filelock==4.0.11
     # via
     #   python-discovery
     #   virtualenv
@@ -59,7 +59,7 @@ pip==26.2.1
     # via -r cibuildwheel/resources/constraints.in
 pkgconf==3.0.7.post0
     # via -r cibuildwheel/resources/constraints.in
-platformdirs==4.12.2
+platformdirs==4.12.3
     # via
     #   requests-cache
     #   virtualenv

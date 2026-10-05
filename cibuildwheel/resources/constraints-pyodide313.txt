@@ -26,7 +26,7 @@ click==8.1.8
     #   pyodide-cli
 distlib==0.4.3
     # via virtualenv
-filelock==4.0.9
+filelock==4.0.11
     # via
     #   python-discovery
     #   virtualenv
@@ -47,7 +47,7 @@ packaging==26.3
     #   wheel
 pip==26.2.1
     # via -r .nox/update_constraints/tmp/constraints-pyodide.in
-platformdirs==4.12.2
+platformdirs==4.12.3
     # via
     #   pyodide-build
     #   virtualenv

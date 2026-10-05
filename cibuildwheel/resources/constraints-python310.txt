@@ -28,7 +28,7 @@ distlib==0.4.3
     # via virtualenv
 exceptiongroup==1.3.1
     # via cattrs
-filelock==4.0.9
+filelock==4.0.11
     # via
     #   python-discovery
     #   virtualenv
@@ -63,7 +63,7 @@ pip==26.2.1
     # via -r cibuildwheel/resources/constraints.in
 pkgconf==3.0.7.post0
     # via -r cibuildwheel/resources/constraints.in
-platformdirs==4.12.2
+platformdirs==4.12.3
     # via
     #   requests-cache
     #   virtualenv
@@ -101,5 +101,5 @@ urllib3==2.8.0
     #   requests-cache
 virtualenv==21.14.5
     # via -r cibuildwheel/resources/constraints.in
-zipp==4.1.0
+zipp==4.1.1
     # via importlib-metadata
