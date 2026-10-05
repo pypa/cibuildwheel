@@ -5,6 +5,21 @@ ref: changelog
 
 # Changelog
 
+### v4.3.0
+
+_5 October 2026_
+
+- ✨ Extends [option inheritance](https://cibuildwheel.pypa.io/en/stable/configuration/#inherit) to every configuration layer, so global and platform-specific settings can append or prepend to existing values, including cibuildwheel's defaults. Environment variables can also extend earlier settings using `CIBW_INHERIT`. (#2928)
+- ✨ Adds PyPy 3.12 support and updates PyPy 3.11 to v8.0.0, available with the `pypy` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) flag (#2998)
+- ✨ Adds GraalPy 3.13 (v25.3) support on Linux, Windows, and macOS arm64, available with the `graalpy` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) flag (#2982)
+- ✨ Adds [`log-fold-mode`](https://cibuildwheel.pypa.io/en/stable/options/#log-fold-mode) to override CI log folding, including `CIBW_LOG_FOLD_MODE=disabled` to keep build steps expanded (#2972)
+- ✨ Adds a `python-path` input to the GitHub Action to choose the Python interpreter used to run cibuildwheel, and falls back to system `python3` on runner architectures unsupported by `setup-python`, such as native riscv64 (#2990)
+- 🐛 Fixes Windows command execution when paths or arguments contain shell metacharacters, including dependency specifiers containing `<` or `>` (#2978)
+- 🛠 Improves readability of logged commands whose arguments contain quotes (#2993)
+- 🛠 Updates Pyodide to 0.27.8, 0.29.5, and 314.0.7, and updates its build tooling, including auditwheel-emscripten 0.3.0 (#2996)
+- 🛠 Updates dependencies and container pins, including CPython 3.15.0rc3 (#2986, #3003)
+- 📚 Corrects references to `--archs` in CLI help, error messages, and documentation (#2992)
+
 ### v4.2.1
 
 _5 September 2026_
