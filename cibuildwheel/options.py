@@ -49,7 +49,13 @@ from cibuildwheel.projectfiles import get_requires_python_str, resolve_dependenc
 from cibuildwheel.selector import BuildSelector, EnableGroup, TestSelector, selector_matches
 from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util import resources
-from cibuildwheel.util.helpers import format_safe, parse_key_value_string, strtobool, unwrap
+from cibuildwheel.util.helpers import (
+    format_safe,
+    parse_arbitrary_key_value_string,
+    parse_key_value_string,
+    strtobool,
+    unwrap,
+)
 from cibuildwheel.util.packaging import DependencyConstraints
 
 TYPE_CHECKING = False
@@ -223,32 +229,51 @@ class OptionFormat:
     can be parsed from rich TOML values and how they're merged together.
     """
 
-    class NotSupported(Exception):
+    class FormatNotSupported(Exception):
+        pass
+
+    class MergeNotSupported(Exception):
         pass
 
     def format_list(self, value: SettingList) -> str:  # noqa: ARG002
-        raise OptionFormat.NotSupported
+        raise OptionFormat.FormatNotSupported
 
     def format_table(self, table: SettingTable) -> str:  # noqa: ARG002
-        raise OptionFormat.NotSupported
+        raise OptionFormat.FormatNotSupported
 
     def merge_values(self, before: str, after: str) -> str:  # noqa: ARG002
-        raise OptionFormat.NotSupported
+        raise OptionFormat.MergeNotSupported
 
 
 class ListFormat(OptionFormat):
     """
     A format that joins lists with a separator.
+
+    Set `null_value` if you need a string that represents nothing. It's preserved
+    as-is but when merging, the null value is discarded in favor of the other value.
     """
 
-    def __init__(self, sep: str, quote: Callable[[str], str] | None = None) -> None:
+    def __init__(
+        self,
+        sep: str,
+        quote: Callable[[str], str] | None = None,
+        null_value: str | None = None,
+    ) -> None:
         self.sep = sep
         self.quote = quote or (lambda s: s)
+        self.null_value = null_value
 
     def format_list(self, value: SettingList) -> str:
+        if self.null_value is not None and value == [self.null_value]:
+            return self.null_value
         return self.sep.join(self.quote(str(v)) for v in value)
 
     def merge_values(self, before: str, after: str) -> str:
+        if not before or before == self.null_value:
+            return after
+        if not after or after == self.null_value:
+            return before
+
         return f"{before}{self.sep}{after}"
 
 
@@ -283,7 +308,12 @@ class ShlexTableFormat(OptionFormat):
 
     def merge_values(self, before: str, after: str) -> str:
         if not self.allow_merge:
-            raise OptionFormat.NotSupported
+            raise OptionFormat.MergeNotSupported
+
+        if not before:
+            return after
+        if not after:
+            return before
 
         before_dict = self.parse_table(before)
         after_dict = self.parse_table(after)
@@ -327,6 +357,10 @@ class EnvironmentFormat(OptionFormat):
         return " ".join(f'{k}="{v}"' for k, v in table.items())
 
     def merge_values(self, before: str, after: str) -> str:
+        if not before:
+            return after
+        if not after:
+            return before
         return f"{before} {after}"
 
 
@@ -380,24 +414,14 @@ def _apply_inherit_rule(
     if rule == InheritRule.NONE:
         return after
 
-    if not before:
-        # if before is None, we can just return after
-        # if before is an empty string, we shouldn't add any separator
-        return after
-
-    if not after:
-        # if after is an empty string, we shouldn't add any separator
-        return before
-
     if not option_format:
-        msg = f"Don't know how to merge {before!r} and {after!r} with {rule}"
-        raise OptionsReaderError(msg)
+        raise OptionFormat.MergeNotSupported
 
     match rule:
         case InheritRule.APPEND:
-            return option_format.merge_values(before, after)
+            return option_format.merge_values(before or "", after)
         case InheritRule.PREPEND:
-            return option_format.merge_values(after, before)
+            return option_format.merge_values(after, before or "")
         case _:
             assert_never(rule)
 
@@ -411,9 +435,9 @@ def _stringify_setting(
             assert isinstance(setting, Mapping)  # MyPy 1.15 doesn't narrow this for us
             try:
                 if option_format is None:
-                    raise OptionFormat.NotSupported
+                    raise OptionFormat.FormatNotSupported
                 return option_format.format_table(setting)
-            except OptionFormat.NotSupported:
+            except OptionFormat.FormatNotSupported:
                 msg = (
                     f"Error converting {setting!r} to a string: this setting doesn't accept a table"
                 )
@@ -423,9 +447,9 @@ def _stringify_setting(
         case [*_]:
             try:
                 if option_format is None:
-                    raise OptionFormat.NotSupported
+                    raise OptionFormat.FormatNotSupported
                 return option_format.format_list(setting)
-            except OptionFormat.NotSupported:
+            except OptionFormat.FormatNotSupported:
                 msg = (
                     f"Error converting {setting!r} to a string: this setting doesn't accept a list"
                 )
@@ -433,6 +457,35 @@ def _stringify_setting(
         case _:
             assert isinstance(setting, str)  # MyPy 1.15 doesn't narrow this for us
             return setting
+
+
+def parse_inherit(config: str | dict[str, str] | None) -> dict[str, InheritRule]:
+    match config:
+        case None:
+            return {}
+        case str():
+            try:
+                parsed = parse_arbitrary_key_value_string(config, default_value="append")
+            except ValueError as e:
+                raise OptionsReaderError(str(e)) from e
+            if not all(len(values) == 1 for values in parsed.values()):
+                msg = "'inherit' must specify exactly one rule per option"
+                raise OptionsReaderError(msg)
+            inherit_dict = {key: values[0] for key, values in parsed.items()}
+        case dict() if all(isinstance(value, str) for value in config.values()):
+            inherit_dict = config
+        case dict():
+            msg = "'inherit' must contain only string values"
+            raise OptionsReaderError(msg)
+        case _:
+            msg = "'inherit' must be a string or a table"
+            raise OptionsReaderError(msg)
+
+    if not all(v in {"none", "append", "prepend"} for v in inherit_dict.values()):
+        msg = "'inherit' must contain only {'none', 'append', 'prepend'} values"
+        raise OptionsReaderError(msg)
+
+    return {k: InheritRule[v.upper()] for k, v in inherit_dict.items()}
 
 
 class OptionsReader:
@@ -483,45 +536,42 @@ class OptionsReader:
             self._validate_platform_option(option_name)
 
         self.config_options = config_options
+        self.config_options_inherit = parse_inherit(config_options.get("inherit"))
+        self._validate_inherit_options(self.config_options_inherit)
         self.config_platform_options = config_platform_options
+        self.config_platform_options_inherit = parse_inherit(config_platform_options.get("inherit"))
+        self._validate_inherit_options(self.config_platform_options_inherit)
+        self.overrides = self._parse_overrides()
 
-        self.overrides: list[Override] = []
         self.current_identifier: str | None = None
 
-        config_overrides = self.config_options.get("overrides")
+    @functools.cached_property
+    def _known_option_names(self) -> set[str]:
+        return self.default_options.keys() - PLATFORMS
 
-        if config_overrides is not None:
-            if not isinstance(config_overrides, list):
-                msg = "'tool.cibuildwheel.overrides' must be a list"
+    def _validate_inherit_options(
+        self, inherit: Mapping[str, InheritRule], *, allow_platform_suffixes: bool = False
+    ) -> None:
+        allowed_names = self._known_option_names
+        if allow_platform_suffixes:
+            allowed_names = allowed_names | {
+                f"{n}-{p}" for n in self._known_option_names for p in PLATFORMS
+            }
+
+        for name in inherit:
+            if name not in allowed_names:
+                msg = f"Unknown option {name!r} in 'inherit'."
+                matches = difflib.get_close_matches(name, allowed_names, 1, 0.7)
+                if matches:
+                    msg += f" Perhaps you meant {matches[0]!r}?"
                 raise OptionsReaderError(msg)
-
-            for config_override in config_overrides:
-                select = config_override.pop("select", None)
-
-                if not select:
-                    msg = "'select' must be set in an override"
-                    raise OptionsReaderError(msg)
-
-                if isinstance(select, list):
-                    select = " ".join(select)
-
-                inherit = config_override.pop("inherit", {})
-                if not isinstance(inherit, dict) or not all(
-                    i in {"none", "append", "prepend"} for i in inherit.values()
-                ):
-                    msg = "'inherit' must be a dict containing only {'none', 'append', 'prepend'} values"
-                    raise OptionsReaderError(msg)
-
-                inherit_enum = {k: InheritRule[v.upper()] for k, v in inherit.items()}
-
-                self.overrides.append(Override(select, config_override, inherit_enum))
 
     def _validate_global_option(self, name: str) -> None:
         """
         Raises an error if an option with this name is not allowed in the
         [tool.cibuildwheel] section of a config file.
         """
-        allowed_option_names = self.default_options.keys() | PLATFORMS | {"overrides"}
+        allowed_option_names = self._known_option_names | PLATFORMS | {"inherit", "overrides"}
 
         if name not in allowed_option_names:
             msg = f"Option {name!r} not supported in a config file."
@@ -540,7 +590,7 @@ class OptionsReader:
             msg = f"{name!r} is not allowed in {disallowed_platform_options}"
             raise OptionsReaderError(msg)
 
-        allowed_option_names = self.default_options.keys() | self.default_platform_options.keys()
+        allowed_option_names = self._known_option_names | {"inherit"}
 
         if name not in allowed_option_names:
             msg = f"Option {name!r} not supported in the {self.platform!r} section"
@@ -560,6 +610,64 @@ class OptionsReader:
         platform_options = global_options.get(self.platform, {})
 
         return global_options, platform_options
+
+    def _parse_overrides(self) -> list[Override]:
+        config_overrides = self.config_options.get("overrides")
+        overrides: list[Override] = []
+
+        if config_overrides is not None:
+            if not isinstance(config_overrides, list):
+                msg = "'tool.cibuildwheel.overrides' must be a list"
+                raise OptionsReaderError(msg)
+
+            for config_override in config_overrides:
+                select = config_override.pop("select", None)
+
+                if not select:
+                    msg = "'select' must be set in an override"
+                    raise OptionsReaderError(msg)
+
+                if isinstance(select, str):
+                    pass
+                elif isinstance(select, list) and all(isinstance(item, str) for item in select):
+                    select = " ".join(select)
+                else:
+                    msg = "'select' must be a string or a list of strings"
+                    raise OptionsReaderError(msg)
+
+                inherit = config_override.pop("inherit", {})
+
+                parsed_inherit = parse_inherit(inherit)
+                self._validate_inherit_options(parsed_inherit)
+                overrides.append(Override(select, config_override, parsed_inherit))
+
+        return overrides
+
+    @functools.cached_property
+    def env_inherit(self) -> dict[str, InheritRule]:
+        env_inherit_str = self.env.get("CIBW_INHERIT", "")
+        try:
+            result = parse_inherit(env_inherit_str)
+            self._validate_inherit_options(result, allow_platform_suffixes=True)
+            return result
+        except OptionsReaderError as e:
+            msg = f"Failed to parse CIBW_INHERIT environment variable. {e}"
+            raise errors.ConfigurationError(msg) from e
+
+    @functools.cached_property
+    def env_platform_inherit(self) -> dict[str, InheritRule]:
+        env_inherit = self.env_inherit
+
+        # find the rules which have -{platform} on the end of their key,
+        # remove the platform suffix from the key and return the resulting
+        # rule.
+        platform_suffix = f"-{self.platform}"
+
+        return {
+            key.removesuffix(platform_suffix): value
+            for key, value in env_inherit.items()
+            if key.endswith(platform_suffix)
+        }
 
     @property
     def active_config_overrides(self) -> list[Override]:
@@ -584,7 +692,7 @@ class OptionsReader:
         env_plat: bool = True,
         option_format: OptionFormat | None = None,
         ignore_empty: bool = False,
-        env_rule: InheritRule = InheritRule.NONE,
+        default_env_rule: InheritRule = InheritRule.NONE,
     ) -> str:
         """
         Get and return the value for the named option from environment,
@@ -607,20 +715,45 @@ class OptionsReader:
 
         # get the option from the default, then the config file, then finally the environment.
         # platform-specific options are preferred, if they're allowed.
-        return _resolve_cascade(
-            (self.default_options.get(name), InheritRule.NONE),
-            (self.default_platform_options.get(name), InheritRule.NONE),
-            (self.config_options.get(name), InheritRule.NONE),
-            (self.config_platform_options.get(name), InheritRule.NONE),
-            *[
-                (o.options.get(name), o.inherit.get(name, InheritRule.NONE))
-                for o in self.active_config_overrides
-            ],
-            (self.env.get(envvar), env_rule),
-            (self.env.get(plat_envvar) if env_plat else None, env_rule),
-            ignore_empty=ignore_empty,
-            option_format=option_format,
-        )
+        try:
+            return _resolve_cascade(
+                (
+                    self.default_options.get(name),
+                    InheritRule.NONE,
+                ),
+                (
+                    self.default_platform_options.get(name),
+                    InheritRule.NONE,
+                ),
+                (
+                    self.config_options.get(name),
+                    self.config_options_inherit.get(name, InheritRule.NONE),
+                ),
+                (
+                    self.config_platform_options.get(name),
+                    self.config_platform_options_inherit.get(name, InheritRule.NONE),
+                ),
+                *[
+                    (
+                        o.options.get(name),
+                        o.inherit.get(name, InheritRule.NONE),
+                    )
+                    for o in self.active_config_overrides
+                ],
+                (
+                    self.env.get(envvar),
+                    self.env_inherit.get(name, default_env_rule),
+                ),
+                (
+                    self.env.get(plat_envvar) if env_plat else None,
+                    self.env_platform_inherit.get(name, default_env_rule),
+                ),
+                ignore_empty=ignore_empty,
+                option_format=option_format,
+            )
+        except OptionFormat.MergeNotSupported:
+            msg = f"Option {name!r} does not support inheritance"
+            raise OptionsReaderError(msg) from None
 
 
 class Options:
@@ -690,7 +823,10 @@ class Options:
         allow_empty = args.allow_empty or strtobool(self.env.get("CIBW_ALLOW_EMPTY", "0"))
 
         enable_groups = self.reader.get(
-            "enable", env_plat=False, option_format=ListFormat(sep=" "), env_rule=InheritRule.APPEND
+            "enable",
+            env_plat=False,
+            option_format=ListFormat(sep=" "),
+            default_env_rule=InheritRule.APPEND,
         )
         try:
             enable = {
@@ -786,7 +922,8 @@ class Options:
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))
             xbuild_tools: list[str] | None = shlex.split(
                 self.reader.get(
-                    "xbuild-tools", option_format=ListFormat(sep=" ", quote=shlex.quote)
+                    "xbuild-tools",
+                    option_format=ListFormat(sep=" ", quote=shlex.quote, null_value="\u0000"),
                 )
             )
             # ["\u0000"] is a sentinel value used as a default, because TOML
@@ -796,12 +933,11 @@ class Options:
             if xbuild_tools == ["\u0000"]:
                 xbuild_tools = None
 
-            xbuild_files = parse_key_value_string(
+            xbuild_files = parse_arbitrary_key_value_string(
                 self.reader.get(
                     "xbuild-files",
                     option_format=ShlexTableFormat(sep="; ", pair_sep=":", allow_merge=False),
                 ),
-                kw_arg_names=["*"],
             )
 
             test_sources = shlex.split(

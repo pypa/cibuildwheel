@@ -143,6 +143,70 @@ def test_overrides_invalid_inherit_value(validator: validate_pyproject.api.Valid
         validator(example)
 
 
+@pytest.mark.parametrize(
+    "config",
+    [
+        """
+        [tool.cibuildwheel]
+        inherit.audit-command = "append"
+        audit-command = "twine check {wheel}"
+        """,
+        """
+        [tool.cibuildwheel]
+        inherit = "audit-command; audit-requires: prepend"
+        audit-command = "twine check {wheel}"
+        """,
+        """
+        [tool.cibuildwheel.linux]
+        inherit.before-all = "prepend"
+        before-all = "dnf install libfoo-devel"
+        """,
+    ],
+)
+def test_inherit_forms(validator: validate_pyproject.api.Validator, config: str) -> None:
+    assert validator(tomllib.loads(config)) is not None
+
+
+@pytest.mark.parametrize(
+    "config",
+    [
+        """
+        [tool.cibuildwheel]
+        inherit.archs = "append"
+        """,
+        """
+        [tool.cibuildwheel]
+        inherit.build = "append"
+        """,
+        """
+        [tool.cibuildwheel]
+        inherit.container-engine = "append"
+        """,
+        """
+        [tool.cibuildwheel]
+        inherit.enable = "append"
+        """,
+        """
+        [tool.cibuildwheel]
+        inherit.skip = "append"
+        """,
+        """
+        [tool.cibuildwheel]
+        inherit.test-skip = "append"
+        """,
+        """
+        [tool.cibuildwheel.macos]
+        inherit.environment-pass = "append"
+        """,
+    ],
+)
+def test_invalid_inherit_option_for_scope(
+    validator: validate_pyproject.api.Validator, config: str
+) -> None:
+    with pytest.raises(validate_pyproject.error_reporting.ValidationError):
+        validator(tomllib.loads(config))
+
+
 def test_pyodide_build_frontend(validator: validate_pyproject.api.Validator) -> None:
     """
     pyodide-build is accepted anywhere the frontend can be set, as an override
