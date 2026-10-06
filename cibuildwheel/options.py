@@ -15,12 +15,12 @@ __lazy_modules__ = {
     "collections",
     "configparser",
     "difflib",
-    "packaging",
     "packaging.specifiers",
     "pathlib",
     "shlex",
     "textwrap",
     "tomllib",
+    "typing",
 }
 
 import collections

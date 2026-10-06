@@ -8,7 +8,6 @@ __lazy_modules__ = {
     "ssl",
     "tarfile",
     "typing",
-    "urllib",
     "urllib.error",
     "urllib.request",
     "zipfile",
