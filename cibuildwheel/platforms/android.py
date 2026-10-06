@@ -3,6 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = {
     "build",
     "build.env",
+    "cibuildwheel",
     "cibuildwheel.architecture",
     "cibuildwheel.audit",
     "cibuildwheel.frontend",
@@ -14,7 +15,6 @@ __lazy_modules__ = {
     "cibuildwheel.util.python_build_standalone",
     "cibuildwheel.venv",
     "filelock",
-    "packaging",
     "packaging.utils",
     "pathlib",
     "platform",

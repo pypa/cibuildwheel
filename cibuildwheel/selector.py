@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__lazy_modules__ = {"bracex", "fnmatch", "itertools", "packaging", "packaging.version"}
+__lazy_modules__ = {"bracex", "fnmatch", "itertools", "packaging.version"}
 
 import dataclasses
 import itertools

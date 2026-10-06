@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-__lazy_modules__ = {"bashlex", "bashlex.errors"}
+__lazy_modules__ = {"bashlex", "bashlex.errors", "cibuildwheel"}
 
 import dataclasses
 from typing import Protocol

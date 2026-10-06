@@ -6,13 +6,13 @@ __lazy_modules__ = {
     "cibuildwheel.util.file",
     "contextlib",
     "filelock",
-    "packaging",
     "packaging.markers",
     "packaging.requirements",
     "packaging.version",
     "pathlib",
     "shutil",
     "tomllib",
+    "typing",
 }
 
 import contextlib

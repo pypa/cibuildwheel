@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 __lazy_modules__ = {
+    "cibuildwheel",
     "cibuildwheel.logger",
-    "cibuildwheel.util",
     "cibuildwheel.util.cmd",
     "cibuildwheel.util.helpers",
     "cibuildwheel.util.packaging",
