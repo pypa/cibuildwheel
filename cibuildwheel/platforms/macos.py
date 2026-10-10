@@ -650,6 +650,14 @@ def build(options: Options, tmp_path: Path) -> None:
                 else:
                     testing_archs = ["x86_64"]
 
+                # Start the test environment again from the host environment,
+                # rather than the build environment, so that build-specific
+                # variables (such as _PYTHON_HOST_PLATFORM, ARCHFLAGS and
+                # SDKROOT) don't leak into the test environment. See #1863.
+                # The user's `environment` option still applies, since it
+                # covers the build and test phases.
+                test_base_env = build_options.environment.as_dictionary(prev_environment=os.environ)
+
                 for testing_arch in testing_archs:
                     if config_is_universal2:
                         arch_specific_identifier = f"{config.identifier}:{testing_arch}"
@@ -718,7 +726,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         venv_dir,
                         None,
                         use_uv=use_uv,
-                        env=env,
+                        env=test_base_env,
                         pip_version=pip_version,
                     )
                     if use_uv:
@@ -727,6 +735,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         pip_install = functools.partial(call_with_arch, *pip, "install")
 
                     virtualenv_env["MACOSX_DEPLOYMENT_TARGET"] = get_test_macosx_deployment_target()
+                    virtualenv_env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
 
                     virtualenv_env = build_options.test_environment.as_dictionary(
                         prev_environment=virtualenv_env

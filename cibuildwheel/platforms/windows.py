@@ -595,6 +595,13 @@ def build(options: Options, tmp_path: Path) -> None:
                 # skip this test
             elif test_selected and build_options.test_command:
                 log.step("Testing wheel...")
+                # Start the test environment again from the host environment,
+                # rather than the build environment, so that build-specific
+                # variables (such as PYTHON_VERSION and PYTHON_ARCH) don't
+                # leak into the test environment. See #1863. The user's
+                # `environment` option still applies, since it covers the
+                # build and test phases.
+                test_base_env = build_options.environment.as_dictionary(prev_environment=os.environ)
                 # set up a virtual environment to install and test from, to make sure
                 # there are no dependencies that were pulled in at build time.
                 venv_dir = identifier_tmp_dir / "venv-test"
@@ -604,10 +611,11 @@ def build(options: Options, tmp_path: Path) -> None:
                     venv_dir,
                     None,
                     use_uv=use_uv,
-                    env=env,
+                    env=test_base_env,
                     pip_version=pip_version,
                 )
 
+                virtualenv_env["CIBUILDWHEEL_BUILD_IDENTIFIER"] = config.identifier
                 virtualenv_env = build_options.test_environment.as_dictionary(
                     prev_environment=virtualenv_env
                 )
