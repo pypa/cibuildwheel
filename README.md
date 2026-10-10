@@ -99,7 +99,7 @@ jobs:
       - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==4.3.0
+        run: python -m pip install cibuildwheel==4.3.1
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -241,6 +241,12 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v4.3.1
+
+_10 October 2026_
+
+- 🛠 Updates CPython 3.15 to the final 3.15.0 release (#3009)
+
 ### v4.3.0
 
 _5 October 2026_
@@ -301,17 +307,7 @@ _24 July 2026_
 - 💼 Adds a "CI: PyPy EoL" PR label to run PyPy EoL tests on PRs (#2930)
 - 💼 Updates CI action pins and pre-commit hooks (#2914, #2932, #2938, #2940, #2942, #2943)
 
-### v4.1.0
-
-_12 June 2026_
-
-- ✨ Updates Pyodide to the final 314.0.0 release, so Pyodide 3.14 wheels now build by default without the `pyodide-prerelease` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) flag. (#2906)
-- 🐛 Raises clear errors when a build produces no wheel, instead of failing later with a confusing message (#2909)
-- 🛠 Speeds up CLI startup through lazy imports on Python 3.15 (#2797)
-- 📚 Adds an FAQ section on caching cibuildwheel's downloaded tools with `CIBW_CACHE_PATH` (#2842)
-- 📚 Documentation improvements: clarifies which shell is used for command options, clarifies environment variable precedence, and fixes a dead Pyodide env info link (#2904, #2905, #2911)
-
-<!-- [[[end]]] (sum: X2rbVg9Z07) -->
+<!-- [[[end]]] (sum: s/G/aNqXhb) -->
 
 ---
 

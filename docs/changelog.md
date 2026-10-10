@@ -5,6 +5,12 @@ ref: changelog
 
 # Changelog
 
+### v4.3.1
+
+_10 October 2026_
+
+- 🛠 Updates CPython 3.15 to the final 3.15.0 release (#3009)
+
 ### v4.3.0
 
 _5 October 2026_
