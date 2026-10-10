@@ -60,8 +60,8 @@ ref: working-examples
 | [envd][]                          | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A machine learning development environment build tool |
 | [OpenColorIO][]                   | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | A color management framework for visual effects and animation. |
 | [ruptures][]                      | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Extensive Cython + NumPy [pyproject.toml](https://github.com/deepcharles/ruptures/blob/master/pyproject.toml) example. |
-| [aioquic][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | QUIC and HTTP/3 implementation in Python |
 | [OpenTimelineIO][]                | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Open Source API and interchange format for editorial timeline information. |
+| [aioquic][]                       | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | QUIC and HTTP/3 implementation in Python |
 | [SimpleJSON][]                    | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | simplejson is a simple, fast, extensible JSON encoder/decoder for Python  |
 | [google neuroglancer][]           | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | WebGL-based viewer for volumetric data |
 | [PyTables][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | A Python package to manage extremely large amounts of data |
@@ -100,8 +100,8 @@ ref: working-examples
 | [pybase64][]                      | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![android icon][] ![ios icon][] ![pyodide icon][] | setuptools backend with custom CMake step for external sources. SBOM embedded via a custom repair step. |
 | [boost-histogram][]               | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | Supports full range of wheels, including PyPy and alternate archs. |
 | [bx-python][]                     | ![travisci icon][] | ![apple icon][] ![linux icon][] | A library that includes Cython extensions. |
-| [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | An example combining scikit-build and pybind11 |
 | [Python-WebRTC][]                 | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | a Python extension that provides bindings to WebRTC M152 |
+| [pybind11 scikit_build_example][] | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | An example combining scikit-build and pybind11 |
 | [fathon][]                        | ![travisci icon][] | ![apple icon][] ![linux icon][] | python package for DFA (Detrended Fluctuation Analysis) and related algorithms |
 | [Arbor][]                         | ![github icon][] | ![apple icon][] ![linux icon][] | Arbor is a multi-compartment neuron simulation library; compatible with next-generation accelerators; best-practices applied to research software; focused on community-driven development. Includes a [small script](https://github.com/arbor-sim/arbor/blob/master/scripts/patchwheel.py) patching `rpath` in bundled libraries.  |
 | [clang-format][]                  | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | Scikit-build wrapper around LLVM's CMake, all platforms, generic wheels. |
@@ -171,8 +171,8 @@ ref: working-examples
 [envd]: https://github.com/tensorchord/envd
 [OpenColorIO]: https://github.com/AcademySoftwareFoundation/OpenColorIO
 [ruptures]: https://github.com/deepcharles/ruptures
-[aioquic]: https://github.com/aiortc/aioquic
 [OpenTimelineIO]: https://github.com/AcademySoftwareFoundation/OpenTimelineIO
+[aioquic]: https://github.com/aiortc/aioquic
 [SimpleJSON]: https://github.com/simplejson/simplejson
 [google neuroglancer]: https://github.com/google/neuroglancer
 [PyTables]: https://github.com/PyTables/PyTables
@@ -211,8 +211,8 @@ ref: working-examples
 [pybase64]: https://github.com/mayeut/pybase64
 [boost-histogram]: https://github.com/scikit-hep/boost-histogram
 [bx-python]: https://github.com/bxlab/bx-python
-[pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [Python-WebRTC]: https://github.com/MarshalX/python-webrtc
+[pybind11 scikit_build_example]: https://github.com/pybind/scikit_build_example
 [fathon]: https://github.com/stfbnc/fathon
 [Arbor]: https://github.com/arbor-sim/arbor
 [clang-format]: https://github.com/ssciwr/clang-format-wheel
