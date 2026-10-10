@@ -7,7 +7,6 @@ __lazy_modules__ = {
     "shutil",
     "ssl",
     "tarfile",
-    "typing",
     "urllib.error",
     "urllib.request",
     "zipfile",
@@ -23,8 +22,8 @@ import time
 import urllib.error
 import urllib.request
 from contextlib import contextmanager
-from pathlib import Path, PurePath
-from typing import Final
+from pathlib import Path, PurePath, PurePosixPath, PureWindowsPath
+from typing import Final, final
 from zipfile import ZipFile
 
 import certifi
@@ -40,6 +39,19 @@ DEFAULT_CIBW_CACHE_PATH: Final[Path] = user_cache_path(appname="cibuildwheel", a
 CIBW_CACHE_PATH: Final[Path] = Path(
     os.environ.get("CIBW_CACHE_PATH", DEFAULT_CIBW_CACHE_PATH)
 ).resolve()
+
+
+@final
+class RemotePosixPath(PurePosixPath):
+    pass
+
+
+@final
+class RemoteWindowsPath(PureWindowsPath):
+    pass
+
+
+RemotePath = RemotePosixPath | RemoteWindowsPath
 
 
 @contextmanager
