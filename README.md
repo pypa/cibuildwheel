@@ -99,7 +99,7 @@ jobs:
       - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==4.3.1
+        run: python -m pip install cibuildwheel==4.3.2
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -241,6 +241,12 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v4.3.2
+
+_20 October 2026_
+
+- 🔐 Updates our dependency pins to certifi==2026.10.19, following the [eMudhra Intermediate CA Compromise](https://emudhra.we-have-a-problem.com/). Linux builds may still be vulnerable through manylinux images - a patch release will soon follow if so.
+
 ### v4.3.1
 
 _10 October 2026_
@@ -285,29 +291,7 @@ _4 August 2026_
 - 💼 Updates CI action pins (#2948, #2954)
 - 🧪 Uses pp311 for the abi3 test, and deletes `test_overridden_pip_constraint`, which is not necessary since #2583 (#2956, #2957)
 
-### v4.1.1
-
-_24 July 2026_
-
-- ✨ Adds `pyodide-build` as a separate [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend), now the default frontend for Pyodide, with verbosity flags handling. Any other frontend is ignored with a warning on Pyodide. (#2609, #2945)
-- 🔐 Uses digests instead of tags for pinned container images, strengthening supply-chain security. The human-readable tags remain as comments in `pinned_docker_images.cfg`. (#2915)
-- 🐛 Fixes platform-specific [`test-runtime`](https://cibuildwheel.pypa.io/en/stable/options/#test-runtime) environment variables (e.g. `CIBW_TEST_RUNTIME_ANDROID`) not being honored (#2941)
-- 🐛 Fixes quoting of [`test-requires`](https://cibuildwheel.pypa.io/en/stable/options/#test-requires) and [`audit-requires`](https://cibuildwheel.pypa.io/en/stable/options/#audit-requires) so PEP 508 specifiers containing spaces work (#2913)
-- 🐛 Makes [`archs`](https://cibuildwheel.pypa.io/en/stable/options/#archs) parsing case-insensitive and platform-aware, so e.g. `arm64` works on Windows (#2920)
-- 🐛 Uses an absolute path for the `{project}` placeholder in [`config-settings`](https://cibuildwheel.pypa.io/en/stable/options/#config-settings) (#2934)
-- 🐛 Validates the [`pyodide-version`](https://cibuildwheel.pypa.io/en/stable/options/#pyodide-version) option against the build identifier with a clear error (#2925)
-- 🐛 Fixes PyPy installs on macOS after PyPy switched its downloads from `.tar.bz2` to `.tar.gz` (#2939)
-- 🐛 Makes a matching `python3-config` available in the build and test venvs on macOS (#2922)
-- 🛠 Updates dependencies and container pins (#2917, #2935, #2939)
-- 🛠 Updates Android tests to current Python versions and the new test repository URL (#2933)
-- 🛠 Drops the `orjson` dependency, no longer used by mypy 2+ (#2923)
-- 📚 Builds the docs with properdocs, a MkDocs fork (#2946)
-- 📚 Adds the missing `cp314-pyodide_wasm32` entry to the build identifier table (#2947)
-- 📚 Removes outdated notes about the `pip wheel` build frontend and ClearLinux (#2926)
-- 💼 Adds a "CI: PyPy EoL" PR label to run PyPy EoL tests on PRs (#2930)
-- 💼 Updates CI action pins and pre-commit hooks (#2914, #2932, #2938, #2940, #2942, #2943)
-
-<!-- [[[end]]] (sum: s/G/aNqXhb) -->
+<!-- [[[end]]] (sum: WtbQqSi3CC) -->
 
 ---
 

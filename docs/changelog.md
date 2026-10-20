@@ -5,6 +5,12 @@ ref: changelog
 
 # Changelog
 
+### v4.3.2
+
+_20 October 2026_
+
+- 🔐 Updates our dependency pins to certifi==2026.10.19, following the [eMudhra Intermediate CA Compromise](https://emudhra.we-have-a-problem.com/). Linux builds may still be vulnerable through manylinux images - a patch release will soon follow if so.
+
 ### v4.3.1
 
 _10 October 2026_
