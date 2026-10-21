@@ -14,6 +14,7 @@ __lazy_modules__ = {
     "cibuildwheel.util.file",
     "cibuildwheel.util.helpers",
     "cibuildwheel.util.resources",
+    "cibuildwheel.venv",
     "contextlib",
     "functools",
     "io",
@@ -52,6 +53,7 @@ from cibuildwheel.typing import PLATFORMS, PlatformName
 from cibuildwheel.util.file import CIBW_CACHE_PATH, ensure_cache_sentinel
 from cibuildwheel.util.helpers import strtobool
 from cibuildwheel.util.resources import read_all_configs
+from cibuildwheel.venv import find_uv, uv_ca_warning
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -438,6 +440,8 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
     warnings = detect_warnings(options=options)
     for warning in warnings:
         log.warning(warning)
+    for warning in detect_uv_warnings(platform=platform, options=options, identifiers=identifiers):
+        log.warning(warning)
 
     error_list = list(detect_errors(options=options, identifiers=identifiers))
     if error_list:
@@ -468,6 +472,21 @@ def detect_errors(*, options: Options, identifiers: Iterable[str]) -> Generator[
                 f"{option_name}: '{{python}}' and '{{pip}}' are no longer supported "
                 "and have been removed in cibuildwheel 3. Simply use 'python' or 'pip' instead."
             )
+
+
+def detect_uv_warnings(
+    *, platform: str, options: Options, identifiers: Iterable[str]
+) -> Generator[str, None, None]:
+    # on Linux, uv comes from the container image
+    if platform == "linux":
+        return
+    if not any(
+        options.build_options(i).build_frontend.name in {"build[uv]", "uv"} for i in identifiers
+    ):
+        return
+    uv_path = find_uv()
+    if uv_path is not None and (warning := uv_ca_warning(uv_path)):
+        yield warning
 
 
 def detect_warnings(*, options: Options) -> Generator[str, None, None]:

@@ -11,6 +11,7 @@ __lazy_modules__ = {
     "packaging.version",
     "pathlib",
     "shutil",
+    "subprocess",
     "tomllib",
     "typing",
 }
@@ -19,6 +20,7 @@ import contextlib
 import functools
 import os
 import shutil
+import subprocess
 import sys
 import tomllib
 from pathlib import Path
@@ -27,7 +29,7 @@ from typing import cast
 from filelock import FileLock
 from packaging.markers import default_environment
 from packaging.requirements import InvalidRequirement, Requirement
-from packaging.version import Version
+from packaging.version import InvalidVersion, Version
 
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call
@@ -254,3 +256,23 @@ def find_uv() -> Path | None:
 
     uv_on_path = shutil.which("uv")
     return Path(uv_on_path) if uv_on_path else None
+
+
+# uv bundles its CA roots; this release drops the compromised eMudhra CA
+_UV_CA_FIX_VERSION = "0.13.4"
+
+
+def uv_ca_warning(uv_path: Path) -> str | None:
+    try:
+        output = subprocess.run(
+            [uv_path, "--version"], capture_output=True, text=True, check=True
+        ).stdout
+        version = Version(output.split()[1])
+    except (OSError, subprocess.CalledProcessError, IndexError, InvalidVersion):
+        return None
+    if version >= Version(_UV_CA_FIX_VERSION):
+        return None
+    return (
+        f"uv {version} at {uv_path} is older than {_UV_CA_FIX_VERSION}, and its bundled CA "
+        "certificates still trust the compromised eMudhra CA. Please upgrade uv."
+    )
