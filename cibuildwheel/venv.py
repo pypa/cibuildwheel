@@ -59,6 +59,15 @@ def target_marker_env(
     return env
 
 
+def needs_pip_cert(version: str, implementation_name: str) -> bool:
+    """
+    pip uses its bundled certifi instead of the system store when truststore
+    is unavailable: on Python 3.9 (pip 26.1+ needs Python 3.10+, older pip has
+    older certs) and on GraalPy. Those need our CA bundle.
+    """
+    return Version(version) < Version("3.10") or implementation_name == "graalpy"
+
+
 @functools.cache
 def _ensure_virtualenv(version: str) -> tuple[Path, Version]:
     version_parts = version.split(".")
@@ -162,9 +171,7 @@ def virtualenv(
     assert python.exists()
 
     env = os.environ.copy() if env is None else env.copy()
-    if Version(version) < Version("3.10"):
-        # pip 26.1+ needs Python 3.10+. Older pip uses its bundled certifi on
-        # Python 3.9 instead of the system store, so give it our bundle.
+    if needs_pip_cert(version, (marker_env or {}).get("implementation_name", "")):
         env.setdefault("PIP_CERT", ca_bundle_path())
 
     if use_uv:

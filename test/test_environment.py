@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import platform
 import subprocess
 import sys
 import textwrap
@@ -109,7 +110,7 @@ project_with_pip_cert_asserts = test_projects.new_c_project(
         import sys
 
         PIP_CERT = os.environ.get("PIP_CERT")
-        if sys.version_info < (3, 10):
+        if sys.version_info < (3, 10) or sys.implementation.name == "graalpy":
             if not PIP_CERT or not os.path.isfile(PIP_CERT):
                 raise Exception('PIP_CERT should be a file. It was "%s"' % PIP_CERT)
         elif PIP_CERT is not None:
@@ -135,3 +136,26 @@ def test_pip_cert_py39(tmp_path: Path) -> None:
     )
 
     assert any("-cp39-" in w for w in actual_wheels)
+
+
+def test_pip_cert_graalpy(tmp_path: Path) -> None:
+    if utils.get_platform() not in {"linux", "macos", "windows"}:
+        pytest.skip("GraalPy is not available on this platform")
+    if utils.get_platform() == "windows" and platform.machine() == "ARM64":
+        pytest.skip("GraalPy is not available on Windows ARM64")
+
+    project_dir = tmp_path / "project"
+    project_with_pip_cert_asserts.generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_BUILD": "gp312_250-*",
+            "CIBW_ARCHS": "native",
+            "CIBW_ENABLE": "graalpy",
+            # build's isolated env has a pip that fails on GraalPy 25.0, see #2984
+            "CIBW_BUILD_FRONTEND": "pip",
+        },
+    )
+
+    assert any("-graalpy312-" in w for w in actual_wheels)
