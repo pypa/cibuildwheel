@@ -101,6 +101,7 @@ jobs:
 
     - bash: |
         docker system prune -af --volumes || true
-        df -m /
+        df -m / /tmp
+        du -sh "$CIBW_CACHE_PATH"/* "$CIBW_CACHE_PATH"/*/* | sort -h | tail -20
       condition: eq(variables['Agent.OS'], 'Linux')
       displayName: 'Free up disk space for cache save'
