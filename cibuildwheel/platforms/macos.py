@@ -567,6 +567,9 @@ def build(options: Options, tmp_path: Path) -> None:
                             and "-n" not in extra_flags
                         ):
                             extra_flags.append("--installer=uv")
+                        if pip_version is not None:
+                            # build's isolated virtualenv seeds its own bundled pip otherwise, see #2984
+                            build_env.setdefault("VIRTUALENV_PIP", pip_version)
                         call(
                             "python",
                             "-m",

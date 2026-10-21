@@ -518,6 +518,10 @@ def build(options: Options, tmp_path: Path) -> None:
                             and "-n" not in extra_flags
                         ):
                             extra_flags.append("--installer=uv")
+                        build_env = env.copy()
+                        if pip_version is not None:
+                            # build's isolated virtualenv seeds its own bundled pip otherwise, see #2984
+                            build_env.setdefault("VIRTUALENV_PIP", pip_version)
 
                         call(
                             "python",
@@ -527,7 +531,7 @@ def build(options: Options, tmp_path: Path) -> None:
                             "--wheel",
                             f"--outdir={built_wheel_dir}",
                             *extra_flags,
-                            env=env,
+                            env=build_env,
                         )
                     case "uv":
                         assert uv_path is not None
