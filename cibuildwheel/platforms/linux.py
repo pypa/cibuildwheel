@@ -9,9 +9,9 @@ __lazy_modules__ = {
     "cibuildwheel.util.file",
     "cibuildwheel.util.helpers",
     "cibuildwheel.util.packaging",
+    "cibuildwheel.venv",
     "collections",
     "contextlib",
-    "packaging.version",
     "pathlib",
     "shutil",
     "subprocess",
@@ -29,8 +29,6 @@ from collections import OrderedDict
 from pathlib import Path, PurePath, PurePosixPath
 from typing import assert_never
 
-from packaging.version import Version
-
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import needs_audit, run_audit
@@ -41,6 +39,7 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.file import ca_bundle_path, copy_test_sources
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.venv import needs_pip_cert
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -206,8 +205,7 @@ def build_in_container(
     log.step("Copying project into container...")
     container.copy_into(Path.cwd(), container_project_path)
 
-    # pip 26.1+ needs Python 3.10+. Older pip uses its bundled certifi on
-    # Python 3.9 instead of the system store, so give it our bundle.
+    # for pip without truststore, see needs_pip_cert
     container_ca_bundle = PurePosixPath("/cibuildwheel-ca-bundle.pem")
     container.copy_into(Path(ca_bundle_path()), container_ca_bundle)
 
@@ -258,7 +256,8 @@ def build_in_container(
         env = container.get_environment()
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
         env["PIP_ROOT_USER_ACTION"] = "ignore"
-        if Version(config.version) < Version("3.10"):
+        implementation_name = "graalpy" if config.identifier.startswith("gp") else ""
+        if needs_pip_cert(config.version, implementation_name):
             env["PIP_CERT"] = str(container_ca_bundle)
 
         # put this config's python top of the list

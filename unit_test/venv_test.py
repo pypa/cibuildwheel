@@ -6,7 +6,7 @@ import certifi
 import pytest
 
 import cibuildwheel.venv
-from cibuildwheel.venv import activate_virtualenv, find_uv, virtualenv
+from cibuildwheel.venv import activate_virtualenv, find_uv, target_marker_env, virtualenv
 
 
 def test_activate_virtualenv(tmp_path: Path) -> None:
@@ -70,6 +70,21 @@ def test_virtualenv_pip_cert(tmp_path: Path, version: str, *, expected: bool) ->
     assert ("PIP_CERT" in env) == expected
     if expected:
         assert env["PIP_CERT"] == certifi.where()
+
+
+@pytest.mark.skipif(find_uv() is None, reason="requires uv")
+def test_virtualenv_pip_cert_graalpy(tmp_path: Path) -> None:
+    # truststore is not supported on GraalPy, so pip uses its bundled certifi
+    env = virtualenv(
+        "3.12",
+        Path(sys.executable),
+        tmp_path / "venv",
+        None,
+        use_uv=True,
+        env={"PATH": ""},
+        marker_env=target_marker_env(implementation_id="gp312_250"),
+    )
+    assert env["PIP_CERT"] == certifi.where()
 
 
 @pytest.mark.skipif(find_uv() is None, reason="requires uv")
