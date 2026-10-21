@@ -120,6 +120,9 @@ nox -s update_constraints # update all constraints files in cibuildwheel/resourc
 nox -s update_pins        # update tools, python interpreters & docker images used by cibuildwheel
 ```
 
+The constraints files pin a hash for every package. Pass `-- --no-upgrade` to
+`update_constraints` to regenerate them while keeping the current versions.
+
 ### Setting up a dev environment
 
 A dev environment isn't required for any of the `nox` tasks above. However, a dev environment is still useful, to be able to point an editor at, and a few other jobs.
