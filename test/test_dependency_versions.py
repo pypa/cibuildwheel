@@ -204,11 +204,16 @@ def test_dependency_constraints(
 project_with_isolated_pip_check = test_projects.new_c_project(
     setup_py_add=textwrap.dedent(
         """
-        from importlib.metadata import version
+        from importlib.metadata import PackageNotFoundError, version
 
         with open("outer_pip_version.txt") as f:
             outer_pip_version = f.read().strip()
-        assert version("pip") == outer_pip_version, (version("pip"), outer_pip_version)
+        try:
+            isolated_pip_version = version("pip")
+        except PackageNotFoundError:
+            # venv backend: build installs with the outer pip
+            isolated_pip_version = outer_pip_version
+        assert isolated_pip_version == outer_pip_version, (isolated_pip_version, outer_pip_version)
         """
     )
 )
@@ -217,7 +222,7 @@ project_with_isolated_pip_check = test_projects.new_c_project(
 def test_build_isolated_env_pip_version(tmp_path: Path) -> None:
     # build's isolated virtualenv seeds the same pip as the build venv, see #2984
     if utils.get_platform() not in {"macos", "windows"}:
-        pytest.skip("only macOS and Windows use the build frontend's virtualenv backend")
+        pytest.skip("only macOS and Windows can use the build frontend's virtualenv backend")
 
     project_dir = tmp_path / "project"
     project_with_isolated_pip_check.generate(project_dir)
