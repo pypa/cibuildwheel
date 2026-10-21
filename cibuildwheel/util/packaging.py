@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 __lazy_modules__ = {
+    "cibuildwheel.logger",
     "cibuildwheel.util",
     "cibuildwheel.util.cmd",
     "cibuildwheel.util.helpers",
@@ -8,13 +9,16 @@ __lazy_modules__ = {
     "shlex",
 }
 
+import re
 import shlex
 from dataclasses import dataclass, field
 from pathlib import Path, PurePath
 from typing import TypeVar
 
 from packaging.utils import parse_wheel_filename
+from packaging.version import Version
 
+from cibuildwheel.logger import log
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call
 from cibuildwheel.util.helpers import parse_key_value_string, unwrap
@@ -22,7 +26,7 @@ from cibuildwheel.util.helpers import parse_key_value_string, unwrap
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
-    from typing import Literal, Self
+    from typing import Final, Literal, Self
 
 
 @dataclass(kw_only=True)
@@ -137,6 +141,74 @@ def get_pip_version(env: Mapping[str, str]) -> str:
         if version.startswith("pip==")
     )
     return pip_version
+
+
+# pip only started reading hashes from a constraints file since 26.1 onwards.
+# See https://github.com/pypa/pip/issues/9243. Prior releases fail on this.
+PIP_CONSTRAINT_HASHES_MIN_VERSION: Final = Version("26.1")
+
+_HASH_OPTION_RE = re.compile(r"\s+--hash[= ]\S+")
+
+
+def parse_pip_version(pip_version_output: str) -> Version:
+    """
+    Parses the output of `pip --version`, such as "pip 26.2.2 from ... (python 3.12)".
+    """
+    match = re.match(r"pip (\S+)", pip_version_output.strip())
+    if match is None:
+        msg = f"Unable to parse the pip version from {pip_version_output!r}"
+        raise ValueError(msg)
+    return Version(match[1])
+
+
+def strip_constraint_hashes(constraint_path: Path, tmp_dir: Path) -> Path:
+    """
+    Writes a copy of `constraint_path` without its `--hash` options into `tmp_dir`.
+    """
+    lines: list[str] = []
+    logical_line = ""
+    for line in constraint_path.read_text(encoding="utf-8").splitlines():
+        stripped = line.rstrip()
+        if stripped.endswith("\\"):
+            # a line continuation, the hashes of a pin follow on the next lines
+            logical_line += stripped[:-1]
+            continue
+        lines.append(_HASH_OPTION_RE.sub("", logical_line + line).rstrip())
+        logical_line = ""
+    if logical_line:
+        lines.append(_HASH_OPTION_RE.sub("", logical_line).rstrip())
+
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+    stripped_path = tmp_dir / f"{constraint_path.stem}-no-hashes{constraint_path.suffix}"
+    stripped_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return stripped_path
+
+
+def constraints_for_pip(
+    constraint_path: Path | None, pip_version: Version, tmp_dir: Path
+) -> Path | None:
+    """
+    Returns the constraints file, to pass to the given pip release.
+
+    cibuildwheel's bundled constraints files carry hashes, which pip can only
+    read from version 26.1. For an older pip, a copy without the hashes is
+    written to `tmp_dir`. Files supplied by the user are passed through as
+    they are.
+    """
+    if constraint_path is None or pip_version >= PIP_CONSTRAINT_HASHES_MIN_VERSION:
+        return constraint_path
+    if not constraint_path.resolve().is_relative_to(resources.PATH.resolve()):
+        # if a user's file has hashes that this pip can't read, pip reports it
+        # (dropping them quietly defeats our purpose of adding them)
+        return constraint_path
+    if "--hash" not in constraint_path.read_text(encoding="utf-8"):
+        return constraint_path
+
+    log.notice(
+        f"pip {pip_version} can't read the hashes in {constraint_path.name}, installing with a "
+        f"copy of it without them. pip {PIP_CONSTRAINT_HASHES_MIN_VERSION} or later verifies them."
+    )
+    return strip_constraint_hashes(constraint_path, tmp_dir)
 
 
 T = TypeVar("T", bound=PurePath)
