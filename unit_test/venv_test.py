@@ -1,4 +1,5 @@
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -6,7 +7,13 @@ import certifi
 import pytest
 
 import cibuildwheel.venv
-from cibuildwheel.venv import activate_virtualenv, find_uv, target_marker_env, virtualenv
+from cibuildwheel.venv import (
+    activate_virtualenv,
+    find_uv,
+    target_marker_env,
+    uv_ca_warning,
+    virtualenv,
+)
 
 
 def test_activate_virtualenv(tmp_path: Path) -> None:
@@ -98,3 +105,26 @@ def test_virtualenv_pip_cert_user_override(tmp_path: Path) -> None:
         env={"PATH": "", "PIP_CERT": "/my/cert.pem"},
     )
     assert env["PIP_CERT"] == "/my/cert.pem"
+
+
+@pytest.mark.parametrize(
+    ("output", "expected"),
+    [
+        ("uv 0.13.3 (abc 2026-10-01)", True),
+        ("uv 0.9.0", True),
+        ("uv 0.13.4 (Homebrew 2026-10-20 aarch64-apple-darwin)", False),
+        ("uv 1.0.0", False),
+        ("garbage", False),
+    ],
+)
+def test_uv_ca_warning(monkeypatch: pytest.MonkeyPatch, output: str, *, expected: bool) -> None:
+    def fake_run(args: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        return subprocess.CompletedProcess(args, 0, stdout=output + "\n")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    warning = uv_ca_warning(Path("uv"))
+    if expected:
+        assert warning is not None
+        assert output.split()[1] in warning
+    else:
+        assert warning is None
