@@ -31,7 +31,7 @@ from packaging.version import Version
 
 from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call
-from cibuildwheel.util.file import CIBW_CACHE_PATH, download, remove_on_error
+from cibuildwheel.util.file import CIBW_CACHE_PATH, ca_bundle_path, download, remove_on_error
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -161,6 +161,12 @@ def virtualenv(
 
     assert python.exists()
 
+    env = os.environ.copy() if env is None else env.copy()
+    if Version(version) < Version("3.10"):
+        # pip 26.1+ needs Python 3.10+. Older pip uses its bundled certifi on
+        # Python 3.9 instead of the system store, so give it our bundle.
+        env.setdefault("PIP_CERT", ca_bundle_path())
+
     if use_uv:
         uv_path = find_uv()
         assert uv_path is not None
@@ -192,6 +198,7 @@ def virtualenv(
             "--python",
             python,
             venv_path,
+            env=env,
         )
     venv_env = activate_virtualenv(venv_path, env=env, base_python_bin_dir=base_python_bin_dir)
     if not use_uv and pip_version == "embed":

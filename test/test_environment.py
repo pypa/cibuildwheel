@@ -100,3 +100,38 @@ def test_overridden_path(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> N
     assert "python available on PATH doesn't match our installed instance" in captured.err.replace(
         "venv", "installed"
     )
+
+
+project_with_pip_cert_asserts = test_projects.new_c_project(
+    setup_py_add=textwrap.dedent(
+        r"""
+        import os
+        import sys
+
+        PIP_CERT = os.environ.get("PIP_CERT")
+        if sys.version_info < (3, 10):
+            if not PIP_CERT or not os.path.isfile(PIP_CERT):
+                raise Exception('PIP_CERT should be a file. It was "%s"' % PIP_CERT)
+        elif PIP_CERT is not None:
+            raise Exception('PIP_CERT should not be set. It was "%s"' % PIP_CERT)
+        """
+    )
+)
+
+
+def test_pip_cert_py39(tmp_path: Path) -> None:
+    if utils.get_platform() not in {"linux", "macos", "windows"}:
+        pytest.skip("Python 3.9 is not available on this platform")
+
+    project_dir = tmp_path / "project"
+    project_with_pip_cert_asserts.generate(project_dir)
+
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env={
+            "CIBW_BUILD": "cp39-* cp{}{}-*".format(*utils.SINGLE_PYTHON_VERSION),
+            "CIBW_ARCHS": "native",
+        },
+    )
+
+    assert any("-cp39-" in w for w in actual_wheels)
