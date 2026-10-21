@@ -22,7 +22,7 @@ CIBW_PLATFORM = os.environ.get("CIBW_PLATFORM", "pyodide")
 if CIBW_PLATFORM != "pyodide":
     pytest.skip(f"{CIBW_PLATFORM=}", allow_module_level=True)
 
-basic_project = test_projects.new_c_project(setup_py_add=utils.SETUP_PY_CA_BUNDLE_CHECK)
+basic_project = test_projects.new_c_project()
 basic_project.files["check_node.py"] = r"""
 import sys
 import shutil
@@ -145,6 +145,8 @@ def test_pyodide_build_and_test(tmp_path: Path, expect_failure: bool) -> None:
             tmp_path,
             add_args=["--platform", "pyodide"],
             add_env={
+                # pyodide venvs need our CA bundle, see the test venv setup
+                "CIBW_BEFORE_TEST": 'test -f "$SSL_CERT_FILE" && test -f "$PIP_CERT"',
                 "CIBW_TEST_REQUIRES": "pytest",
                 "CIBW_TEST_COMMAND": "python -m pytest {project}",
                 "CIBW_ENABLE": "cpython-prerelease",

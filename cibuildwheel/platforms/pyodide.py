@@ -309,11 +309,6 @@ def setup_python(
     pyodide_version = user_pyodide_version or python_configuration.default_pyodide_version
     venv_path = tmp / "venv"
     env = virtualenv(python_configuration.version, base_python, venv_path, None, use_uv=False)
-    # with a patched sys.platform, truststore reads OpenSSL's default CA file instead
-    # of the system store, e.g. /etc/ssl/cert.pem on macOS, which can be out of date.
-    # PIP_CERT covers pip without truststore, which ignores SSL_CERT_FILE.
-    env.setdefault("SSL_CERT_FILE", ca_bundle_path())
-    env.setdefault("PIP_CERT", ca_bundle_path())
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
@@ -572,6 +567,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     ]
                 )
                 virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
+                # pip in a pyodide venv has a patched sys.platform, so truststore reads
+                # OpenSSL's default CA file instead of the system store, e.g.
+                # /etc/ssl/cert.pem on macOS, which can be out of date.
+                # PIP_CERT covers pip without truststore, which ignores SSL_CERT_FILE.
+                virtualenv_env.setdefault("SSL_CERT_FILE", ca_bundle_path())
+                virtualenv_env.setdefault("PIP_CERT", ca_bundle_path())
 
                 virtualenv_env = build_options.test_environment.as_dictionary(
                     prev_environment=virtualenv_env
