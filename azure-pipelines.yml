@@ -60,21 +60,11 @@ jobs:
       displayName: 'Cache cibuildwheel downloads'
       inputs:
         # build-platforms.toml carries the interpreter pins; bump the version
-        # prefix to force a cold cache. restoreKeys lets a stale cache still seed
-        # a new run (cibuildwheel re-downloads only what's missing).
-        key: 'cibw-cache | v1 | "$(imageName)" | "$(testSelect)" | cibuildwheel/resources/build-platforms.toml'
-        restoreKeys: |
-          cibw-cache | v1 | "$(imageName)" | "$(testSelect)"
+        # prefix to force a cold cache. No restoreKeys: they carry old
+        # interpreters into each new cache, and on Linux the cache tar must
+        # fit in the 4 GB /tmp tmpfs.
+        key: 'cibw-cache | v2 | "$(imageName)" | "$(testSelect)" | cibuildwheel/resources/build-platforms.toml'
         path: $(CIBW_CACHE_PATH)
-
-    # The post-job cache save writes a tar to this disk; it fails if the disk is full.
-    - bash: |
-        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
-          /opt/hostedtoolcache/CodeQL /usr/local/lib/node_modules /usr/local/share/chromium \
-          /usr/local/share/powershell
-        df -m /
-      condition: eq(variables['Agent.OS'], 'Linux')
-      displayName: 'Free up disk space'
 
     - task: JavaToolInstaller@0
       condition: and(eq(variables['testSelect'], 'android'), eq(variables['Agent.OS'], 'Linux'))
@@ -98,10 +88,3 @@ jobs:
         echo "CIBW_ENABLE = $CIBW_ENABLE"
         python ./bin/run_tests.py --test-select $(testSelect)
       displayName: 'Run tests'
-
-    - bash: |
-        docker system prune -af --volumes || true
-        df -m / /tmp
-        du -sh "$CIBW_CACHE_PATH"/* "$CIBW_CACHE_PATH"/*/* | sort -h | tail -20
-      condition: eq(variables['Agent.OS'], 'Linux')
-      displayName: 'Free up disk space for cache save'
