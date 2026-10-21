@@ -96,7 +96,8 @@ def _parse_pip_constraint_for_virtualenv(
     the key is the package name, and the value is the constraint version.
     If a package version cannot be found, its value is "embed" meaning that virtualenv will install
     its bundled version, already available locally.
-    The function does not try to be too smart and just handles basic constraints.
+    The function does not try to be too smart and just handles basic constraints,
+    with or without `--hash` options.
     If it can't get an exact version, the real constraint will be handled by the
     {macos|windows}.setup_python function.
     If marker_env is provided, marker-bearing constraints are evaluated against it;
@@ -114,6 +115,12 @@ def _parse_pip_constraint_for_virtualenv(
                     continue
                 if line.startswith("#"):
                     continue
+                # pip options, such as the `--hash=...` lines that follow a
+                # hashed pin, aren't requirements
+                if line.startswith("--"):
+                    continue
+                # a hashed pin ends with a line continuation marker
+                line = line.removesuffix("\\").rstrip()
                 try:
                     requirement = Requirement(line)
                     package = requirement.name

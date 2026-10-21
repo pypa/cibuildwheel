@@ -54,7 +54,12 @@ from cibuildwheel.util.file import (
     remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap, unwrap_preserving_paragraphs
-from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
+from cibuildwheel.util.packaging import (
+    constraints_for_pip,
+    find_compatible_wheel,
+    get_pip_version,
+    parse_pip_version,
+)
 from cibuildwheel.util.python_build_standalone import (
     PythonBuildStandaloneError,
     create_python_build_standalone_environment,
@@ -311,6 +316,14 @@ def setup_python(
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+
+    pip_version_output = call(
+        "python", "-m", "pip", "--version", env=env, capture_stdout=True
+    ).strip()
+    print(pip_version_output)
+    constraints_path = constraints_for_pip(
+        constraints_path, parse_pip_version(pip_version_output), tmp
+    )
 
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip'
