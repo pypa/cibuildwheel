@@ -37,7 +37,11 @@ from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, O
 from cibuildwheel.util import resources
 from cibuildwheel.util.file import copy_test_sources
 from cibuildwheel.util.helpers import prepare_command, unwrap
-from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.util.packaging import (
+    constraints_for_pip,
+    find_compatible_wheel,
+    parse_pip_version,
+)
 
 TYPE_CHECKING = False
 if TYPE_CHECKING:
@@ -236,16 +240,6 @@ def build_in_container(
 
         log.step("Setting up build environment...")
 
-        dependency_constraint_flags: list[PathOrStr] = []
-        local_constraints_file = build_options.dependency_constraints.get_for_python_version(
-            version=config.version,
-            tmp_dir=local_identifier_tmp_dir,
-        )
-        if local_constraints_file:
-            container_constraints_file = PurePosixPath("/constraints.txt")
-            container.copy_into(local_constraints_file, container_constraints_file)
-            dependency_constraint_flags = ["-c", container_constraints_file]
-
         env = container.get_environment()
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
         env["PIP_ROOT_USER_ACTION"] = "ignore"
@@ -274,6 +268,23 @@ def build_in_container(
             if PurePosixPath(which_pip) != python_bin / "pip":
                 msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
                 raise errors.FatalError(msg)
+
+        dependency_constraint_flags: list[PathOrStr] = []
+        local_constraints_file = build_options.dependency_constraints.get_for_python_version(
+            version=config.version,
+            tmp_dir=local_identifier_tmp_dir,
+        )
+        if local_constraints_file and not use_uv:
+            pip_version_output = container.call(["pip", "--version"], env=env, capture_output=True)
+            local_constraints_file = constraints_for_pip(
+                local_constraints_file,
+                parse_pip_version(pip_version_output),
+                local_identifier_tmp_dir,
+            )
+        if local_constraints_file:
+            container_constraints_file = PurePosixPath("/constraints.txt")
+            container.copy_into(local_constraints_file, container_constraints_file)
+            dependency_constraint_flags = ["-c", container_constraints_file]
 
         compatible_wheel = find_compatible_wheel(built_wheels, config.identifier)
         if compatible_wheel:

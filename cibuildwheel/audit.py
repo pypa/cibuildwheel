@@ -19,7 +19,11 @@ from cibuildwheel import errors
 from cibuildwheel.logger import log
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.helpers import prepare_command
-from cibuildwheel.util.packaging import is_abi3_wheel
+from cibuildwheel.util.packaging import (
+    constraints_for_pip,
+    is_abi3_wheel,
+    parse_pip_version,
+)
 from cibuildwheel.venv import activate_virtualenv, find_uv, virtualenv
 
 TYPE_CHECKING = False
@@ -68,6 +72,12 @@ def run_audit(
         )
     else:
         env = activate_virtualenv(audit_venv_dir)
+
+    if dependency_constraint is not None and not use_uv:
+        pip_version_output = call("python", "-m", "pip", "--version", env=env, capture_stdout=True)
+        dependency_constraint = constraints_for_pip(
+            dependency_constraint, parse_pip_version(pip_version_output), tmp_dir
+        )
 
     # install audit requirements. This is run every time in case the user has
     # defined overrides.

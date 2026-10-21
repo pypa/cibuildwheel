@@ -687,7 +687,7 @@ Platform-specific environment variables are also available:<br/>
     For each per-build step (`before_build`, the build itself, `repair_command`, `before_test`, `test_command`), cibuildwheel also sets `CIBUILDWHEEL_BUILD_IDENTIFIER` to the current build identifier (e.g. `cp311-manylinux_x86_64`). This can be used in scripts to distinguish different builds.
 
 !!! note
-    To do its work, cibuildwheel sets the variables `VIRTUALENV_PIP`, `DIST_EXTRA_CONFIG`, `SETUPTOOLS_EXT_SUFFIX`, `PIP_DISABLE_PIP_VERSION_CHECK`, `PIP_ROOT_USER_ACTION`, and it extends the variables `PATH` and `PIP_CONSTRAINT`. Your assignments to these options might be replaced or extended.
+    To do its work, cibuildwheel sets the variables `VIRTUALENV_PIP`, `DIST_EXTRA_CONFIG`, `SETUPTOOLS_EXT_SUFFIX`, `PIP_DISABLE_PIP_VERSION_CHECK`, `PIP_ROOT_USER_ACTION`, and it extends the variable `PATH`. Your assignments to these options might be replaced or extended.
 
 ### `environment-pass` {: #environment-pass env-var="CIBW_ENVIRONMENT_PASS_LINUX" toml}
 > Set environment variables on the host to pass-through to the container.
@@ -1266,6 +1266,22 @@ specifiers inline with the `packages: SPECIFIER...` syntax.
     `dependency-versions="./constraints.txt"`, cibuildwheel will use
     `./constraints-python314.txt` on Python 3.14, or fallback to
     `./constraints.txt` if that's not found.
+
+The constraints files bundled with cibuildwheel pin hashes for every package.
+pip and uv check what they download against those hashes before installing it.
+However, pip can only read hashes from a constraints file from version 26.1.
+Where an older pip is pinned, which is the case on Python 3.9 and for GraalPy on
+Windows, cibuildwheel installs with a copy of its constraints file that has the
+hashes removed.
+
+!!! note
+    If your own constraints file contains `--hash` entries, pip switches to
+    hash-checking mode for the whole install. This means that every package it
+    installs will then require a pinned version and a hash in the file,
+    including the dependencies of the tools cibuildwheel installs, and pip
+    26.1 or later is required.
+
+    Note that packages listed inline, with `packages:`, are never hashed.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_DEPENDENCY_VERSIONS_MACOS` | `CIBW_DEPENDENCY_VERSIONS_WINDOWS` | `CIBW_DEPENDENCY_VERSIONS_ANDROID` | `CIBW_DEPENDENCY_VERSIONS_IOS` | `CIBW_DEPENDENCY_VERSIONS_PYODIDE`

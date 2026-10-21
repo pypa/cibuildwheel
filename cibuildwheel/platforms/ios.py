@@ -56,7 +56,11 @@ from cibuildwheel.util.file import (
     remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap_preserving_paragraphs
-from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.util.packaging import (
+    constraints_for_pip,
+    find_compatible_wheel,
+    parse_pip_version,
+)
 from cibuildwheel.venv import constraint_flags, virtualenv
 
 TYPE_CHECKING = False
@@ -408,6 +412,11 @@ def setup_python(
     # upgrade pip to the version matching our constraints
     # if necessary, reinstall it to ensure that it's available on PATH as 'pip'
     pip = ["python", "-m", "pip"]
+    pip_version_output = call(*pip, "--version", env=env, capture_stdout=True).strip()
+    print(pip_version_output)
+    dependency_constraint = constraints_for_pip(
+        dependency_constraint, parse_pip_version(pip_version_output), tmp
+    )
     call(
         *pip,
         "install",

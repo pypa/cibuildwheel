@@ -9,3 +9,7 @@ abi3audit
 auditwheel
 patchelf
 pkgconf
+
+# We list colorama (only depended upon on Windows) explicitly to satisfy pip's
+# hash-checking mode which requires every package it installs to be pinned
+colorama

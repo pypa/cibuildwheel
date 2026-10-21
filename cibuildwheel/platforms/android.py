@@ -66,7 +66,11 @@ from cibuildwheel.util.file import (
     remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command
-from cibuildwheel.util.packaging import find_compatible_wheel
+from cibuildwheel.util.packaging import (
+    constraints_for_pip,
+    find_compatible_wheel,
+    parse_pip_version,
+)
 from cibuildwheel.util.python_build_standalone import create_python_build_standalone_environment
 from cibuildwheel.venv import constraint_flags, find_uv, virtualenv
 
@@ -248,6 +252,12 @@ def setup_env(
     build_env = virtualenv(
         config.version, python_exe, venv_dir, dependency_constraint, use_uv=use_uv
     )
+    if not use_uv:
+        pip_version_output = call(*pip, "--version", env=build_env, capture_stdout=True).strip()
+        print(pip_version_output)
+        dependency_constraint = constraints_for_pip(
+            dependency_constraint, parse_pip_version(pip_version_output), build_path
+        )
     create_cmake_toolchain(config, build_path, python_dir, build_env)
 
     # See platforms.md for the reason why we use this default API level.
