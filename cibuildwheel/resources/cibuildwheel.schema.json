@@ -354,7 +354,8 @@
         {
           "enum": [
             "docker",
-            "podman"
+            "podman",
+            "none"
           ]
         },
         {

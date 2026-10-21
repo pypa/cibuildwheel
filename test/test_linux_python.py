@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import platform
 import subprocess
 
@@ -15,6 +16,8 @@ if TYPE_CHECKING:
 def test_python_exist(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the test is only relevant to the linux build")
+    if os.environ.get("CIBW_CONTAINER_ENGINE", "docker") == "none":
+        pytest.skip("the test is only relevant for CIBW_CONTAINER_ENGINE != 'none'")
     machine = platform.machine()
     if machine not in ["x86_64", "i686"]:
         pytest.skip(
