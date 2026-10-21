@@ -249,7 +249,10 @@ def setup_env(
     build_env = virtualenv(
         config.version, python_exe, venv_dir, dependency_constraint, use_uv=use_uv
     )
-    # pip's truststore can't use the system store with a patched sys.platform
+    # with a patched sys.platform, truststore reads OpenSSL's default CA file instead
+    # of the system store, e.g. /etc/ssl/cert.pem on macOS, which can be out of date.
+    # PIP_CERT covers pip without truststore, which ignores SSL_CERT_FILE.
+    build_env.setdefault("SSL_CERT_FILE", ca_bundle_path())
     build_env.setdefault("PIP_CERT", ca_bundle_path())
     create_cmake_toolchain(config, build_path, python_dir, build_env)
 

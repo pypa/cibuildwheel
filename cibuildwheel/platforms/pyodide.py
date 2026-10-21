@@ -309,7 +309,10 @@ def setup_python(
     pyodide_version = user_pyodide_version or python_configuration.default_pyodide_version
     venv_path = tmp / "venv"
     env = virtualenv(python_configuration.version, base_python, venv_path, None, use_uv=False)
-    # pip's truststore can't use the system store with a patched sys.platform
+    # with a patched sys.platform, truststore reads OpenSSL's default CA file instead
+    # of the system store, e.g. /etc/ssl/cert.pem on macOS, which can be out of date.
+    # PIP_CERT covers pip without truststore, which ignores SSL_CERT_FILE.
+    env.setdefault("SSL_CERT_FILE", ca_bundle_path())
     env.setdefault("PIP_CERT", ca_bundle_path())
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()

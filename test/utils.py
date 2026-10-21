@@ -61,10 +61,11 @@ def get_platform() -> str:
 
 DEFAULT_CIBW_ENABLE = "cpython-prerelease"
 
-# setup.py code: pip in cross venvs can't use the system trust store, so it needs PIP_CERT
-SETUP_PY_PIP_CERT_CHECK = """
+# setup.py code: cross venvs need our CA bundle, see the cross venv setup in each platform
+SETUP_PY_CA_BUNDLE_CHECK = """
 import os
-assert os.path.isfile(os.environ.get("PIP_CERT", "")), os.environ.get("PIP_CERT")
+for var in ("SSL_CERT_FILE", "PIP_CERT"):
+    assert os.path.isfile(os.environ.get(var, "")), (var, os.environ.get(var))
 """
 
 
