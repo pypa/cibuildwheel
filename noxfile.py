@@ -38,7 +38,7 @@ def lint(session: nox.Session) -> None:
     session.run("prek", "run", "--all-files", *session.posargs)
 
 
-@nox.session(tags=["lint"])
+@nox.session(tags=["lint"], python="3.14")
 def pylint(session: nox.Session) -> None:
     """
     Run pylint.
