@@ -60,11 +60,10 @@ jobs:
       displayName: 'Cache cibuildwheel downloads'
       inputs:
         # build-platforms.toml carries the interpreter pins; bump the version
-        # prefix to force a cold cache. restoreKeys lets a stale cache still seed
-        # a new run (cibuildwheel re-downloads only what's missing).
-        key: 'cibw-cache | v1 | "$(imageName)" | "$(testSelect)" | cibuildwheel/resources/build-platforms.toml'
-        restoreKeys: |
-          cibw-cache | v1 | "$(imageName)" | "$(testSelect)"
+        # prefix to force a cold cache. No restoreKeys: they carry old
+        # interpreters into each new cache, and on Linux the cache tar must
+        # fit in the 4 GB /tmp tmpfs.
+        key: 'cibw-cache | v2 | "$(imageName)" | "$(testSelect)" | cibuildwheel/resources/build-platforms.toml'
         path: $(CIBW_CACHE_PATH)
 
     - task: JavaToolInstaller@0
