@@ -78,15 +78,18 @@ def ensure_cache_sentinel(cache_path: Path) -> None:
             )
 
 
+def ca_bundle_path() -> str:
+    # we've had issues when relying on the host OS' CA certificates on Windows,
+    # so we use certifi (this sounds odd but requests also does this by default)
+    return os.environ.get("SSL_CERT_FILE", certifi.where())
+
+
 def download(url: str, dest: Path, *, sha256: str | None = None) -> None:
     print(f"+ Download {url} to {dest}")
     dest_dir = dest.parent
     dest_dir.mkdir(parents=True, exist_ok=True)
 
-    # we've had issues when relying on the host OS' CA certificates on Windows,
-    # so we use certifi (this sounds odd but requests also does this by default)
-    cafile = os.environ.get("SSL_CERT_FILE", certifi.where())
-    context = ssl.create_default_context(cafile=cafile)
+    context = ssl.create_default_context(cafile=ca_bundle_path())
     # exponential backoff, so that a network outage of about a minute is survivable
     repeat_num = 6
     for i in range(repeat_num):

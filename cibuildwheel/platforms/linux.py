@@ -11,6 +11,7 @@ __lazy_modules__ = {
     "cibuildwheel.util.packaging",
     "collections",
     "contextlib",
+    "packaging.version",
     "pathlib",
     "shutil",
     "subprocess",
@@ -28,6 +29,8 @@ from collections import OrderedDict
 from pathlib import Path, PurePath, PurePosixPath
 from typing import assert_never
 
+from packaging.version import Version
+
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.audit import needs_audit, run_audit
@@ -35,7 +38,7 @@ from cibuildwheel.frontend import get_build_frontend_extra_flags, prepare_config
 from cibuildwheel.logger import log
 from cibuildwheel.oci_container import OCIContainer, OCIContainerEngineConfig, OCIPlatform
 from cibuildwheel.util import resources
-from cibuildwheel.util.file import copy_test_sources
+from cibuildwheel.util.file import ca_bundle_path, copy_test_sources
 from cibuildwheel.util.helpers import prepare_command, unwrap
 from cibuildwheel.util.packaging import find_compatible_wheel
 
@@ -203,6 +206,11 @@ def build_in_container(
     log.step("Copying project into container...")
     container.copy_into(Path.cwd(), container_project_path)
 
+    # pip 26.1+ needs Python 3.10+. Older pip uses its bundled certifi on
+    # Python 3.9 instead of the system store, so give it our bundle.
+    container_ca_bundle = PurePosixPath("/cibuildwheel-ca-bundle.pem")
+    container.copy_into(Path(ca_bundle_path()), container_ca_bundle)
+
     before_all_options_identifier = platform_configs[0].identifier
     before_all_options = options.build_options(before_all_options_identifier)
 
@@ -212,6 +220,7 @@ def build_in_container(
         env = container.get_environment()
         env["PATH"] = f"/opt/python/cp39-cp39/bin:{env['PATH']}"
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+        env["PIP_CERT"] = str(container_ca_bundle)
         env["PIP_ROOT_USER_ACTION"] = "ignore"
         env = before_all_options.environment.as_dictionary(
             env, executor=container.environment_executor
@@ -249,6 +258,8 @@ def build_in_container(
         env = container.get_environment()
         env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
         env["PIP_ROOT_USER_ACTION"] = "ignore"
+        if Version(config.version) < Version("3.10"):
+            env["PIP_CERT"] = str(container_ca_bundle)
 
         # put this config's python top of the list
         python_bin = config.path / "bin"

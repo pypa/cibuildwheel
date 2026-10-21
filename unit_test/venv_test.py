@@ -2,6 +2,7 @@ import os
 import sys
 from pathlib import Path
 
+import certifi
 import pytest
 
 import cibuildwheel.venv
@@ -58,3 +59,27 @@ def test_virtualenv_no_base_python_bin_dir_on_windows(
     )
     paths = env["PATH"].split(os.pathsep)
     assert str(Path(sys.executable).parent) not in paths
+
+
+@pytest.mark.skipif(find_uv() is None, reason="requires uv")
+@pytest.mark.parametrize(("version", "expected"), [("3.9", True), ("3.10", False)])
+def test_virtualenv_pip_cert(tmp_path: Path, version: str, *, expected: bool) -> None:
+    env = virtualenv(
+        version, Path(sys.executable), tmp_path / "venv", None, use_uv=True, env={"PATH": ""}
+    )
+    assert ("PIP_CERT" in env) == expected
+    if expected:
+        assert env["PIP_CERT"] == certifi.where()
+
+
+@pytest.mark.skipif(find_uv() is None, reason="requires uv")
+def test_virtualenv_pip_cert_user_override(tmp_path: Path) -> None:
+    env = virtualenv(
+        "3.9",
+        Path(sys.executable),
+        tmp_path / "venv",
+        None,
+        use_uv=True,
+        env={"PATH": "", "PIP_CERT": "/my/cert.pem"},
+    )
+    assert env["PIP_CERT"] == "/my/cert.pem"
