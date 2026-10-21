@@ -61,6 +61,12 @@ def get_platform() -> str:
 
 DEFAULT_CIBW_ENABLE = "cpython-prerelease"
 
+# setup.py code: pip in cross venvs can't use the system trust store, so it needs PIP_CERT
+SETUP_PY_PIP_CERT_CHECK = """
+import os
+assert os.path.isfile(os.environ.get("PIP_CERT", "")), os.environ.get("PIP_CERT")
+"""
+
 
 def get_enable_groups() -> frozenset[EnableGroup]:
     value = os.environ.get("CIBW_ENABLE", DEFAULT_CIBW_ENABLE)

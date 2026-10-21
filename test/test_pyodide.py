@@ -22,7 +22,7 @@ CIBW_PLATFORM = os.environ.get("CIBW_PLATFORM", "pyodide")
 if CIBW_PLATFORM != "pyodide":
     pytest.skip(f"{CIBW_PLATFORM=}", allow_module_level=True)
 
-basic_project = test_projects.new_c_project()
+basic_project = test_projects.new_c_project(setup_py_add=utils.SETUP_PY_PIP_CERT_CHECK)
 basic_project.files["check_node.py"] = r"""
 import sys
 import shutil

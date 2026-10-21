@@ -50,6 +50,7 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell, split_command
 from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
+    ca_bundle_path,
     copy_test_sources,
     download,
     move_file,
@@ -401,6 +402,9 @@ def setup_python(
     )
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
+
+    # pip's truststore can't use the system store with a patched sys.platform
+    env.setdefault("PIP_CERT", ca_bundle_path())
 
     # We version pip ourselves, so we don't care about pip version checking
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"

@@ -46,6 +46,7 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
+    ca_bundle_path,
     copy_test_sources,
     download,
     extract_tar,
@@ -308,6 +309,8 @@ def setup_python(
     pyodide_version = user_pyodide_version or python_configuration.default_pyodide_version
     venv_path = tmp / "venv"
     env = virtualenv(python_configuration.version, base_python, venv_path, None, use_uv=False)
+    # pip's truststore can't use the system store with a patched sys.platform
+    env.setdefault("PIP_CERT", ca_bundle_path())
     venv_bin_path = venv_path / "bin"
     assert venv_bin_path.exists()
     env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"

@@ -60,6 +60,7 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
+    ca_bundle_path,
     copy_test_sources,
     download,
     move_file,
@@ -248,6 +249,8 @@ def setup_env(
     build_env = virtualenv(
         config.version, python_exe, venv_dir, dependency_constraint, use_uv=use_uv
     )
+    # pip's truststore can't use the system store with a patched sys.platform
+    build_env.setdefault("PIP_CERT", ca_bundle_path())
     create_cmake_toolchain(config, build_path, python_dir, build_env)
 
     # See platforms.md for the reason why we use this default API level.
