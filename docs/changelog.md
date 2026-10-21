@@ -5,6 +5,12 @@ ref: changelog
 
 # Changelog
 
+### v4.3.3
+
+_21 October 2026_
+
+- 🔐 Updates manylinux images and pip to fix vulnerability to [eMudhra](https://emudhra.we-have-a-problem.com/).
+
 ### v4.3.2
 
 _20 October 2026_

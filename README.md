@@ -99,7 +99,7 @@ jobs:
       - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==4.3.2
+        run: python -m pip install cibuildwheel==4.3.3
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -190,7 +190,7 @@ Here are some repos that use cibuildwheel.
 | Name                              | CI | OS | Notes |
 |-----------------------------------|----|----|:------|
 | [scikit-learn][]                  | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | The machine learning library. A complex but clean config using many of cibuildwheel's features to build a large project with Cython and C++ extensions.  |
-| [duckdb][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | DuckDB is an analytical in-process SQL database management system |
+| [duckdb][]                        | ![github icon][] | ![apple icon][] ![linux icon][] ![windows icon][] | DuckDB is a high-performance analytical database system |
 | [NumPy][]                         | ![github icon][] ![travisci icon][] | ![windows icon][] ![apple icon][] ![linux icon][] ![pyodide icon][] | The fundamental package for scientific computing with Python. |
 | [pytorch-fairseq][]               | ![github icon][] | ![apple icon][] ![linux icon][] | Facebook AI Research Sequence-to-Sequence Toolkit written in Python. |
 | [NCNN][]                          | ![github icon][] | ![windows icon][] ![apple icon][] ![linux icon][] | ncnn is a high-performance neural network inference framework optimized for the mobile platform |
@@ -241,6 +241,12 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v4.3.3
+
+_21 October 2026_
+
+- 🔐 Updates manylinux images and pip to fix vulnerability to [eMudhra](https://emudhra.we-have-a-problem.com/).
+
 ### v4.3.2
 
 _20 October 2026_
@@ -277,21 +283,7 @@ _5 September 2026_
 - 🛠 Updates the Android Python versions, and the Android testbed's Gradle version, making it compatible with Java 25 (#2962)
 - 🛠 Updates dependencies including CPython 3.15.0rc2 (#2965, #2970, #2976, #2981, #2985)
 
-### v4.2.0
-
-_4 August 2026_
-
-- 🌟 CPython 3.15 wheels are now built by default - without the `"cpython-prerelease"` [`enable`](https://cibuildwheel.pypa.io/en/stable/options/#enable) set. It's time to build and upload these wheels to PyPI! This release includes CPython 3.15.0rc1, which is guaranteed to be ABI compatible with the final release. (#2944)
-- ✨ Adds Pyodide 3.15 support with the `cp315-pyodide_wasm32` build identifier, using Pyodide 315.0.0a2. These are also stable wrt. the final release. (#2958)
-- 🐛 Retries a failed download six times with exponential backoff, so short network outages no longer stop a build. A `4xx` response is still reported at once. (#2953)
-- 🐛 Accepts `default` as a [`build-frontend`](https://cibuildwheel.pypa.io/en/stable/options/#build-frontend) value on Pyodide, and accepts `pyodide-build` in the top-level table and in overrides (#2951)
-- 🛠 Holds pip back on GraalPy, where newer pip breaks the build (#2955)
-- 🛠 Updates Pyodide to 314.0.4 (#2949, #2952)
-- 🛠 Updates dependencies and container pins (#2952, #2960)
-- 💼 Updates CI action pins (#2948, #2954)
-- 🧪 Uses pp311 for the abi3 test, and deletes `test_overridden_pip_constraint`, which is not necessary since #2583 (#2956, #2957)
-
-<!-- [[[end]]] (sum: WtbQqSi3CC) -->
+<!-- [[[end]]] (sum: JfA+3UoOXC) -->
 
 ---
 
