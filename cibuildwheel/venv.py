@@ -258,7 +258,9 @@ def find_uv() -> Path | None:
     return Path(uv_on_path) if uv_on_path else None
 
 
-# uv bundles its CA roots; this release drops the compromised eMudhra CA
+# uv bundles its CA roots; this release drops the compromised eMudhra CA.
+# TODO: remove this check (and detect_uv_warnings) once uv < 0.13.4 (October 2026)
+# is no longer common, for example in 2028.
 _UV_CA_FIX_VERSION = "0.13.4"
 
 
