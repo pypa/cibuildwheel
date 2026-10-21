@@ -67,6 +67,15 @@ jobs:
           cibw-cache | v1 | "$(imageName)" | "$(testSelect)"
         path: $(CIBW_CACHE_PATH)
 
+    # The post-job cache save writes a tar to this disk; it fails if the disk is full.
+    - bash: |
+        sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost \
+          /opt/hostedtoolcache/CodeQL /usr/local/lib/node_modules /usr/local/share/chromium \
+          /usr/local/share/powershell
+        df -m /
+      condition: eq(variables['Agent.OS'], 'Linux')
+      displayName: 'Free up disk space'
+
     - task: JavaToolInstaller@0
       condition: and(eq(variables['testSelect'], 'android'), eq(variables['Agent.OS'], 'Linux'))
       inputs:
@@ -89,3 +98,9 @@ jobs:
         echo "CIBW_ENABLE = $CIBW_ENABLE"
         python ./bin/run_tests.py --test-select $(testSelect)
       displayName: 'Run tests'
+
+    - bash: |
+        docker system prune -af --volumes || true
+        df -m /
+      condition: eq(variables['Agent.OS'], 'Linux')
+      displayName: 'Free up disk space for cache save'
