@@ -8,6 +8,10 @@ import cibuildwheel.__main__
 from cibuildwheel.__main__ import detect_uv_warnings
 from cibuildwheel.options import CommandLineArguments, Options
 
+TYPE_CHECKING = False
+if TYPE_CHECKING:
+    from cibuildwheel.typing import PlatformName
+
 
 @pytest.mark.parametrize(
     ("platform", "frontend", "expected"),
@@ -21,7 +25,7 @@ from cibuildwheel.options import CommandLineArguments, Options
 def test_detect_uv_warnings(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
-    platform: str,
+    platform: PlatformName,
     frontend: str,
     *,
     expected: bool,
@@ -31,7 +35,6 @@ def test_detect_uv_warnings(
     monkeypatch.setattr(cibuildwheel.__main__, "uv_ca_warning", lambda _: "old uv")
 
     args = CommandLineArguments.defaults()
-    args.platform = platform
     options = Options(platform, command_line_arguments=args, env={"CIBW_BUILD_FRONTEND": frontend})
 
     warnings = list(
