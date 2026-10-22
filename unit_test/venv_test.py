@@ -135,13 +135,11 @@ def test_virtualenv_host_call_ignores_target_env(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     # virtualenv runs on the host Python, so target settings like PYTHON_GIL=0 must not leak in
-    calls: list[dict[str, str]] = []
+    calls: list[dict[str, str] | None] = []
     monkeypatch.setattr(
         cibuildwheel.venv, "_ensure_virtualenv", lambda _: (tmp_path / "v.pyz", Version("21.0"))
     )
-    monkeypatch.setattr(cibuildwheel.venv, "call", lambda *_, env: calls.append(env))
-    monkeypatch.delenv("PYTHON_GIL", raising=False)
-    monkeypatch.delenv("PIP_CERT", raising=False)
+    monkeypatch.setattr(cibuildwheel.venv, "call", lambda *_, env=None: calls.append(env))
 
     venv_env = virtualenv(
         "3.9",
@@ -154,6 +152,5 @@ def test_virtualenv_host_call_ignores_target_env(
     )
 
     assert venv_env["PYTHON_GIL"] == "0"
-    (host_env,) = calls
-    assert "PYTHON_GIL" not in host_env
-    assert host_env["PIP_CERT"] == certifi.where()
+    assert venv_env["PIP_CERT"] == certifi.where()
+    assert calls == [None]

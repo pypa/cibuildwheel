@@ -172,11 +172,8 @@ def virtualenv(
 
     assert python.exists()
 
-    # virtualenv runs on the host Python, so it must not get target settings like PYTHON_GIL
-    host_env = None
     env = os.environ.copy() if env is None else env.copy()
     if needs_pip_cert(version, (marker_env or {}).get("implementation_name", "")):
-        host_env = {"PIP_CERT": ca_bundle_path()} | os.environ
         env.setdefault("PIP_CERT", ca_bundle_path())
 
     if use_uv:
@@ -210,7 +207,6 @@ def virtualenv(
             "--python",
             python,
             venv_path,
-            env=host_env,
         )
     venv_env = activate_virtualenv(venv_path, env=env, base_python_bin_dir=base_python_bin_dir)
     if not use_uv and pip_version == "embed":
