@@ -81,6 +81,7 @@ def test_ios_platforms(
     # known-to-exist tool.
     project_dir = tmp_path / "project"
     setup_py_add = "import subprocess\nsubprocess.run('does-exist', check=True)\n"
+    setup_py_add += utils.SETUP_PY_CA_BUNDLE_CHECK
     basic_project = test_projects.new_c_project(setup_py_add=setup_py_add)
     basic_project.files.update(basic_project_files)
     basic_project.generate(project_dir)

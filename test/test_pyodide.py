@@ -145,6 +145,8 @@ def test_pyodide_build_and_test(tmp_path: Path, expect_failure: bool) -> None:
             tmp_path,
             add_args=["--platform", "pyodide"],
             add_env={
+                # pyodide venvs need our CA bundle, see the test venv setup
+                "CIBW_BEFORE_TEST": 'test -f "$SSL_CERT_FILE" && test -f "$PIP_CERT"',
                 "CIBW_TEST_REQUIRES": "pytest",
                 "CIBW_TEST_COMMAND": "python -m pytest {project}",
                 "CIBW_ENABLE": "cpython-prerelease",

@@ -14,7 +14,7 @@ from zipfile import ZipFile
 import pytest
 
 from .test_projects import new_c_project, new_meson_project
-from .utils import cibuildwheel_run, expected_wheels
+from .utils import SETUP_PY_CA_BUNDLE_CHECK, cibuildwheel_run, expected_wheels
 
 pytestmark = pytest.mark.android
 
@@ -103,7 +103,7 @@ def test_android_home(tmp_path: Path, capfd: pytest.CaptureFixture[str]) -> None
 def test_expected_wheels(tmp_path: Path, spam_env: dict[str, str]) -> None:
     # Since this test covers all Python versions, check the cross venv.
     test_module = "_cross_venv_test_android"
-    project = new_c_project(setup_py_add=f"import {test_module}")
+    project = new_c_project(setup_py_add=f"import {test_module}\n{SETUP_PY_CA_BUNDLE_CHECK}")
     project.files[f"{test_module}.py"] = (Path(__file__).parent / f"{test_module}.py").read_text()
     project.generate(tmp_path)
 

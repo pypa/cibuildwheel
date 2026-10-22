@@ -61,6 +61,13 @@ def get_platform() -> str:
 
 DEFAULT_CIBW_ENABLE = "cpython-prerelease"
 
+# setup.py code: cross venvs need our CA bundle, see the cross venv setup in each platform
+SETUP_PY_CA_BUNDLE_CHECK = """
+import os
+for var in ("SSL_CERT_FILE", "PIP_CERT"):
+    assert os.path.isfile(os.environ.get(var, "")), (var, os.environ.get(var))
+"""
+
 
 def get_enable_groups() -> frozenset[EnableGroup]:
     value = os.environ.get("CIBW_ENABLE", DEFAULT_CIBW_ENABLE)

@@ -46,6 +46,7 @@ from cibuildwheel.util import resources
 from cibuildwheel.util.cmd import call, shell
 from cibuildwheel.util.file import (
     CIBW_CACHE_PATH,
+    ca_bundle_path,
     copy_test_sources,
     download,
     extract_tar,
@@ -566,6 +567,12 @@ def build(options: Options, tmp_path: Path) -> None:
                     ]
                 )
                 virtualenv_env["VIRTUAL_ENV"] = str(venv_dir)
+                # pip in a pyodide venv has a patched sys.platform, so truststore reads
+                # OpenSSL's default CA file instead of the system store, e.g.
+                # /etc/ssl/cert.pem on macOS, which can be out of date.
+                # PIP_CERT covers pip without truststore, which ignores SSL_CERT_FILE.
+                virtualenv_env.setdefault("SSL_CERT_FILE", ca_bundle_path())
+                virtualenv_env.setdefault("PIP_CERT", ca_bundle_path())
 
                 virtualenv_env = build_options.test_environment.as_dictionary(
                     prev_environment=virtualenv_env
