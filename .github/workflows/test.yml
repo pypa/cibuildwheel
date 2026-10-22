@@ -94,30 +94,30 @@ jobs:
           python_version: '3.14'
           test_select: android
         - os: ubuntu-24.04-arm
-          python_version: '3.13'
+          python_version: '3.14'
         - os: windows-latest
-          python_version: '3.13'
+          python_version: '3.14'
         - os: windows-11-arm
-          python_version: '3.13'
+          python_version: '3.14'
         - os: macos-15-intel
-          python_version: '3.13'
+          python_version: '3.14'
         - os: macos-15
-          python_version: '3.13'
+          python_version: '3.14'
         - os: macos-15-intel
-          python_version: '3.13'
+          python_version: '3.14'
           test_select: ios
         - os: macos-15
-          python_version: '3.13'
+          python_version: '3.14'
           test_select: ios
           # Exercise iOS on a non-default simulator.
           test_runtime: 'args: --simulator "iPhone 16e,OS=18.5"'
         - os: macos-15-intel
-          python_version: '3.13'
+          python_version: '3.14'
           test_select: android
           # Exercise Android on a non-default simulator
           test_runtime: 'args: --managed minVersion'
         - os: macos-15
-          python_version: '3.13'
+          python_version: '3.14'
           test_select: android
     timeout-minutes: 180
     steps:
