@@ -174,9 +174,10 @@ def virtualenv(
 
     # virtualenv runs on the host Python, so it must not get target settings like PYTHON_GIL
     host_env = os.environ.copy()
+    env = os.environ.copy() if env is None else env.copy()
     if needs_pip_cert(version, (marker_env or {}).get("implementation_name", "")):
         host_env.setdefault("PIP_CERT", ca_bundle_path())
-        env = {"PIP_CERT": ca_bundle_path(), **(os.environ if env is None else env)}
+        env.setdefault("PIP_CERT", ca_bundle_path())
 
     if use_uv:
         uv_path = find_uv()
