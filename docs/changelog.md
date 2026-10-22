@@ -5,6 +5,17 @@ ref: changelog
 
 # Changelog
 
+### v4.3.4
+
+_22 October 2026_
+
+- 🔐 Warns when a uv build frontend is selected and the host uv is older than 0.13.4, which still trusts the compromised eMudhra CA roots (#3021)
+- 🔐 Uses cibuildwheel's CA bundle for pip on Python 3.9, where pip uses its bundled certifi, which still trusts the compromised eMudhra roots (#3017)
+- 🔐 Uses cibuildwheel's CA bundle for pip on GraalPy, where truststore is not supported (#3019)
+- 🔐 Uses cibuildwheel's CA bundle in Android, iOS, and Pyodide cross venvs, where pip uses the host's OpenSSL CA file (#3020)
+- 🐛 Seeds build's isolated environment with the pinned pip on macOS and Windows, fixing GraalPy 25.0 builds (#3018)
+- 💼 Stops Azure cache growth from `restoreKeys` (#3022)
+
 ### v4.3.3
 
 _21 October 2026_

@@ -99,7 +99,7 @@ jobs:
       - uses: actions/setup-python@v6
 
       - name: Install cibuildwheel
-        run: python -m pip install cibuildwheel==4.3.3
+        run: python -m pip install cibuildwheel==4.3.4
 
       - name: Build wheels
         run: python -m cibuildwheel --output-dir wheelhouse
@@ -241,6 +241,17 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v4.3.4
+
+_22 October 2026_
+
+- 🔐 Warns when a uv build frontend is selected and the host uv is older than 0.13.4, which still trusts the compromised eMudhra CA roots (#3021)
+- 🔐 Uses cibuildwheel's CA bundle for pip on Python 3.9, where pip uses its bundled certifi, which still trusts the compromised eMudhra roots (#3017)
+- 🔐 Uses cibuildwheel's CA bundle for pip on GraalPy, where truststore is not supported (#3019)
+- 🔐 Uses cibuildwheel's CA bundle in Android, iOS, and Pyodide cross venvs, where pip uses the host's OpenSSL CA file (#3020)
+- 🐛 Seeds build's isolated environment with the pinned pip on macOS and Windows, fixing GraalPy 25.0 builds (#3018)
+- 💼 Stops Azure cache growth from `restoreKeys` (#3022)
+
 ### v4.3.3
 
 _21 October 2026_
@@ -274,16 +285,7 @@ _5 October 2026_
 - 🛠 Updates dependencies and container pins, including CPython 3.15.0rc3 (#2986, #3003)
 - 📚 Corrects references to `--archs` in CLI help, error messages, and documentation (#2992)
 
-### v4.2.1
-
-_5 September 2026_
-
-- 🐛 Respects the NuGet package sources configured on the machine when installing CPython on Windows, instead of always falling back to nuget.org (#2966)
-- 🐛 Fixes a `NameError` on Pyodide when an already-compatible wheel was reused, which made the test step fail (#2968)
-- 🛠 Updates the Android Python versions, and the Android testbed's Gradle version, making it compatible with Java 25 (#2962)
-- 🛠 Updates dependencies including CPython 3.15.0rc2 (#2965, #2970, #2976, #2981, #2985)
-
-<!-- [[[end]]] (sum: JfA+3UoOXC) -->
+<!-- [[[end]]] (sum: y3Vqxe9v/1) -->
 
 ---
 

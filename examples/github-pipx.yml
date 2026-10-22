@@ -17,7 +17,7 @@ jobs:
           persist-credentials: false
 
       - name: Build wheels
-        run: pipx run cibuildwheel==4.3.3
+        run: pipx run cibuildwheel==4.3.4
 
       - uses: actions/upload-artifact@v4
         with:
