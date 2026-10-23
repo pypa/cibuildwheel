@@ -5,6 +5,7 @@ from pathlib import Path
 
 import certifi
 import pytest
+from packaging.version import Version
 
 import cibuildwheel.venv
 from cibuildwheel.venv import (
@@ -128,3 +129,28 @@ def test_uv_ca_warning(monkeypatch: pytest.MonkeyPatch, output: str, *, expected
         assert output.split()[1] in warning
     else:
         assert warning is None
+
+
+def test_virtualenv_host_call_ignores_target_env(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # virtualenv runs on the host Python, so target settings like PYTHON_GIL=0 must not leak in
+    calls: list[dict[str, str] | None] = []
+    monkeypatch.setattr(
+        cibuildwheel.venv, "_ensure_virtualenv", lambda _: (tmp_path / "v.pyz", Version("21.0"))
+    )
+    monkeypatch.setattr(cibuildwheel.venv, "call", lambda *_, env=None: calls.append(env))
+
+    venv_env = virtualenv(
+        "3.9",
+        Path(sys.executable),
+        tmp_path / "venv",
+        None,
+        use_uv=False,
+        env={"PATH": "", "PYTHON_GIL": "0"},
+        pip_version="26.0.1",
+    )
+
+    assert venv_env["PYTHON_GIL"] == "0"
+    assert venv_env["PIP_CERT"] == certifi.where()
+    assert calls == [None]
