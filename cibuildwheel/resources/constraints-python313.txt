@@ -16,7 +16,7 @@ build==1.6.1
     # via -r cibuildwheel/resources/constraints.in
 cattrs==26.2.1
     # via requests-cache
-certifi==2026.10.19
+certifi==2026.10.23
     # via requests
 charset-normalizer==3.5.2
     # via requests
@@ -91,5 +91,5 @@ urllib3==2.8.0
     # via
     #   requests
     #   requests-cache
-virtualenv==21.14.12
+virtualenv==21.14.13
     # via -r cibuildwheel/resources/constraints.in
