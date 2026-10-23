@@ -1,1 +1,1 @@
-default = { version = "21.14.12", url = "https://github.com/pypa/get-virtualenv/releases/download/21.14.12/virtualenv.pyz", sha256 = "a847cd82b5e3043cd11b0492c47525104c18be7c8a7ff3abf83e15dcd5a4a89d" }
+default = { version = "21.14.13", url = "https://github.com/pypa/get-virtualenv/releases/download/21.14.13/virtualenv.pyz", sha256 = "215e29d6c8e2a4bf5f509828368629bbe7eddb847dcfee862db0f84e6df40047" }
