@@ -956,3 +956,35 @@ def test_xbuild_files(tmp_path: Path, definition: str, expected: dict[str, list[
 
     options = Options(platform="ios", command_line_arguments=args, env={})
     assert options.build_options(None).xbuild_files == expected
+
+
+def test_cibuildwheel_toml_priority(tmp_path: Path) -> None:
+    """Test that .cibuildwheel.toml has priority over pyproject.toml."""
+    tmp_path.joinpath(".cibuildwheel.toml").write_text(
+        textwrap.dedent(
+            """\
+            [tool.cibuildwheel]
+            test-command = "dedicated"
+            """
+        )
+    )
+    tmp_path.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            """\
+            [project]
+            requires-python = ">=3.12"
+
+            [tool.cibuildwheel]
+            test-command = "pyproject"
+            """
+        )
+    )
+
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+
+    assert options.build_options(identifier=None).test_command == "dedicated"
+    # requires-python still comes from pyproject.toml
+    assert options.package_requires_python_str == ">=3.12"
