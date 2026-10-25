@@ -797,6 +797,10 @@ class Options:
         if args.config_file:
             return Path(format_safe(args.config_file, package=args.package_dir))
 
+        cibuildwheel_toml_path = Path(args.package_dir) / ".cibuildwheel.toml"
+        if cibuildwheel_toml_path.exists():
+            return cibuildwheel_toml_path
+
         # return pyproject.toml, if it's available
         pyproject_toml_path = Path(args.package_dir) / "pyproject.toml"
         if pyproject_toml_path.exists():
