@@ -26,8 +26,8 @@ commands:
 jobs:
   osx-python312:
     macos:
-      xcode: 15.4.0
-    resource_class: macos.m1.medium.gen1
+      xcode: 16.4.0
+    resource_class: m4pro.medium
     environment:
       PYTHON: python3
     steps:
