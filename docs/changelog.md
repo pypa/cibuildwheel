@@ -5,6 +5,14 @@ ref: changelog
 
 # Changelog
 
+### v4.3.5
+
+_27 October 2026_
+
+- 🐛 Stops passing the target build environment to the host virtualenv call, regression in v4.3.4 (#3023)
+- 🛠 Updates dependencies and constraints (pyodide-build 0.39.3, CPython 3.15.2, etc) (#3024, #3027)
+- 💼 Updates CI actions (#3025)
+
 ### v4.3.4
 
 _22 October 2026_
