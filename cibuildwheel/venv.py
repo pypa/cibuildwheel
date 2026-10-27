@@ -172,10 +172,6 @@ def virtualenv(
 
     assert python.exists()
 
-    env = os.environ.copy() if env is None else env.copy()
-    if needs_pip_cert(version, (marker_env or {}).get("implementation_name", "")):
-        env.setdefault("PIP_CERT", ca_bundle_path())
-
     if use_uv:
         uv_path = find_uv()
         assert uv_path is not None
@@ -207,9 +203,10 @@ def virtualenv(
             "--python",
             python,
             venv_path,
-            env=env,
         )
     venv_env = activate_virtualenv(venv_path, env=env, base_python_bin_dir=base_python_bin_dir)
+    if needs_pip_cert(version, (marker_env or {}).get("implementation_name", "")):
+        venv_env.setdefault("PIP_CERT", ca_bundle_path())
     if not use_uv and pip_version == "embed":
         call(
             "python",
