@@ -32,7 +32,7 @@ jobs:
         pythonVersion: "3.13"
         testSelect: "native"
       ios_313:
-        imageName: "macos-14"  # See https://github.com/actions/runner-images/issues/12777
+        imageName: "macos-15"
         pythonVersion: "3.13"
         testSelect: "ios"
       android_macos_313:
