@@ -173,7 +173,21 @@ def update_constraints(session: nox.Session) -> None:
             env=env,
         )
 
-    # update requirements & constraints for the action
+
+@nox.session(default=False, tags=["update"])
+def update_action_constraints(session: nox.Session) -> None:
+    """
+    Update requirements & constraints for the action
+    """
+
+    if session.venv_backend != "uv":
+        session.install("uv>=0.9")
+
+    # CUSTOM_COMPILE_COMMAND is a pip-compile option that tells users how to
+    # regenerate the constraints files
+    env = os.environ.copy()
+    env["UV_CUSTOM_COMPILE_COMMAND"] = f"nox -s {session.name}"
+
     pyproject = nox.project.load_toml("pyproject.toml")
     # we only want the minimum version, use "3.99" for max_version
     min_version = nox.project.python_versions(pyproject, max_version="3.99")[0]
