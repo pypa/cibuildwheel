@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-__lazy_modules__ = {"bashlex", "subprocess"}
+__lazy_modules__ = {"bashlex", "re", "subprocess"}
 
 import dataclasses
+import re
 import subprocess
 
 import bashlex
@@ -124,4 +125,14 @@ def evaluate_nodes_as_simple_command(
 
 
 def evaluate_parameter_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
+    # bash operators like ${VAR:-default} reach here as a parameter whose name is
+    # the whole "VAR:-default" string; looking that up silently yields an empty
+    # value, so reject anything that is not a plain ASCII name. Single characters
+    # are the bash special parameters (e.g. $$, $1, $@, $?). str.isidentifier()
+    # would be too permissive here: it is Unicode-aware, while bash parameter
+    # names only accept [A-Za-z_][A-Za-z0-9_]*, so names like ${é} or ${变量}
+    # would pass and silently evaluate to an empty string.
+    if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*|[A-Za-z0-9_@*#?!$-]", node.value):
+        msg = f"Unsupported parameter expansion: ${{{node.value}}}"
+        raise ValueError(msg)
     return context.environment.get(node.value, "")
