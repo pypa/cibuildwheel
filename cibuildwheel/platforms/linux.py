@@ -320,14 +320,15 @@ def build_in_container(
 
     if not isinstance(container_project_path, RemotePath):
         container_output_dir: BuilderPath = options.globals.output_dir
+        # for pip without truststore, see needs_pip_cert
+        container_ca_bundle: BuilderPath = Path(ca_bundle_path())
     else:
         container_output_dir = RemotePosixPath("/output")
         log.step("Copying project into container...")
         container.copy_into(Path.cwd(), container_project_path)
-
-    # for pip without truststore, see needs_pip_cert
-    container_ca_bundle = RemotePosixPath("/cibuildwheel-ca-bundle.pem")
-    container.copy_into(Path(ca_bundle_path()), container_ca_bundle)
+        # for pip without truststore, see needs_pip_cert
+        container_ca_bundle = RemotePosixPath("/cibuildwheel-ca-bundle.pem")
+        container.copy_into(Path(ca_bundle_path()), container_ca_bundle)
 
     before_all_options_identifier = platform_configs[0].identifier
     before_all_options = options.build_options(before_all_options_identifier)
