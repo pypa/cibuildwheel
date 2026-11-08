@@ -171,9 +171,10 @@ def main_inner(global_options: GlobalOptions) -> None:
         "--config-file",
         default="",
         help="""
-            TOML config file. Default: "", meaning {package}/pyproject.toml, if
-            it exists. To refer to a project inside your project, use {package};
-            this matters if you build from an SDist.
+            TOML config file. Default: "", meaning {package}/.cibuildwheel.toml
+            or {package}/pyproject.toml, whichever exists first. To refer to a
+            project inside your project, use {package}; this matters if you
+            build from an SDist.
         """,
     )
 
