@@ -72,6 +72,62 @@ def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
 
 
 def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
+    # Part positions index the raw source; node.word is quote-removed. A
+    # leftmost text replace expands a literal "\$X" that precedes a real "$X".
+    offsets = _expansion_offsets(node, context.input)
+    if offsets is None:
+        return _substitute_parts_leftmost(node, context)
+
+    # Evaluate left to right like bash, then splice from the end so earlier
+    # offsets stay valid.
+    part_values = [evaluate_node(part, context=context) for part in node.parts]
+    value: str = node.word
+    for (start, end), part_value in reversed(list(zip(offsets, part_values, strict=True))):
+        value = value[:start] + part_value + value[end:]
+    return value
+
+
+def _expansion_offsets(node: bashlex.ast.node, source: str) -> list[tuple[int, int]] | None:
+    """Spans of each expansion in the quote-removed word, or None if unaligned."""
+    if not node.parts:
+        return []
+    start, end = node.pos
+    if start < 0 or end > len(source) or end < start:
+        return None
+    raw = source[start:end]
+    # bashlex keeps a single quote only when the whole token starts with `"`.
+    double_quoted = raw.startswith('"')
+    parts = {p.pos[0] - start: (n, p.pos[1] - start) for n, p in enumerate(node.parts)}
+    if len(parts) != len(node.parts):
+        return None
+    found: dict[int, tuple[int, int]] = {}
+    out: list[str] = []
+    w = i = 0
+    while i < len(raw):
+        if i in parts:
+            n, j = parts.pop(i)
+            if j <= i:
+                return None
+            chunk = raw[i:j]
+            found[n] = (w, w + len(chunk))
+            out.append(chunk)
+            w, i = w + len(chunk), j
+            continue
+        char = raw[i]
+        i += 1
+        if char == "\\" and i < len(raw):
+            out.append(raw[i])
+            w += 1
+            i += 1
+        elif (char == "'" and double_quoted) or char not in "\\\"'":
+            out.append(char)
+            w += 1
+    if parts or "".join(out) != node.word:
+        return None
+    return [found[n] for n in range(len(node.parts))]
+
+
+def _substitute_parts_leftmost(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     value: str = node.word
 
     for part in node.parts:
