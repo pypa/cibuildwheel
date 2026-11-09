@@ -96,6 +96,65 @@ def test_substitution_with_backslash() -> None:
     assert environment_dict.get("PATH2") == "somewhere_else;c:\\folder\\"
 
 
+def test_escaped_dollar_then_expansion() -> None:
+    environment_recipe = parse_environment("V1=\\$X$X")
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
+
+    assert environment_dict == {"X": "y", "V1": "$Xy"}
+
+
+def test_escaped_dollar_then_expansion_with_colon() -> None:
+    environment_recipe = parse_environment("V1=\\$X:$X")
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
+
+    assert environment_dict == {"X": "y", "V1": "$X:y"}
+
+
+def test_expansion_then_escaped_dollar() -> None:
+    # The real expansion is already the leftmost match, so this stayed correct.
+    environment_recipe = parse_environment("V1=$X\\$X")
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
+
+    assert environment_dict == {"X": "y", "V1": "y$X"}
+
+
+def test_repeated_variable_expansion() -> None:
+    environment_recipe = parse_environment("V1=$X:$X")
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
+
+    assert environment_dict == {"X": "y", "V1": "y:y"}
+
+
+def test_escaped_origin_rpath_then_expansion() -> None:
+    environment_recipe = parse_environment("V1=-Wl,-rpath,\\$ORIGIN:$X")
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
+
+    assert environment_dict == {"X": "y", "V1": "-Wl,-rpath,$ORIGIN:y"}
+
+
+def test_double_quoted_escaped_dollar_then_expansion() -> None:
+    environment_recipe = parse_environment('V1="\\$X$X"')
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
+
+    assert environment_dict == {"X": "y", "V1": "$Xy"}
+
+
+def test_backslash_newline_keeps_leftmost_replace() -> None:
+    # bashlex drops the continuation before recording positions, so the
+    # offsets cannot be aligned and the historical leftmost replace remains.
+    environment_recipe = parse_environment("V1=pre\\\n\\$X$X")
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
+
+    assert environment_dict == {"X": "y", "V1": "prey$X"}
+
+
 def test_awkwardly_quoted_variable() -> None:
     environment_recipe = parse_environment(
         f'VAR2=something"like this""$VAR1"$VAR1$({PYTHON_ECHO} "there is more")"$({PYTHON_ECHO} "and more!")"'
