@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import platform
 import textwrap
 
@@ -70,6 +71,8 @@ project_with_manylinux_symbols = test_projects.new_c_project(
 def test(manylinux_image: str, tmp_path: Path) -> None:
     if utils.get_platform() != "linux":
         pytest.skip("the container image test is only relevant to the linux build")
+    if os.environ.get("CIBW_CONTAINER_ENGINE", "docker") == "none":
+        pytest.skip("the test is only relevant for CIBW_CONTAINER_ENGINE != 'none'")
 
     project_dir = tmp_path / "project"
     project_with_manylinux_symbols.generate(project_dir)

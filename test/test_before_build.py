@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 import textwrap
 
@@ -89,14 +90,14 @@ def test_cwd(tmp_path: Path) -> None:
     project_dir = tmp_path / "project"
     test_projects.new_c_project().generate(project_dir)
 
-    actual_wheels = utils.cibuildwheel_run(
-        project_dir,
-        add_env={
-            "CIBW_BEFORE_BUILD": f'''python -c "import os; assert os.getcwd() == {str(project_dir)!r}"''',
-            "CIBW_BEFORE_BUILD_LINUX": '''python -c "import os; assert os.getcwd() == '/project'"''',
-        },
-        single_python=True,
-    )
+    add_env = {
+        "CIBW_BEFORE_BUILD": f'''python -c "import os; assert os.getcwd() == {str(project_dir)!r}"''',
+    }
+    if os.environ.get("CIBW_CONTAINER_ENGINE", "docker") != "none":
+        add_env["CIBW_BEFORE_BUILD_LINUX"] = (
+            '''python -c "import os; assert os.getcwd() == '/project'"'''
+        )
+    actual_wheels = utils.cibuildwheel_run(project_dir, add_env=add_env, single_python=True)
 
     expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=True)
     assert set(actual_wheels) == set(expected_wheels)

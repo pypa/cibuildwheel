@@ -86,6 +86,10 @@ def cibuildwheel_get_build_identifiers(
     if env is None:
         env = os.environ.copy()
 
+    if os.environ.get("CIBW_CONTAINER_ENGINE", "docker") == "none":
+        skip = env.get("CIBW_SKIP", "")
+        env["CIBW_SKIP"] = f"{skip} *-musllinux_*".strip()
+
     cmd_output = subprocess.run(
         cmd,
         text=True,
@@ -151,6 +155,10 @@ def cibuildwheel_run(
     if single_python:
         env["CIBW_BUILD"] = "cp{}{}-*".format(*SINGLE_PYTHON_VERSION)
 
+    if os.environ.get("CIBW_CONTAINER_ENGINE", "docker") == "none":
+        skip = env.get("CIBW_SKIP", "")
+        env["CIBW_SKIP"] = f"{skip} *-musllinux_*".strip()
+
     with TemporaryDirectory() as tmp_output_dir:
         subprocess.run(
             [
@@ -211,6 +219,10 @@ def expected_wheels(
 
     if android_api_level is None:
         android_api_level = int(os.environ.get("ANDROID_API_LEVEL", "24"))
+
+    if os.environ.get("CIBW_CONTAINER_ENGINE", "docker") == "none":
+        full_auto = False
+        musllinux_versions = []
 
     architectures = [machine_arch]
     if not single_arch:
