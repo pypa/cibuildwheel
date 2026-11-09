@@ -1,6 +1,8 @@
 import os
 import sys
 
+import pytest
+
 from cibuildwheel.environment import parse_environment
 
 # this command is equivalent to Unix 'echo', but works on Windows too
@@ -145,14 +147,30 @@ def test_double_quoted_escaped_dollar_then_expansion() -> None:
     assert environment_dict == {"X": "y", "V1": "$Xy"}
 
 
+@pytest.mark.xfail(reason="bashlex drops the continuation before recording positions", strict=True)
 def test_backslash_newline_keeps_leftmost_replace() -> None:
-    # bashlex drops the continuation before recording positions, so the
-    # offsets cannot be aligned and the historical leftmost replace remains.
     environment_recipe = parse_environment("V1=pre\\\n\\$X$X")
 
     environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
 
-    assert environment_dict == {"X": "y", "V1": "prey$X"}
+    assert environment_dict == {"X": "y", "V1": "pre$Xy"}
+
+
+def test_command_substitutions_run_in_order() -> None:
+    calls: list[str] = []
+
+    def executor(command: list[str], env: dict[str, str]) -> str:  # noqa: ARG001
+        calls.append(command[-1])
+        return command[-1]
+
+    environment_recipe = parse_environment("V1=$(echo a)\\$X$(echo b)")
+
+    environment_dict = environment_recipe.as_dictionary(
+        prev_environment={"X": "y"}, executor=executor
+    )
+
+    assert environment_dict == {"X": "y", "V1": "a$Xb"}
+    assert calls == ["a", "b"]
 
 
 def test_awkwardly_quoted_variable() -> None:

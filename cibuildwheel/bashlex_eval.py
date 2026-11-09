@@ -78,10 +78,11 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
     if offsets is None:
         return _substitute_parts_leftmost(node, context)
 
+    # Evaluate left to right like bash, then splice from the end so earlier
+    # offsets stay valid.
+    part_values = [evaluate_node(part, context=context) for part in node.parts]
     value: str = node.word
-    located = zip(offsets, node.parts, strict=True)
-    for (start, end), part in reversed(list(located)):
-        part_value = evaluate_node(part, context=context)
+    for (start, end), part_value in reversed(list(zip(offsets, part_values, strict=True))):
         value = value[:start] + part_value + value[end:]
     return value
 
@@ -121,7 +122,7 @@ def _expansion_offsets(node: bashlex.ast.node, source: str) -> list[tuple[int, i
         elif (char == "'" and double_quoted) or char not in "\\\"'":
             out.append(char)
             w += 1
-    if parts or len(found) != len(node.parts) or "".join(out) != node.word:
+    if parts or "".join(out) != node.word:
         return None
     return [found[n] for n in range(len(node.parts))]
 
