@@ -124,4 +124,11 @@ def evaluate_nodes_as_simple_command(
 
 
 def evaluate_parameter_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
+    # bash operators like ${VAR:-default} reach here as a parameter whose name is
+    # the whole "VAR:-default" string; looking that up silently yields an empty
+    # value, so reject anything that is not a plain name (single characters are
+    # the bash special parameters, e.g. $$ and $1)
+    if len(node.value) > 1 and not node.value.isidentifier():
+        msg = f"Unsupported parameter expansion: ${{{node.value}}}"
+        raise ValueError(msg)
     return context.environment.get(node.value, "")
