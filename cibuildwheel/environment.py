@@ -35,20 +35,27 @@ def split_env_items(env_string: str) -> list[str]:
     ['PATH="$PATH;/opt/cibw_test_path"']
     >>> split_env_items('PATH2="something with spaces"')
     ['PATH2="something with spaces"']
+    >>> split_env_items('VAR=abc\\nTHING=3')
+    ['VAR=abc', 'THING=3']
     """
-    if not env_string:
+    if not env_string.strip():
         return []
 
     try:
-        command_node = bashlex.parsesingle(env_string)
+        # parse every line, parsesingle would stop at the first newline
+        command_nodes = bashlex.parse(env_string)
     except bashlex.errors.ParsingError as e:
         raise EnvironmentParseError(env_string) from e
 
     result = []
 
-    for word_node in command_node.parts:
-        part_string = env_string[word_node.pos[0] : word_node.pos[1]]
-        result.append(part_string)
+    for command_node in command_nodes:
+        if command_node.kind != "command":
+            raise EnvironmentParseError(env_string)
+
+        for word_node in command_node.parts:
+            part_string = env_string[word_node.pos[0] : word_node.pos[1]]
+            result.append(part_string)
 
     return result
 

@@ -603,7 +603,7 @@ passed through with [`environment-pass`](#environment-pass). On other platforms,
 the host environment is already available. Assignments in `environment` are
 evaluated after that base environment and replace any duplicate variable names.
 
-To specify more than one environment variable, separate the assignments by spaces.
+To specify more than one environment variable, separate the assignments by spaces or newlines.
 
 Platform-specific environment variables are also available:<br/>
 `CIBW_ENVIRONMENT_MACOS` | `CIBW_ENVIRONMENT_WINDOWS` | `CIBW_ENVIRONMENT_LINUX` | `CIBW_ENVIRONMENT_ANDROID` | `CIBW_ENVIRONMENT_IOS` | `CIBW_ENVIRONMENT_PYODIDE`
