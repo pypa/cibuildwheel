@@ -569,6 +569,27 @@ def test_build_frontend_platform_mismatch(
         options.build_options(identifier=None)
 
 
+def test_override_unknown_option_raises(tmp_path: Path) -> None:
+    # an unknown option name inside an override used to be silently ignored by
+    # the cascade; it must error like an unknown top-level key does
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            """            [[tool.cibuildwheel.overrides]]
+            select = "cp37*"
+            test-requirments = "pytest"
+            """
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(errors.ConfigurationError, match="Perhaps you meant 'test-requires'"):
+        Options(platform="linux", command_line_arguments=args, env={})
+
+
 def test_override_inherit_environment(tmp_path: Path) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
