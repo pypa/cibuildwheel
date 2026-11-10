@@ -15,6 +15,14 @@ def test_basic_parsing() -> None:
     assert environment_dict == {"VAR": "1", "VBR": "2"}
 
 
+def test_newline_separated() -> None:
+    environment_recipe = parse_environment("VAR=1\nVBR=2\n\nVCR='a b'\n")
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={})
+
+    assert environment_dict == {"VAR": "1", "VBR": "2", "VCR": "a b"}
+
+
 def test_quotes() -> None:
     environment_recipe = parse_environment("A=1 VAR=\"1 NOT_A_VAR=2\" VBR='vbr'")
 
