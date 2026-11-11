@@ -100,6 +100,9 @@ class OCIContainerEngineConfig:
             ["name"],
             ["create_args", "create-args", "disable_host_mount", "disable-host-mount"],
         )
+        if not config_dict.get("name"):
+            msg = f"Missing container engine name in {config_string!r}"
+            raise ValueError(msg)
         name = " ".join(config_dict["name"])
         if name not in {"docker", "podman"}:
             msg = f"unknown container engine {name}"
