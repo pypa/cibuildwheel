@@ -482,6 +482,18 @@ def test_build_frontend_option(
         assert parsed_build_frontend.args == ()
 
 
+def test_build_frontend_whitespace_value_raises(tmp_path: Path) -> None:
+    # a whitespace-only build-frontend used to escape as a raw KeyError: 'name'
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    options = Options(
+        platform="linux", command_line_arguments=args, env={"CIBW_BUILD_FRONTEND": " "}
+    )
+    with pytest.raises(errors.ConfigurationError, match="Missing build frontend name"):
+        options.build_options(identifier=None)
+
+
 def test_pyodide_build_frontend_default(tmp_path: Path) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
