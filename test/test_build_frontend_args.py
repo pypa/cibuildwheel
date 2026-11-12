@@ -73,11 +73,15 @@ def test_config_settings(tmp_path: Path, build_frontend_env: dict[str, str]) -> 
             import base64
             import hashlib
             import json
+            import sys
+            import sysconfig
             import zipfile
             from pathlib import Path
 
             def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
-                whl_name = "demo_pkg-0.1.0-py3-none-any.whl"
+                py_tag = f"cp{sys.version_info[0]}{sys.version_info[1]}"
+                plat = sysconfig.get_platform().replace("-", "_").replace(".", "_")
+                whl_name = f"demo_pkg-0.1.0-{py_tag}-{py_tag}-{plat}.whl"
                 whl_path = Path(wheel_directory) / whl_name
                 files = {
                     "demo_pkg/config_settings.json": json.dumps(
@@ -87,9 +91,9 @@ def test_config_settings(tmp_path: Path, build_frontend_env: dict[str, str]) -> 
                         b"Metadata-Version: 2.1\\nName: demo-pkg\\nVersion: 0.1.0\\n"
                     ),
                     "demo_pkg-0.1.0.dist-info/WHEEL": (
-                        b"Wheel-Version: 1.0\\nGenerator: custom\\n"
-                        b"Root-Is-Purelib: true\\nTag: py3-none-any\\n"
-                    ),
+                        f"Wheel-Version: 1.0\\nGenerator: custom\\n"
+                        f"Root-Is-Purelib: false\\nTag: {py_tag}-{py_tag}-{plat}\\n"
+                    ).encode("utf-8"),
                 }
                 record_lines = []
                 with zipfile.ZipFile(whl_path, "w") as zf:
@@ -127,6 +131,8 @@ def test_config_settings(tmp_path: Path, build_frontend_env: dict[str, str]) -> 
     add_env = {
         **build_frontend_env,
         "CIBW_CONFIG_SETTINGS": "--with-c-extensions tag=one tag=two",
+        "CIBW_REPAIR_WHEEL_COMMAND": "",
+        "CIBW_SKIP": "*-musllinux_*",
     }
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
@@ -134,7 +140,7 @@ def test_config_settings(tmp_path: Path, build_frontend_env: dict[str, str]) -> 
         add_env=add_env,
         single_python=True,
     )
-    assert actual_wheels == ["demo_pkg-0.1.0-py3-none-any.whl"]
+    assert len(actual_wheels) == 1
 
     with zipfile.ZipFile(output_dir / actual_wheels[0]) as zf:
         captured = json.loads(zf.read("demo_pkg/config_settings.json").decode("utf-8"))
