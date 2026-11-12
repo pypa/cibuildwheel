@@ -220,7 +220,7 @@ python_configurations = [
   { identifier = "pp311-win_amd64", version = "3.11", url = "https://downloads.python.org/pypy/pypy3.11-v8.0.1-win64.zip", sha256 = "cba5f9e9543c679ea5d31b6c81b7a6667d836e3c18bf3eb6cb8c72147f829896" },
   { identifier = "pp312-win_amd64", version = "3.12", url = "https://downloads.python.org/pypy/pypy3.12-v8.0.1-win64.zip", sha256 = "225aa62deed1a624c86d5ffd03cc34615ff927b095d8508ad82593ee23ddce91" },
   { identifier = "gp312_250-win_amd64", version = "3.12", url = "https://github.com/oracle/graalpython/releases/download/graal-25.0.3/graalpy-25.0.3-windows-amd64.zip", sha256 = "2ae5c42b93e08d9e106a017634a3442b272ccae6d08ace157244de0449e937d4" },
-  { identifier = "gp313_253-win_amd64", version = "3.13", url = "https://github.com/oracle/graalpython/releases/download/graal-25.3.4/graalpy3.13-25.3.4.1-windows-amd64.zip", sha256 = "b462ea868644c157ea2fe2e4267a2a16b71b3bccd8bb5d5422126a58282ecfa2" },
+  { identifier = "gp313_253-win_amd64", version = "3.13", url = "https://github.com/oracle/graalpython/releases/download/graal-25.5.5/graalpy3.13-25.5.5-windows-amd64.zip", sha256 = "a510fbf94fa6b5cbe671d02245aa638f8be467627bf2b6b958efffba3504f566" },
 ]
 
 [pyodide]
