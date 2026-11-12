@@ -740,23 +740,23 @@ def test_deprecated_image(
 @pytest.mark.parametrize(
     ("frontend", "verbosity", "result"),
     [
-        ("pip", 3, ["-Ca", "-Cb", "-1", "-vvv"]),
-        ("pip", 2, ["-Ca", "-Cb", "-1", "-vv"]),
-        ("pip", -1, ["-Ca", "-Cb", "-1", "-q"]),
-        ("uv", -1, ["-Ca", "-Cb", "-1", "-q"]),
-        ("build", -1, ["-Ca", "-Cb", "-1", "-q"]),
-        ("build[uv]", -1, ["-Ca", "-Cb", "-1", "-q"]),
-        ("build", 0, ["-Ca", "-Cb", "-1"]),
-        ("build", 1, ["-Ca", "-Cb", "-1"]),
-        ("build", 2, ["-Ca", "-Cb", "-1", "-v"]),
-        ("build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
-        ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-vv"]),
-        ("uv", 3, ["-Ca", "-Cb", "-1", "-vv"]),
-        ("pyodide-build", -1, ["-Ca", "-Cb", "-1"]),
-        ("pyodide-build", 0, ["-Ca", "-Cb", "-1"]),
-        ("pyodide-build", 1, ["-Ca", "-Cb", "-1", "-v"]),
-        ("pyodide-build", 2, ["-Ca", "-Cb", "-1", "-vv"]),
-        ("pyodide-build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("pip", 3, ["-Ca=", "-Cb=", "-1", "-vvv"]),
+        ("pip", 2, ["-Ca=", "-Cb=", "-1", "-vv"]),
+        ("pip", -1, ["-Ca=", "-Cb=", "-1", "-q"]),
+        ("uv", -1, ["-Ca=", "-Cb=", "-1", "-q"]),
+        ("build", -1, ["-Ca=", "-Cb=", "-1", "-q"]),
+        ("build[uv]", -1, ["-Ca=", "-Cb=", "-1", "-q"]),
+        ("build", 0, ["-Ca=", "-Cb=", "-1"]),
+        ("build", 1, ["-Ca=", "-Cb=", "-1"]),
+        ("build", 2, ["-Ca=", "-Cb=", "-1", "-v"]),
+        ("build", 3, ["-Ca=", "-Cb=", "-1", "-vv"]),
+        ("build[uv]", 3, ["-Ca=", "-Cb=", "-1", "-vv"]),
+        ("uv", 3, ["-Ca=", "-Cb=", "-1", "-vv"]),
+        ("pyodide-build", -1, ["-Ca=", "-Cb=", "-1"]),
+        ("pyodide-build", 0, ["-Ca=", "-Cb=", "-1"]),
+        ("pyodide-build", 1, ["-Ca=", "-Cb=", "-1", "-v"]),
+        ("pyodide-build", 2, ["-Ca=", "-Cb=", "-1", "-vv"]),
+        ("pyodide-build", 3, ["-Ca=", "-Cb=", "-1", "-vv"]),
     ],
 )
 def test_get_build_frontend_extra_flags(
@@ -817,6 +817,72 @@ def test_prepare_config_settings_special_chars(project: str, package: str) -> No
         "setup-args": f"--cross-file={package}/cross.ini",
         "other-setting": project,
     }
+
+
+@pytest.mark.parametrize(
+    ("config_settings", "expected_flags", "expected_parsed"),
+    [
+        (
+            "--with-c-extensions",
+            ["-C--with-c-extensions="],
+            {"--with-c-extensions": ""},
+        ),
+        (
+            "--with-c-extensions tag=one tag=two",
+            ["-C--with-c-extensions=", "-Ctag=one", "-Ctag=two"],
+            {"--with-c-extensions": "", "tag": ["one", "two"]},
+        ),
+        (
+            "flag= bare-key= another-flag",
+            ["-Cflag=", "-Cbare-key=", "-Canother-flag="],
+            {"flag": "", "bare-key": "", "another-flag": ""},
+        ),
+        (
+            'setup-args=-Dfoo=bar setup-args="--vsenv" --pure',
+            ["-Csetup-args=-Dfoo=bar", "-Csetup-args=--vsenv", "-C--pure="],
+            {"setup-args": ["-Dfoo=bar", "--vsenv"], "--pure": ""},
+        ),
+    ],
+)
+def test_split_config_settings_normalizes_bare_flags(
+    config_settings: str,
+    expected_flags: list[str],
+    expected_parsed: dict[str, str | list[str]],
+) -> None:
+    assert _split_config_settings(config_settings) == expected_flags
+    assert parse_config_settings(config_settings) == expected_parsed
+
+
+@pytest.mark.parametrize("frontend", ["pip", "build", "build[uv]", "uv", "pyodide-build"])
+def test_config_settings_frontend_roundtrip(
+    frontend: Literal["pip", "build", "build[uv]", "uv", "pyodide-build"],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mock_warning = unittest.mock.MagicMock()
+    monkeypatch.setattr(Logger, "warning", mock_warning)
+    prepared = prepare_config_settings(
+        "--with-c-extensions tag=one tag=two path={package}",
+        project="/proj",
+        package="/pkg",
+    )
+    flags = get_build_frontend_extra_flags(
+        build_frontend=BuildFrontendConfig(frontend),
+        verbosity_level=0,
+        config_settings=prepared,
+    )
+    assert flags[:4] == [
+        "-C--with-c-extensions=",
+        "-Ctag=one",
+        "-Ctag=two",
+        "-Cpath=/pkg",
+    ]
+    raw_settings = " ".join(flag.removeprefix("-C") for flag in flags[:4])
+    assert parse_config_settings(raw_settings) == {
+        "--with-c-extensions": "",
+        "tag": ["one", "two"],
+        "path": "/pkg",
+    }
+    mock_warning.assert_not_called()
 
 
 @pytest.mark.parametrize(

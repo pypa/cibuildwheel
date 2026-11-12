@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
 import subprocess
+import textwrap
+import zipfile
 
 import pytest
 
@@ -55,3 +58,85 @@ def test_build_frontend_args(
     else:
         assert "usage:" in captured.out
         assert "A simple, correct Python build frontend." in captured.out
+
+
+def test_config_settings(tmp_path: Path, build_frontend_env: dict[str, str]) -> None:
+    if build_frontend_env["CIBW_BUILD_FRONTEND"] == "pyodide-build":
+        pytest.skip("pyodide-build requires pyodide platform")
+
+    project_dir = tmp_path / "project"
+    project_dir.mkdir()
+    output_dir = tmp_path / "wheelhouse"
+
+    (project_dir / "custom_backend.py").write_text(
+        textwrap.dedent("""\
+            import base64
+            import hashlib
+            import json
+            import zipfile
+            from pathlib import Path
+
+            def build_wheel(wheel_directory, config_settings=None, metadata_directory=None):
+                whl_name = "demo_pkg-0.1.0-py3-none-any.whl"
+                whl_path = Path(wheel_directory) / whl_name
+                files = {
+                    "demo_pkg/config_settings.json": json.dumps(
+                        config_settings, sort_keys=True
+                    ).encode("utf-8"),
+                    "demo_pkg-0.1.0.dist-info/METADATA": (
+                        b"Metadata-Version: 2.1\\nName: demo-pkg\\nVersion: 0.1.0\\n"
+                    ),
+                    "demo_pkg-0.1.0.dist-info/WHEEL": (
+                        b"Wheel-Version: 1.0\\nGenerator: custom\\n"
+                        b"Root-Is-Purelib: true\\nTag: py3-none-any\\n"
+                    ),
+                }
+                record_lines = []
+                with zipfile.ZipFile(whl_path, "w") as zf:
+                    for name, data in files.items():
+                        zf.writestr(name, data)
+                        digest = (
+                            base64.urlsafe_b64encode(hashlib.sha256(data).digest())
+                            .rstrip(b"=")
+                            .decode("ascii")
+                        )
+                        record_lines.append(f"{name},sha256={digest},{len(data)}\\n")
+                    record_lines.append("demo_pkg-0.1.0.dist-info/RECORD,,\\n")
+                    zf.writestr(
+                        "demo_pkg-0.1.0.dist-info/RECORD",
+                        "".join(record_lines).encode("utf-8"),
+                    )
+                return whl_name
+        """),
+        encoding="utf-8",
+    )
+    (project_dir / "pyproject.toml").write_text(
+        textwrap.dedent("""\
+            [build-system]
+            requires = []
+            build-backend = "custom_backend"
+            backend-path = ["."]
+
+            [project]
+            name = "demo-pkg"
+            version = "0.1.0"
+        """),
+        encoding="utf-8",
+    )
+
+    add_env = {
+        **build_frontend_env,
+        "CIBW_CONFIG_SETTINGS": "--with-c-extensions tag=one tag=two",
+    }
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        output_dir=output_dir,
+        add_env=add_env,
+        single_python=True,
+    )
+    assert actual_wheels == ["demo_pkg-0.1.0-py3-none-any.whl"]
+
+    with zipfile.ZipFile(output_dir / actual_wheels[0]) as zf:
+        captured = json.loads(zf.read("demo_pkg/config_settings.json").decode("utf-8"))
+
+    assert captured == {"--with-c-extensions": "", "tag": ["one", "two"]}
