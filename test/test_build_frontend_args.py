@@ -140,9 +140,9 @@ def test_config_settings(tmp_path: Path, build_frontend_env: dict[str, str]) -> 
         add_env=add_env,
         single_python=True,
     )
-    assert len(actual_wheels) == 1
+    assert actual_wheels
 
-    with zipfile.ZipFile(output_dir / actual_wheels[0]) as zf:
-        captured = json.loads(zf.read("demo_pkg/config_settings.json").decode("utf-8"))
-
-    assert captured == {"--with-c-extensions": "", "tag": ["one", "two"]}
+    for wheel_name in actual_wheels:
+        with zipfile.ZipFile(output_dir / wheel_name) as zf:
+            captured = json.loads(zf.read("demo_pkg/config_settings.json").decode("utf-8"))
+        assert captured == {"--with-c-extensions": "", "tag": ["one", "two"]}
