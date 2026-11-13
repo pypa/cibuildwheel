@@ -173,3 +173,14 @@ def test_arch_parse_config_case_insensitive(
 def test_arch_parse_config_invalid(platform: PlatformName) -> None:
     with pytest.raises(cibuildwheel.errors.ConfigurationError):
         Architecture.parse_config("nonexistent", platform)
+
+
+@pytest.mark.parametrize("machine", ["loongarch64", "e2k", "sparc64"])
+def test_native_arch_unknown_machine_returns_none(
+    monkeypatch: pytest.MonkeyPatch, machine: str
+) -> None:
+    # regression for #3048: an unknown host machine must map to the graceful
+    # None path, not crash with a raw enum ValueError
+    monkeypatch.setattr(platform_module, "machine", lambda: machine)
+    assert Architecture.native_arch("linux") is None
+    assert Architecture.auto_archs("linux") == set()
