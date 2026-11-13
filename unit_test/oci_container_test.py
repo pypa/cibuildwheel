@@ -894,3 +894,9 @@ def test_engine_version(
     engine = OCIContainerEngineConfig.from_config_string(engine_name)
     with context:
         _check_engine_version(engine)
+
+
+def test_parse_engine_config_missing_name() -> None:
+    # a whitespace-only engine config used to escape as a raw KeyError: 'name'
+    with pytest.raises(ValueError, match="Missing container engine name"):
+        OCIContainerEngineConfig.from_config_string("  ")

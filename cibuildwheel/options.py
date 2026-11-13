@@ -639,6 +639,19 @@ class OptionsReader:
 
                 parsed_inherit = parse_inherit(inherit)
                 self._validate_inherit_options(parsed_inherit)
+
+                # unknown option names in an override would be silently ignored
+                # by the cascade, so reject them like unknown top-level keys
+                for option_name in config_override:
+                    if option_name not in self._known_option_names:
+                        msg = f"Option {option_name!r} not supported in an overrides section."
+                        matches = difflib.get_close_matches(
+                            option_name, self._known_option_names, 1, 0.7
+                        )
+                        if matches:
+                            msg += f" Perhaps you meant {matches[0]!r}?"
+                        raise OptionsReaderError(msg)
+
                 overrides.append(Override(select, config_override, parsed_inherit))
 
         return overrides
