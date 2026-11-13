@@ -133,7 +133,13 @@ class Architecture(StrEnum):
     @classmethod
     def native_arch(cls, platform: PlatformName) -> Self | None:
         native_machine = platform_module.machine()
-        native_architecture = cls(native_machine)
+        try:
+            native_architecture = cls(native_machine)
+        except ValueError:
+            # the host machine is not an architecture cibuildwheel knows about;
+            # report "can't build anything on this platform" like other
+            # unsupported combinations do
+            return None
 
         # Cross-platform support. Used for --print-build-identifiers or docker builds.
         host_platform: PlatformName = (
