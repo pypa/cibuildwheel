@@ -95,14 +95,17 @@ The complete set of defaults for the current version of cibuildwheel are shown b
     not want to change a `pyproject.toml` file. You can specify a different file to
     use with `--config-file` on the command line, as well.
 
-You can also keep the configuration in a dedicated `.cibuildwheel.toml` next to
-`pyproject.toml`, using the same `[tool.cibuildwheel]` layout. This is handy for
-keeping `pyproject.toml` short. It also helps when maintaining many projects: a
-config in its own file, with nothing else in it, is much easier to diff and sync
-across them. If `.cibuildwheel.toml` exists, `[tool.cibuildwheel]` in
-`pyproject.toml` is ignored (the files are not merged); `requires-python` is
-still read from `pyproject.toml`. An explicit `--config-file` takes precedence
-over both.
+The configuration can also be kept in a dedicated file next to
+`pyproject.toml`, using the same `[tool.cibuildwheel]` layout. This keeps
+`pyproject.toml` short, and makes the configuration easier to sync across
+many projects.
+
+If a file hasn't been specified with `--config-file`, cibuildwheel will look
+for settings in the package directory, in this order: `cibuildwheel.toml`,
+`.cibuildwheel.toml`, or `pyproject.toml`. The first file found will be used
+and other files won't be consulted. `requires-python` is still read from
+`pyproject.toml`. The file that was used is shown at the start of the build
+log.
 
 ## Configuration overrides {: #overrides }
 
