@@ -427,6 +427,8 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
 
     print(f"cibuildwheel version {cibuildwheel.__version__}\n")
 
+    print(f"Config file: {options.config_file_path or 'none'}\n")
+
     print("Build options:")
     print(f"  platform: {platform}")
     options_summary = textwrap.indent(options.summary(identifiers), "  ")
