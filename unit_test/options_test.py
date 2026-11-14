@@ -969,26 +969,60 @@ def test_xbuild_files(tmp_path: Path, definition: str, expected: dict[str, list[
     assert options.build_options(None).xbuild_files == expected
 
 
-def test_cibuildwheel_toml_priority(tmp_path: Path) -> None:
-    """Test that .cibuildwheel.toml has priority over pyproject.toml."""
-    tmp_path.joinpath(".cibuildwheel.toml").write_text(
-        textwrap.dedent(
-            """\
-            [tool.cibuildwheel]
-            test-command = "dedicated"
-            """
-        )
-    )
-    tmp_path.joinpath("pyproject.toml").write_text(
-        textwrap.dedent(
-            """\
-            [project]
-            requires-python = ">=3.12"
+@pytest.mark.parametrize(
+    ("present", "expected"),
+    [
+        (["cibuildwheel.toml", "pyproject.toml"], "cibuildwheel.toml"),
+        ([".cibuildwheel.toml", "pyproject.toml"], ".cibuildwheel.toml"),
+        (["cibuildwheel.toml", ".cibuildwheel.toml"], "cibuildwheel.toml"),
+        (["cibuildwheel.toml", ".cibuildwheel.toml", "pyproject.toml"], "cibuildwheel.toml"),
+    ],
+)
+def test_config_file_priority(tmp_path: Path, present: list[str], expected: str) -> None:
+    for name in present:
+        tmp_path.joinpath(name).write_text(f'[tool.cibuildwheel]\ntest-command = "{name}"\n')
 
-            [tool.cibuildwheel]
-            test-command = "pyproject"
-            """
-        )
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+
+    assert options.config_file_path == tmp_path / expected
+    assert options.build_options(identifier=None).test_command == expected
+
+
+def test_config_file_option_overrides_discovery(tmp_path: Path) -> None:
+    tmp_path.joinpath("cibuildwheel.toml").write_text(
+        '[tool.cibuildwheel]\ntest-command = "discovered"\n'
+    )
+    tmp_path.joinpath("custom.toml").write_text('[tool.cibuildwheel]\ntest-command = "explicit"\n')
+
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+    args.config_file = "{package}/custom.toml"
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+
+    assert options.build_options(identifier=None).test_command == "explicit"
+
+
+@pytest.mark.parametrize("config_file_name", ["cibuildwheel.toml", ".cibuildwheel.toml"])
+def test_requires_python_with_dedicated_config_file(tmp_path: Path, config_file_name: str) -> None:
+    tmp_path.joinpath(config_file_name).write_text("[tool.cibuildwheel]\n")
+    tmp_path.joinpath("pyproject.toml").write_text('[project]\nrequires-python = ">=3.12"\n')
+
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+
+    assert options.package_requires_python_str == ">=3.12"
+
+
+@pytest.mark.parametrize("config_file_name", ["cibuildwheel.toml", ".cibuildwheel.toml"])
+def test_dedicated_config_file_without_pyproject(tmp_path: Path, config_file_name: str) -> None:
+    tmp_path.joinpath(config_file_name).write_text(
+        '[tool.cibuildwheel]\ntest-command = "dedicated"\n'
     )
 
     args = CommandLineArguments.defaults()
@@ -997,5 +1031,4 @@ def test_cibuildwheel_toml_priority(tmp_path: Path) -> None:
     options = Options(platform="linux", command_line_arguments=args, env={})
 
     assert options.build_options(identifier=None).test_command == "dedicated"
-    # requires-python still comes from pyproject.toml
-    assert options.package_requires_python_str == ">=3.12"
+    assert options.package_requires_python_str is None
