@@ -94,7 +94,7 @@ dev = [
 
 [tool.pytest]
 minversion = "9.0"
-addopts = ["-ra", "--showlocals", "--xdoctest", "--ignore-glob=*venv*"]
+addopts = ["-ra", "--showlocals", "--xdoctest", "--ignore-glob=.venv*"]
 strict = true
 junit_family = "xunit2"
 filterwarnings = ["error"]
