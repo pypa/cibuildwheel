@@ -241,6 +241,13 @@ Changelog
 
 <!-- [[[cog from readme_changelog import mini_changelog; print(mini_changelog()) ]]] -->
 
+### v4.3.6
+
+_15 November 2026_
+
+- 💼 Uses Ubuntu 24.04 for emulated tests to avoid the Ubuntu 26.04 runner regression (#3030)
+- 🛠 Updates dependencies, pre-commit hooks, and GitHub Actions versions (#3029, #3033, #3034, #3037)
+
 ### v4.3.5
 
 _27 October 2026_
@@ -272,13 +279,7 @@ _20 October 2026_
 
 - 🔐 Updates our dependency pins to certifi==2026.10.19, following the [eMudhra Intermediate CA Compromise](https://emudhra.we-have-a-problem.com/). Linux builds may still be vulnerable through manylinux images - a patch release will soon follow if so.
 
-### v4.3.1
-
-_10 October 2026_
-
-- 🛠 Updates CPython 3.15 to the final 3.15.0 release (#3009)
-
-<!-- [[[end]]] (sum: Vhdgn7F0Yw) -->
+<!-- [[[end]]] (sum: z6iN7LVi1T) -->
 
 ---
 
