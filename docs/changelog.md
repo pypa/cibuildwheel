@@ -5,6 +5,13 @@ ref: changelog
 
 # Changelog
 
+### v4.3.6
+
+_15 November 2026_
+
+- 💼 Uses Ubuntu 24.04 for emulated tests to avoid the Ubuntu 26.04 runner regression (#3030)
+- 🛠 Updates dependencies, pre-commit hooks, and GitHub Actions versions (#3029, #3033, #3034, #3037)
+
 ### v4.3.5
 
 _27 October 2026_
