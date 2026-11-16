@@ -182,7 +182,11 @@ def install_graalpy(tmp: Path, url: str, sha256: str) -> Path:
             download(url, graalpy_zip, sha256=sha256)
             with remove_on_error(installation_path):
                 # Extract to the parent directory because the zip file still contains a directory
-                extract_zip(graalpy_zip, installation_path.parent)
+                # GraalPy's top-folder name is sometimes inconsistent with archive name.
+                extracted_path = tmp / "graalpy"
+                extract_zip(graalpy_zip, extracted_path)
+                [extracted_installation] = extracted_path.iterdir()
+                shutil.move(str(extracted_installation), installation_path)
     return installation_path / "bin" / "graalpy.exe"
 
 
