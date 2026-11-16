@@ -184,3 +184,8 @@ def test_native_arch_unknown_machine_returns_none(
     monkeypatch.setattr(platform_module, "machine", lambda: machine)
     assert Architecture.native_arch("linux") is None
     assert Architecture.auto_archs("linux") == set()
+    # host-independent paths must not be affected by the unknown host machine
+    assert Architecture.native_arch("pyodide") == Architecture.wasm32
+    if machine != "e2k":
+        # e2k hosts are linux; the ios branch returns None off macOS anyway
+        assert Architecture.native_arch("windows") is None
