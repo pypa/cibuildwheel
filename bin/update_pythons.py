@@ -147,7 +147,9 @@ class GraalPyVersions:
 
         self.releases = [r for r in releases if "graalpy_version" in r and "python_version" in r]
 
-    def update_version(self, identifier: str, spec: Specifier) -> ConfigUrl | None:
+    def update_version(
+        self, identifier: str, spec: Specifier, current_url: str | None = None
+    ) -> ConfigUrl | None:
         if "x86_64" in identifier or "amd64" in identifier:
             arch = "x86_64"
         elif "arm64" in identifier or "aarch64" in identifier:
@@ -159,6 +161,8 @@ class GraalPyVersions:
         gpspec_str = identifier.split("-", maxsplit=1)[0].split("_")[1]
         if "." not in gpspec_str and len(gpspec_str) == 3:
             gpspec_str = gpspec_str[:2] + "." + gpspec_str[-1]
+        if current_url and (match := re.search(r"/graal-(\d+\.\d+)\.", current_url)):
+            gpspec_str = match.group(1)
         gpspec = Specifier(f"=={gpspec_str}.*")
 
         releases_tmp = (r for r in self.releases if spec.contains(r["python_version"]))
@@ -503,7 +507,7 @@ class AllVersions:
                 elif "macosx_arm64" in identifier:
                     config_update = self.macos_pypy_arm64.update_version_macos(spec)
             elif identifier.startswith("gp"):
-                config_update = self.graalpy.update_version(identifier, spec)
+                config_update = self.graalpy.update_version(identifier, spec, config.get("url"))
         elif "t-win32" in identifier and identifier.startswith("cp"):
             config_update = self.windows_t_32.update_version_windows(spec)
         elif "win32" in identifier and identifier.startswith("cp"):
@@ -516,7 +520,7 @@ class AllVersions:
             elif identifier.startswith("pp"):
                 config_update = self.windows_pypy_64.update_version_windows(spec)
             elif identifier.startswith("gp"):
-                config_update = self.graalpy.update_version(identifier, spec)
+                config_update = self.graalpy.update_version(identifier, spec, config.get("url"))
         elif "t-win_arm64" in identifier and identifier.startswith("cp"):
             config_update = self.windows_t_arm64.update_version_windows(spec)
         elif "win_arm64" in identifier and identifier.startswith("cp"):
