@@ -396,9 +396,12 @@ class CPythonIOSVersions:
             # The name of the asset will be something like
             # "Python-3.11-iOS-support.b4.tar.gz". Store all builds that are
             # "-iOS-support" builds, retaining the download URL.
+            # Only 3.13 and 3.14 releases come from BeeWare and their builds are integers.
+            # Versions after this are from python.org. Skip BeeWare's
+            # prerelease builds such as "b0a2" for CPython alphas
             for asset in release["assets"]:
                 filename, build, _, _ = asset["name"].rsplit(".", 3)
-                if filename.endswith("-iOS-support"):
+                if filename.endswith("-iOS-support") and build[1:].isdigit():
                     self.versions_dict[version][int(build[1:])] = asset["browser_download_url"]
 
     def update_version_ios(self, identifier: str, version: Version) -> ConfigUrl | None:
