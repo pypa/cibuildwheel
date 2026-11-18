@@ -58,7 +58,12 @@ from cibuildwheel.util.file import (
     remove_on_error,
 )
 from cibuildwheel.util.helpers import prepare_command, unwrap
-from cibuildwheel.util.packaging import find_compatible_wheel, get_pip_version
+from cibuildwheel.util.packaging import (
+    constraints_for_pip,
+    find_compatible_wheel,
+    get_pip_version,
+    parse_pip_version,
+)
 from cibuildwheel.venv import constraint_flags, find_uv, target_marker_env, virtualenv
 
 TYPE_CHECKING = False
@@ -336,7 +341,11 @@ def setup_python(
         if which_pip != str(venv_bin_path / "pip"):
             msg = "pip available on PATH doesn't match our installed instance. If you have modified PATH, ensure that you don't overwrite cibuildwheel's entry or insert pip above it."
             raise errors.FatalError(msg)
-        call("pip", "--version", env=env)
+        pip_version_output = call("pip", "--version", env=env, capture_stdout=True).strip()
+        print(pip_version_output)
+        dependency_constraint = constraints_for_pip(
+            dependency_constraint, parse_pip_version(pip_version_output), tmp
+        )
 
     config_is_arm64 = python_configuration.identifier.endswith("arm64")
     config_is_universal2 = python_configuration.identifier.endswith("universal2")
