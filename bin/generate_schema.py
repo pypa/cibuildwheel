@@ -96,7 +96,7 @@ properties:
     type: string_table_array
   container-engine:
     oneOf:
-      - enum: [docker, podman]
+      - enum: [docker, podman, none]
       - type: string
         pattern: '^docker; ?(create_args|disable_host_mount):'
       - type: string
