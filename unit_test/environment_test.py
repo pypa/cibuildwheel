@@ -119,29 +119,17 @@ def test_brace_parameter_expansion() -> None:
     assert environment_dict == {"X": "y", "VAR": "y"}
 
 
-def test_brace_default_expansion_is_rejected() -> None:
-    # ${VAR:-default} is not supported; it used to silently evaluate to an empty
-    # string, so now it errors instead of corrupting the environment
-    environment_recipe = parse_environment('VAR="${X:-default}"')
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("${X:-default}", id="default-operator"),
+        pytest.param("${é}", id="non-ascii-latin"),
+        pytest.param("${变量}", id="non-ascii-cjk"),
+        pytest.param("${10}", id="positional-beyond-9"),
+    ],
+)
+def test_unsupported_parameter_expansion_is_rejected(value: str) -> None:
+    environment_recipe = parse_environment(f'VAR="{value}"')
 
     with pytest.raises(ValueError, match="Unsupported parameter expansion"):
         environment_recipe.as_dictionary(prev_environment={"X": "y"})
-
-
-@pytest.mark.parametrize("value", ['VAR="${é}"', 'VAR="${变量}"'])
-def test_brace_non_ascii_parameter_is_rejected(value: str) -> None:
-    # str.isidentifier() is Unicode-aware, but bash parameter names are
-    # ASCII-only; ${é} used to silently evaluate to an empty string
-    environment_recipe = parse_environment(value)
-
-    with pytest.raises(ValueError, match="Unsupported parameter expansion"):
-        environment_recipe.as_dictionary(prev_environment={})
-
-
-def test_positional_parameter_beyond_nine_is_rejected() -> None:
-    # ${10} is not a single-character special parameter ($1..$9), so it must be
-    # rejected rather than looked up as a name
-    environment_recipe = parse_environment('VAR="${10}"')
-
-    with pytest.raises(ValueError, match="Unsupported parameter expansion"):
-        environment_recipe.as_dictionary(prev_environment={})
