@@ -133,7 +133,6 @@ class Architecture(StrEnum):
     @classmethod
     def native_arch(cls, platform: PlatformName) -> Self | None:
         native_machine = platform_module.machine()
-        native_architecture = cls(native_machine)
 
         # Cross-platform support. Used for --print-build-identifiers or docker builds.
         host_platform: PlatformName = (
@@ -143,17 +142,27 @@ class Architecture(StrEnum):
         )
 
         if platform == "pyodide":
+            # host-independent: wasm32 no matter what the host machine is
             return cls.wasm32
         elif platform == "ios":
             # Can only build for iOS on macOS. The "native" architecture is the
-            # simulator for the macOS native platform.
+            # simulator for the macOS native platform. macOS hosts are always
+            # x86_64 or arm64, so the machine name can be compared directly.
             if host_platform == "macos":
-                if native_architecture == cls.x86_64:
+                if native_machine == "x86_64":
                     return cls.x86_64_iphonesimulator
                 else:
                     return cls.arm64_iphonesimulator
             else:
                 return None
+
+        try:
+            native_architecture = cls(native_machine)
+        except ValueError:
+            # the host machine is not an architecture cibuildwheel knows about;
+            # report "can't build anything on this platform" like other
+            # unsupported combinations do
+            return None
 
         # we might need to rename the native arch to the machine we're running
         # on, as the same arch can have different names on different platforms
@@ -163,7 +172,12 @@ class Architecture(StrEnum):
                 # can't build anything on this platform
                 return None
 
-            native_architecture = cls(synonym)
+            try:
+                native_architecture = cls(synonym)
+            except ValueError:
+                # the synonym table falls back to the raw name for unknown
+                # machines, which is not a buildable architecture here either
+                return None
 
         return native_architecture
 
