@@ -20,6 +20,7 @@ from cibuildwheel.frontend import (
 )
 from cibuildwheel.logger import Logger
 from cibuildwheel.options import (
+    CONFIG_FILE_NAMES,
     CommandLineArguments,
     Options,
     _get_pinned_container_images,
@@ -67,8 +68,9 @@ manylinux-x86_64-image = "manylinux_2_34"
 """
 
 
-def test_options_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    with tmp_path.joinpath("pyproject.toml").open("w") as f:
+@pytest.mark.parametrize("config_file_name", CONFIG_FILE_NAMES)
+def test_options_1(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, config_file_name: str) -> None:
+    with tmp_path.joinpath(config_file_name).open("w") as f:
         f.write(PYPROJECT_1)
 
     args = CommandLineArguments.defaults()
@@ -200,8 +202,11 @@ audit-requires = ["abi3audit; python_version >= '3.9'"]
     assert build_options.audit_requires == ["abi3audit; python_version >= '3.9'"]
 
 
-def test_passthrough(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    with tmp_path.joinpath("pyproject.toml").open("w") as f:
+@pytest.mark.parametrize("config_file_name", CONFIG_FILE_NAMES)
+def test_passthrough(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, config_file_name: str
+) -> None:
+    with tmp_path.joinpath(config_file_name).open("w") as f:
         f.write(PYPROJECT_1)
 
     args = CommandLineArguments.defaults()
@@ -263,11 +268,12 @@ xfail_env_parse = pytest.mark.xfail(
         pytest.param("a trailing backslash \\", marks=[xfail_env_parse]),
     ],
 )
-def test_toml_environment_evil(tmp_path: Path, env_var_value: str) -> None:
+@pytest.mark.parametrize("config_file_name", CONFIG_FILE_NAMES)
+def test_toml_environment_evil(tmp_path: Path, env_var_value: str, config_file_name: str) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
-    tmp_path.joinpath("pyproject.toml").write_text(
+    tmp_path.joinpath(config_file_name).write_text(
         textwrap.dedent(
             f"""\
             [tool.cibuildwheel.environment]
@@ -299,11 +305,14 @@ def test_toml_environment_evil(tmp_path: Path, env_var_value: str) -> None:
         (r'TEST_VAR="before\\$after"', "before$after"),
     ],
 )
-def test_toml_environment_quoting(tmp_path: Path, toml_assignment: str, result_value: str) -> None:
+@pytest.mark.parametrize("config_file_name", CONFIG_FILE_NAMES)
+def test_toml_environment_quoting(
+    tmp_path: Path, toml_assignment: str, result_value: str, config_file_name: str
+) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
-    tmp_path.joinpath("pyproject.toml").write_text(
+    tmp_path.joinpath(config_file_name).write_text(
         textwrap.dedent(
             f"""\
             [tool.cibuildwheel.environment]
@@ -569,12 +578,12 @@ def test_build_frontend_platform_mismatch(
         options.build_options(identifier=None)
 
 
-def test_override_inherit_environment(tmp_path: Path) -> None:
+@pytest.mark.parametrize("config_file_name", CONFIG_FILE_NAMES)
+def test_override_inherit_environment(tmp_path: Path, config_file_name: str) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
-    pyproject_toml: Path = tmp_path / "pyproject.toml"
-    pyproject_toml.write_text(
+    tmp_path.joinpath(config_file_name).write_text(
         textwrap.dedent(
             """\
             [tool.cibuildwheel]
@@ -604,12 +613,14 @@ def test_override_inherit_environment(tmp_path: Path) -> None:
     }
 
 
-def test_override_inherit_environment_with_references(tmp_path: Path) -> None:
+@pytest.mark.parametrize("config_file_name", CONFIG_FILE_NAMES)
+def test_override_inherit_environment_with_references(
+    tmp_path: Path, config_file_name: str
+) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
-    pyproject_toml: Path = tmp_path / "pyproject.toml"
-    pyproject_toml.write_text(
+    tmp_path.joinpath(config_file_name).write_text(
         textwrap.dedent(
             """\
             [tool.cibuildwheel]
@@ -956,3 +967,68 @@ def test_xbuild_files(tmp_path: Path, definition: str, expected: dict[str, list[
 
     options = Options(platform="ios", command_line_arguments=args, env={})
     assert options.build_options(None).xbuild_files == expected
+
+
+@pytest.mark.parametrize(
+    ("present", "expected"),
+    [
+        (["cibuildwheel.toml", "pyproject.toml"], "cibuildwheel.toml"),
+        ([".cibuildwheel.toml", "pyproject.toml"], ".cibuildwheel.toml"),
+        (["cibuildwheel.toml", ".cibuildwheel.toml"], "cibuildwheel.toml"),
+        (["cibuildwheel.toml", ".cibuildwheel.toml", "pyproject.toml"], "cibuildwheel.toml"),
+    ],
+)
+def test_config_file_priority(tmp_path: Path, present: list[str], expected: str) -> None:
+    for name in present:
+        tmp_path.joinpath(name).write_text(f'[tool.cibuildwheel]\ntest-command = "{name}"\n')
+
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+
+    assert options.config_file_path == tmp_path / expected
+    assert options.build_options(identifier=None).test_command == expected
+
+
+def test_config_file_option_overrides_discovery(tmp_path: Path) -> None:
+    tmp_path.joinpath("cibuildwheel.toml").write_text(
+        '[tool.cibuildwheel]\ntest-command = "discovered"\n'
+    )
+    tmp_path.joinpath("custom.toml").write_text('[tool.cibuildwheel]\ntest-command = "explicit"\n')
+
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+    args.config_file = "{package}/custom.toml"
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+
+    assert options.build_options(identifier=None).test_command == "explicit"
+
+
+@pytest.mark.parametrize("config_file_name", ["cibuildwheel.toml", ".cibuildwheel.toml"])
+def test_requires_python_with_dedicated_config_file(tmp_path: Path, config_file_name: str) -> None:
+    tmp_path.joinpath(config_file_name).write_text("[tool.cibuildwheel]\n")
+    tmp_path.joinpath("pyproject.toml").write_text('[project]\nrequires-python = ">=3.12"\n')
+
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+
+    assert options.package_requires_python_str == ">=3.12"
+
+
+@pytest.mark.parametrize("config_file_name", ["cibuildwheel.toml", ".cibuildwheel.toml"])
+def test_dedicated_config_file_without_pyproject(tmp_path: Path, config_file_name: str) -> None:
+    tmp_path.joinpath(config_file_name).write_text(
+        '[tool.cibuildwheel]\ntest-command = "dedicated"\n'
+    )
+
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+
+    assert options.build_options(identifier=None).test_command == "dedicated"
+    assert options.package_requires_python_str is None
