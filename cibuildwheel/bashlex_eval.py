@@ -78,13 +78,13 @@ def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) ->
     if offsets is None:
         return _substitute_parts_leftmost(node, context)
 
-    # Evaluate left to right like bash, then splice from the end so earlier
-    # offsets stay valid.
-    part_values = [evaluate_node(part, context=context) for part in node.parts]
-    value: str = node.word
-    for (start, end), part_value in reversed(list(zip(offsets, part_values, strict=True))):
-        value = value[:start] + part_value + value[end:]
-    return value
+    word: str = node.word
+    pieces: list[str] = []
+    pos = 0
+    for (start, end), part in zip(offsets, node.parts, strict=True):
+        pieces += [word[pos:start], evaluate_node(part, context=context)]
+        pos = end
+    return "".join(pieces) + word[pos:]
 
 
 def _expansion_offsets(node: bashlex.ast.node, source: str) -> list[tuple[int, int]] | None:
@@ -92,39 +92,30 @@ def _expansion_offsets(node: bashlex.ast.node, source: str) -> list[tuple[int, i
     if not node.parts:
         return []
     start, end = node.pos
-    if start < 0 or end > len(source) or end < start:
-        return None
     raw = source[start:end]
     # bashlex keeps a single quote only when the whole token starts with `"`.
     double_quoted = raw.startswith('"')
-    parts = {p.pos[0] - start: (n, p.pos[1] - start) for n, p in enumerate(node.parts)}
-    if len(parts) != len(node.parts):
-        return None
-    found: dict[int, tuple[int, int]] = {}
-    out: list[str] = []
-    w = i = 0
+    part_ends = {p.pos[0] - start: p.pos[1] - start for p in node.parts}
+    spans: list[tuple[int, int]] = []
+    word = ""
+    i = 0
     while i < len(raw):
-        if i in parts:
-            n, j = parts.pop(i)
-            if j <= i:
-                return None
-            chunk = raw[i:j]
-            found[n] = (w, w + len(chunk))
-            out.append(chunk)
-            w, i = w + len(chunk), j
-            continue
-        char = raw[i]
-        i += 1
-        if char == "\\" and i < len(raw):
-            out.append(raw[i])
-            w += 1
+        if i in part_ends:
+            j = part_ends.pop(i)
+            spans.append((len(word), len(word) + j - i))
+            word += raw[i:j]
+            i = j
+        elif raw[i] == "\\" and i + 1 < len(raw):
+            word += raw[i + 1]
+            i += 2
+        else:
+            if raw[i] not in "\\\"'" or (raw[i] == "'" and double_quoted):
+                word += raw[i]
             i += 1
-        elif (char == "'" and double_quoted) or char not in "\\\"'":
-            out.append(char)
-            w += 1
-    if parts or "".join(out) != node.word:
+    # Spans are in source order; a part that was not found makes the count differ.
+    if len(spans) != len(node.parts) or word != node.word:
         return None
-    return [found[n] for n in range(len(node.parts))]
+    return spans
 
 
 def _substitute_parts_leftmost(node: bashlex.ast.node, context: NodeExecutionContext) -> str:

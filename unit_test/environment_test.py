@@ -98,53 +98,23 @@ def test_substitution_with_backslash() -> None:
     assert environment_dict.get("PATH2") == "somewhere_else;c:\\folder\\"
 
 
-def test_escaped_dollar_then_expansion() -> None:
-    environment_recipe = parse_environment("V1=\\$X$X")
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        pytest.param("\\$X$X", "$Xy", id="escaped-first"),
+        pytest.param("\\$X:$X", "$X:y", id="escaped-first-colon"),
+        pytest.param("$X\\$X", "y$X", id="expansion-first"),
+        pytest.param("$X:$X", "y:y", id="repeated"),
+        pytest.param("-Wl,-rpath,\\$ORIGIN:$X", "-Wl,-rpath,$ORIGIN:y", id="origin-rpath"),
+        pytest.param('"\\$X$X"', "$Xy", id="double-quoted"),
+    ],
+)
+def test_escaped_dollar_and_expansion(value: str, expected: str) -> None:
+    environment_recipe = parse_environment(f"V1={value}")
 
     environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
 
-    assert environment_dict == {"X": "y", "V1": "$Xy"}
-
-
-def test_escaped_dollar_then_expansion_with_colon() -> None:
-    environment_recipe = parse_environment("V1=\\$X:$X")
-
-    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
-
-    assert environment_dict == {"X": "y", "V1": "$X:y"}
-
-
-def test_expansion_then_escaped_dollar() -> None:
-    # The real expansion is already the leftmost match, so this stayed correct.
-    environment_recipe = parse_environment("V1=$X\\$X")
-
-    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
-
-    assert environment_dict == {"X": "y", "V1": "y$X"}
-
-
-def test_repeated_variable_expansion() -> None:
-    environment_recipe = parse_environment("V1=$X:$X")
-
-    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
-
-    assert environment_dict == {"X": "y", "V1": "y:y"}
-
-
-def test_escaped_origin_rpath_then_expansion() -> None:
-    environment_recipe = parse_environment("V1=-Wl,-rpath,\\$ORIGIN:$X")
-
-    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
-
-    assert environment_dict == {"X": "y", "V1": "-Wl,-rpath,$ORIGIN:y"}
-
-
-def test_double_quoted_escaped_dollar_then_expansion() -> None:
-    environment_recipe = parse_environment('V1="\\$X$X"')
-
-    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
-
-    assert environment_dict == {"X": "y", "V1": "$Xy"}
+    assert environment_dict == {"X": "y", "V1": expected}
 
 
 @pytest.mark.xfail(reason="bashlex drops the continuation before recording positions", strict=True)
