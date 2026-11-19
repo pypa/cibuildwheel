@@ -13,6 +13,10 @@ inputs:
     description: 'File containing the config, defaults to {package}/pyproject.toml'
     required: false
     default: ''
+  constraints-file:
+    description: 'File containing the constraints for cibuildwheel dependencies, defaults to embedded constraints file'
+    required: false
+    default: ''
   only:
     description: 'Build a specific wheel only. No need for arch/platform if this is set'
     required: false
@@ -57,6 +61,9 @@ runs:
         from subprocess import run
 
         EXTRAS = set(e.strip() for e in os.environ.get("INPUT_EXTRAS", "").split(",") if e.strip())
+        GITHUB_ACTION_PATH = os.environ["GITHUB_ACTION_PATH"]
+        CONSTRAINTS_PATH = os.environ["INPUT_CONSTRAINTS_FILE"] or str(Path(GITHUB_ACTION_PATH).joinpath(".github", "constraints", "action.txt"))
+        REQUIREMENTS_PATH = str(Path(GITHUB_ACTION_PATH).joinpath(".github", "requirements", "action.txt"))
 
 
         class EnvBuilder(venv.EnvBuilder):
@@ -69,10 +76,13 @@ runs:
             def post_setup(self, context):
                 super().post_setup(context)
                 self.bin_path = Path(context.env_exe).parent
-                install_spec = os.environ["GITHUB_ACTION_PATH"]
+                install_spec = GITHUB_ACTION_PATH
                 if EXTRAS:
                     install_spec += f"[{','.join(sorted(EXTRAS))}]"
-                run([sys.executable, "-m", "pip", "--python", context.env_exe, "install", install_spec], check=True)
+                # requires pip 26.1+, https://github.com/pypa/pip/issues/9243, https://github.com/pypa/pip/pull/13887
+                run([sys.executable, "-m", "pip", "--python", context.env_exe, "install", "-c", CONSTRAINTS_PATH, "-r", REQUIREMENTS_PATH], check=True)
+                # requires pip 26.2+, https://github.com/pypa/pip/pull/14186
+                run([sys.executable, "-m", "pip", "--python", context.env_exe, "install", "--no-require-hashes", "-c", CONSTRAINTS_PATH, "--no-build-isolation", "--check-build-dependencies", install_spec], check=True)
 
 
         print("::group::Install cibuildwheel")
@@ -132,6 +142,7 @@ runs:
         INPUT_PACKAGE_DIR: ${{ inputs.package-dir }}
         INPUT_OUTPUT_DIR: ${{ inputs.output-dir }}
         INPUT_CONFIG_FILE: ${{ inputs.config-file }}
+        INPUT_CONSTRAINTS_FILE: ${{ inputs.constraints-file }}
         INPUT_ONLY: ${{ inputs.only }}
         INPUT_EXTRAS: ${{ inputs.extras }}
 
