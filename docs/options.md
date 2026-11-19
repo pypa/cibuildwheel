@@ -546,16 +546,13 @@ optional `args` option.
 ### `config-settings` {: #config-settings env-var toml}
 > Specify config-settings for the build backend.
 
-Specify config settings for the build backend. Each space separated
-item will be passed via `--config-setting`. In TOML, you can specify
-a table of items, including arrays.
+Specify config settings for the build backend. Each space-separated item is
+passed via `--config-setting` (or `-C`). Items without `=` are normalized to
+`KEY=` so valueless flags work across all frontends, and repeated keys or TOML
+arrays pass multiple values for that key.
 
 You can use the `{project}` or `{package}` placeholders in `config-settings`
 to refer to the project root or package being built, respectively.
-
-!!! tip
-    Currently, "build" supports arrays for options, but "pip" only supports
-    single values.
 
 Platform-specific environment variables also available:<br/>
 `CIBW_CONFIG_SETTINGS_MACOS` | `CIBW_CONFIG_SETTINGS_WINDOWS` | `CIBW_CONFIG_SETTINGS_LINUX` | `CIBW_CONFIG_SETTINGS_ANDROID` | `CIBW_CONFIG_SETTINGS_IOS` | `CIBW_CONFIG_SETTINGS_PYODIDE`
@@ -570,6 +567,11 @@ Platform-specific environment variables also available:<br/>
     --build-option = "--use-mypyc"
     ```
 
+    ```toml
+    [tool.cibuildwheel.config-settings]
+    setup-args = ["-Dbuildtype=release", "--vsenv"]
+    ```
+
 !!! tab examples "Environment variables"
 
     ```yaml
@@ -582,6 +584,10 @@ Platform-specific environment variables also available:<br/>
 
     ```yaml
     CIBW_CONFIG_SETTINGS: "editable-verbose=true source-dir={package}"
+    ```
+
+    ```yaml
+    CIBW_CONFIG_SETTINGS: "setup-args=-Dbuildtype=release setup-args=--vsenv"
     ```
 
 

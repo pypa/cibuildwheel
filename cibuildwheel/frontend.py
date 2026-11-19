@@ -65,7 +65,9 @@ def _get_verbosity_flags(level: int, frontend: BuildFrontendName) -> list[str]:
 
 def _split_config_settings(config_settings: str) -> list[str]:
     config_settings_list = shlex.split(config_settings)
-    return [f"-C{setting}" for setting in config_settings_list]
+    return [
+        f"-C{setting}" if "=" in setting else f"-C{setting}=" for setting in config_settings_list
+    ]
 
 
 def prepare_config_settings(config_settings: str, *, project: PathOrStr, package: PathOrStr) -> str:
