@@ -72,6 +72,53 @@ def evaluate_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
 
 
 def evaluate_word_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
+    # Part positions index the raw source; node.word is quote-removed. A
+    # leftmost text replace expands a literal "\$X" that precedes a real "$X".
+    offsets = _expansion_offsets(node, context.input)
+    if offsets is None:
+        return _substitute_parts_leftmost(node, context)
+
+    word: str = node.word
+    pieces: list[str] = []
+    pos = 0
+    for (start, end), part in zip(offsets, node.parts, strict=True):
+        pieces += [word[pos:start], evaluate_node(part, context=context)]
+        pos = end
+    return "".join(pieces) + word[pos:]
+
+
+def _expansion_offsets(node: bashlex.ast.node, source: str) -> list[tuple[int, int]] | None:
+    """Spans of each expansion in the quote-removed word, or None if unaligned."""
+    if not node.parts:
+        return []
+    start, end = node.pos
+    raw = source[start:end]
+    # bashlex keeps a single quote only when the whole token starts with `"`.
+    double_quoted = raw.startswith('"')
+    part_ends = {p.pos[0] - start: p.pos[1] - start for p in node.parts}
+    spans: list[tuple[int, int]] = []
+    word = ""
+    i = 0
+    while i < len(raw):
+        if i in part_ends:
+            j = part_ends.pop(i)
+            spans.append((len(word), len(word) + j - i))
+            word += raw[i:j]
+            i = j
+        elif raw[i] == "\\" and i + 1 < len(raw):
+            word += raw[i + 1]
+            i += 2
+        else:
+            if raw[i] not in "\\\"'" or (raw[i] == "'" and double_quoted):
+                word += raw[i]
+            i += 1
+    # Spans are in source order; a part that was not found makes the count differ.
+    if len(spans) != len(node.parts) or word != node.word:
+        return None
+    return spans
+
+
+def _substitute_parts_leftmost(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
     value: str = node.word
 
     for part in node.parts:

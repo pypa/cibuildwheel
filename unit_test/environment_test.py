@@ -1,6 +1,8 @@
 import os
 import sys
 
+import pytest
+
 from cibuildwheel.environment import parse_environment
 
 # this command is equivalent to Unix 'echo', but works on Windows too
@@ -94,6 +96,51 @@ def test_substitution_with_backslash() -> None:
     environment_dict = environment_recipe.as_dictionary(prev_environment={"PATH1": "c:\\folder\\"})
 
     assert environment_dict.get("PATH2") == "somewhere_else;c:\\folder\\"
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        pytest.param("\\$X$X", "$Xy", id="escaped-first"),
+        pytest.param("\\$X:$X", "$X:y", id="escaped-first-colon"),
+        pytest.param("$X\\$X", "y$X", id="expansion-first"),
+        pytest.param("$X:$X", "y:y", id="repeated"),
+        pytest.param("-Wl,-rpath,\\$ORIGIN:$X", "-Wl,-rpath,$ORIGIN:y", id="origin-rpath"),
+        pytest.param('"\\$X$X"', "$Xy", id="double-quoted"),
+    ],
+)
+def test_escaped_dollar_and_expansion(value: str, expected: str) -> None:
+    environment_recipe = parse_environment(f"V1={value}")
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
+
+    assert environment_dict == {"X": "y", "V1": expected}
+
+
+@pytest.mark.xfail(reason="bashlex drops the continuation before recording positions", strict=True)
+def test_backslash_newline_keeps_leftmost_replace() -> None:
+    environment_recipe = parse_environment("V1=pre\\\n\\$X$X")
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
+
+    assert environment_dict == {"X": "y", "V1": "pre$Xy"}
+
+
+def test_command_substitutions_run_in_order() -> None:
+    calls: list[str] = []
+
+    def executor(command: list[str], env: dict[str, str]) -> str:  # noqa: ARG001
+        calls.append(command[-1])
+        return command[-1]
+
+    environment_recipe = parse_environment("V1=$(echo a)\\$X$(echo b)")
+
+    environment_dict = environment_recipe.as_dictionary(
+        prev_environment={"X": "y"}, executor=executor
+    )
+
+    assert environment_dict == {"X": "y", "V1": "a$Xb"}
+    assert calls == ["a", "b"]
 
 
 def test_awkwardly_quoted_variable() -> None:
