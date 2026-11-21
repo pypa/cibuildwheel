@@ -16,7 +16,16 @@ If you've got [Docker](https://www.docker.com/get-started/) installed on your de
     through. Check [this document](https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-10-linux)
     for more info.
 
-Because the builds are happening in manylinux Docker containers, they're perfectly reproducible.
+The manylinux and musllinux containers provide a consistent Linux build
+environment, but this alone does not guarantee bit-for-bit identical wheels.
+Build inputs, tool versions, and archive metadata such as timestamps also
+affect reproducibility.
+
+Build and repair tools that support
+[`SOURCE_DATE_EPOCH`](https://reproducible-builds.org/docs/source-date-epoch/)
+can use it to control timestamps. cibuildwheel
+[automatically passes this variable into Linux containers](options.md#environment-pass)
+when it is set on the host.
 
 The only side effect to your system will be docker images being pulled.
 
