@@ -1,8 +1,11 @@
 name: cibuildwheel
 description: 'Installs and runs cibuildwheel on the current runner'
 inputs:
+  package:
+    description: 'Project directory or source distribution to build, defaults to "."'
+    required: false
   package-dir:
-    description: 'Input directory, defaults to "."'
+    description: 'Alias for package, used when package is unset'
     required: false
     default: .
   output-dir:
@@ -99,7 +102,7 @@ runs:
         cibw_bin = [p for p in builder.bin_path.glob("cibuildwheel*") if p.stem == "cibuildwheel"][0]
 
         # Build the command line
-        cmd_args = [str(cibw_bin), os.environ["INPUT_PACKAGE_DIR"]]
+        cmd_args = [str(cibw_bin), os.environ["INPUT_PACKAGE"]]
 
         if output_dir := os.environ.get("INPUT_OUTPUT_DIR"):
             cmd_args += ["--output-dir", output_dir]
@@ -129,7 +132,7 @@ runs:
       shell: bash
       env:
         PYTHON: ${{ inputs.python-path || steps.python.outputs.python-path || 'python3' }}
-        INPUT_PACKAGE_DIR: ${{ inputs.package-dir }}
+        INPUT_PACKAGE: ${{ inputs.package || inputs.package-dir }}
         INPUT_OUTPUT_DIR: ${{ inputs.output-dir }}
         INPUT_CONFIG_FILE: ${{ inputs.config-file }}
         INPUT_ONLY: ${{ inputs.only }}

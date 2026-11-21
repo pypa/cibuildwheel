@@ -195,11 +195,17 @@ jobs:
         CIBW_PLATFORM: ${{ matrix.test_select }}
         CIBW_TEST_RUNTIME: ${{ matrix.test_runtime }}
 
+    - name: Build the sample source distribution
+      if: matrix.test_select == ''
+      run: uv build --sdist sample_proj --out-dir sample_dist
+      env:
+        CIBUILDWHEEL: '1' # Required by the sample project
+
     - name: Run a sample build (GitHub Action, only)
       uses: $/
       if: matrix.test_select == ''
       with:
-        package-dir: sample_proj
+        package: sample_dist/spam-0.1.0.tar.gz
         output-dir: wheelhouse_only
         only: cp313-${{ runner.os == 'Linux' && (runner.arch == 'ARM64' && 'manylinux_aarch64' || 'manylinux_x86_64') || (runner.os == 'Windows' && 'win_amd64' || 'macosx_x86_64') }}
 
