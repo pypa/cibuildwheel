@@ -27,6 +27,9 @@ class BuildFrontendConfig:
     @classmethod
     def from_config_string(cls, config_string: str) -> Self:
         config_dict = parse_key_value_string(config_string, ["name"], ["args"])
+        if not config_dict.get("name"):
+            msg = f"Missing build frontend name in {config_string!r}"
+            raise ValueError(msg)
         name = " ".join(config_dict["name"])
         if name not in get_args(BuildFrontendName):
             names = ", ".join(repr(n) for n in get_args(BuildFrontendName))
