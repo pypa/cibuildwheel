@@ -1,6 +1,8 @@
 import os
 import sys
 
+import pytest
+
 from cibuildwheel.environment import parse_environment
 
 # this command is equivalent to Unix 'echo', but works on Windows too
@@ -107,3 +109,27 @@ def test_awkwardly_quoted_variable() -> None:
     assert (
         environment_dict.get("VAR2") == "somethinglike thisbut waitbut waitthere is moreand more!"
     )
+
+
+def test_brace_parameter_expansion() -> None:
+    environment_recipe = parse_environment("VAR=${X}")
+
+    environment_dict = environment_recipe.as_dictionary(prev_environment={"X": "y"})
+
+    assert environment_dict == {"X": "y", "VAR": "y"}
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        pytest.param("${X:-default}", id="default-operator"),
+        pytest.param("${é}", id="non-ascii-latin"),
+        pytest.param("${变量}", id="non-ascii-cjk"),
+        pytest.param("${10}", id="positional-beyond-9"),
+    ],
+)
+def test_unsupported_parameter_expansion_is_rejected(value: str) -> None:
+    environment_recipe = parse_environment(f'VAR="{value}"')
+
+    with pytest.raises(ValueError, match="Unsupported parameter expansion"):
+        environment_recipe.as_dictionary(prev_environment={"X": "y"})
