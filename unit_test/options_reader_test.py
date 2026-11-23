@@ -9,6 +9,7 @@ import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.options import (
+    DISALLOWED_OPTIONS,
     EnvironmentFormat,
     InheritRule,
     ListFormat,
@@ -193,6 +194,24 @@ repair-wheel-command = "repair-project-global"
     )
     options_reader = OptionsReader(pyproject_toml, platform=cast("Any", platform), env={})
     assert options_reader.get("repair-wheel-command") == f"repair-project-{platform}"
+
+
+@pytest.mark.parametrize(
+    "platform",
+    ["macos", "windows", "android", "ios", "pyodide"],
+)
+def test_disallowed_linux_image_options_on_non_linux(
+    tmp_path: Path, platform: PlatformName
+) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        f"""
+[tool.cibuildwheel.{platform}]
+manylinux-x86_64-image = "manylinux_2_28"
+"""
+    )
+    with pytest.raises(OptionsReaderError, match="'manylinux-x86_64-image' is not allowed in"):
+        OptionsReader(pyproject_toml, platform=platform, env={}, disallow=DISALLOWED_OPTIONS)
 
 
 def test_unexpected_key(tmp_path: Path) -> None:
