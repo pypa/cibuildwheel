@@ -78,9 +78,9 @@ Commit this file, enable building of your repo on Azure Pipelines, and push.
 
 Wheels will be stored for you and available through the Pipelines interface. For more info on this file, check out the [docs](https://docs.microsoft.com/en-us/azure/devops/pipelines/yaml-schema).
 
-### CircleCI [linux/mac] {: #circleci}
+### CircleCI [linux/mac/windows] {: #circleci}
 
-To build Linux and Mac wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
+To build Linux, Mac, and Windows wheels on CircleCI, create a `.circleci/config.yml` file in your repo,
 
 > .circleci/config.yml
 

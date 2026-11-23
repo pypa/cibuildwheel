@@ -49,6 +49,20 @@ jobs:
       - store_artifacts:
           path: wheelhouse/
 
+  windows-wheels:
+    machine:
+      image: windows-default
+    resource_class: windows.medium
+    steps:
+      - checkout
+      - run:
+          name: Build the Windows wheels.
+          command: |
+            pip install cibuildwheel==4.3.5
+            cibuildwheel --output-dir wheelhouse
+      - store_artifacts:
+          path: wheelhouse/
+
 workflows:
   version: 2
   all-tests:
@@ -56,3 +70,4 @@ workflows:
       - linux-wheels
       - linux-aarch64-wheels
       - osx-wheels
+      - windows-wheels
