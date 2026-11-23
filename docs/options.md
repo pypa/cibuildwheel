@@ -50,6 +50,8 @@ This option can also be set using the [command-line option](#command-line) `--pl
 
 > Choose the Python versions to build
 
+This option does not support overrides or platform-specific variants; it must be set at `[tool.cibuildwheel]` or via environment variables.
+
 List of builds to build and skip. Each build has an identifier like `cp314-manylinux_x86_64` or `cp313-macosx_x86_64` - you can list specific ones to build and cibuildwheel will only build those, and/or list ones to skip and cibuildwheel won't try to build them.
 
 When both options are specified, both conditions are applied and only builds with a tag that matches `build` and does not match `skip` will be built.

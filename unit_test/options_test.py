@@ -569,6 +569,37 @@ def test_build_frontend_platform_mismatch(
         options.build_options(identifier=None)
 
 
+@pytest.mark.parametrize(
+    "global_option",
+    ["build", "skip", "test-skip", "enable", "archs"],
+)
+def test_override_global_only_option_warning(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], global_option: str
+) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            f"""\
+            [[tool.cibuildwheel.overrides]]
+            select = "cp39*"
+            {global_option} = "some-val"
+            """
+        ),
+        encoding="utf-8",
+    )
+
+    Options(platform="linux", command_line_arguments=args, env={})
+    captured = capsys.readouterr()
+    assert (
+        f"Option '{global_option}' cannot be set in an overrides section "
+        "(it is a global option and does not support overrides). "
+        "Set it at [tool.cibuildwheel] instead."
+    ) in captured.err
+
+
 def test_override_inherit_environment(tmp_path: Path) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path

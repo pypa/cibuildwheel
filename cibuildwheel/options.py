@@ -212,6 +212,7 @@ class Override:
 
 MANYLINUX_OPTIONS = {f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS}
 MUSLLINUX_OPTIONS = {f"musllinux-{build_platform}-image" for build_platform in MUSLLINUX_ARCHS}
+GLOBAL_ONLY_OPTIONS = {"archs", "build", "enable", "skip", "test-skip"}
 DISALLOWED_OPTIONS = {
     "linux": {"dependency-versions"},
     "macos": MANYLINUX_OPTIONS | MUSLLINUX_OPTIONS,
@@ -639,6 +640,15 @@ class OptionsReader:
 
                 parsed_inherit = parse_inherit(inherit)
                 self._validate_inherit_options(parsed_inherit)
+
+                for option_name in config_override:
+                    if option_name in GLOBAL_ONLY_OPTIONS:
+                        log.warning(
+                            f"Option {option_name!r} cannot be set in an overrides section "
+                            "(it is a global option and does not support overrides). "
+                            "Set it at [tool.cibuildwheel] instead."
+                        )
+
                 overrides.append(Override(select, config_override, parsed_inherit))
 
         return overrides

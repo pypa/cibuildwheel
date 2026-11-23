@@ -110,9 +110,12 @@ A few of the options below have special handling in overrides. A different
 overridden on macOS or Windows.  Overriding the image on linux will also
 trigger new containers, one per image.
 
-!!! note "Some commands are not supported"
+!!! note "Global-only options are not supported in overrides"
 
-    The ``output-dir``, ``build``, ``skip``, ``test_skip`` selectors, and architectures cannot be overridden.
+    Global options that control build selection or output cannot be overridden:
+    `output-dir`, `build`, `skip`, `test-skip`, `enable`, and `archs`.
+    Setting these options in an overrides section will be ignored with a warning;
+    specify them at `[tool.cibuildwheel]` or on the command line instead.
 
 By default, values in an override replace values from the main configuration or
 earlier overrides. You can instead [extend a list or table option](#inherit) by
