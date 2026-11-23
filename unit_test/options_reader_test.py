@@ -9,6 +9,7 @@ import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.options import (
+    DISALLOWED_OPTIONS,
     EnvironmentFormat,
     InheritRule,
     ListFormat,
@@ -268,6 +269,19 @@ manylinux-x86_64-image = "manylinux1"
     OptionsReader(pyproject_toml, platform="linux", disallow=disallow, env={})
     with pytest.raises(OptionsReaderError):
         OptionsReader(pyproject_toml, platform="windows", disallow=disallow, env={})
+
+
+@pytest.mark.parametrize("platform", ["macos", "windows", "android", "ios", "pyodide"], ids=str)
+def test_disallowed_linux_image_options(platform: PlatformName, tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        f"""
+[tool.cibuildwheel.{platform}]
+manylinux-x86_64-image = "manylinux1"
+"""
+    )
+    with pytest.raises(OptionsReaderError):
+        OptionsReader(pyproject_toml, platform=platform, disallow=DISALLOWED_OPTIONS, env={})
 
 
 def test_environment_override_empty(tmp_path: Path) -> None:
