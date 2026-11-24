@@ -1485,6 +1485,13 @@ Command to run tests after the build. The wheel will be installed
 automatically and available for import from the tests. If this variable is not
 set, your wheel will not be installed after building.
 
+On Linux, the test virtual environment is created inside the build container.
+It isolates Python packages, but system libraries installed in that container
+remain visible. A test can therefore pass by loading a library from the build
+image even if the repaired wheel does not contain that library. To check this
+case, install and smoke-test the built wheel in a separate environment that
+matches its target platform and does not contain the build-only libraries.
+
 To ensure your tests import the wheel (instead of your source tree),
 **tests are executed from a temporary working directory**, outside of your source
 tree. To access your test code, you have a couple of options:
