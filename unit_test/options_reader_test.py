@@ -478,6 +478,19 @@ test-command = "pyproject-override"
         OptionsReader(config_file_path=pyproject_toml, platform=cast("Any", platform), env={})
 
 
+def test_missing_config_file_is_a_configuration_error(tmp_path: Path) -> None:
+    with pytest.raises(OptionsReaderError, match="Could not read config file"):
+        OptionsReader(config_file_path=tmp_path / "missing.toml", platform="linux", env={})
+
+
+def test_invalid_toml_is_a_configuration_error(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text("x = [1,\n")
+
+    with pytest.raises(OptionsReaderError, match="Invalid TOML in"):
+        OptionsReader(config_file_path=pyproject_toml, platform="linux", env={})
+
+
 @pytest.mark.parametrize("select", ["", 'select = ""', "select = []"])
 def test_overrides_empty_select(tmp_path: Path, select: str) -> None:
     pyproject_toml = tmp_path / "pyproject.toml"
