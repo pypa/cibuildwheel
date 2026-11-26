@@ -77,6 +77,13 @@ jobs:
       condition: and(eq(variables['imageName'], 'ubuntu-latest'), eq(variables['testSelect'], 'native'))
       displayName: 'Install binfmt on Linux'
 
+    - bash: |
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/.ghcup /opt/hostedtoolcache/CodeQL
+        sudo docker image prune -af 2>/dev/null || true
+        df -h /
+      condition: and(eq(variables['imageName'], 'ubuntu-latest'), eq(variables['testSelect'], 'native'))
+      displayName: 'Free runner disk space before the test suite'
+
     - bash: python -m pip install -U pip && python -m pip install -e. --group test
       displayName: 'Update pip and install cibuildwheel --group test'
 
