@@ -5,6 +5,8 @@ import textwrap
 
 import pytest
 
+from cibuildwheel.venv import find_uv
+
 from . import test_projects, utils
 
 TYPE_CHECKING = False
@@ -42,7 +44,10 @@ project_with_before_build_asserts = test_projects.new_c_project(
 )
 
 
-def test(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    "frontend", ["pyodide-build"] if utils.get_platform() == "pyodide" else ["build", "uv"]
+)
+def test(tmp_path: Path, frontend: str) -> None:
     project_dir = tmp_path / "project"
     project_with_before_build_asserts.generate(project_dir)
 
@@ -50,8 +55,13 @@ def test(tmp_path: Path) -> None:
         """python -c "import pathlib, sys; pathlib.Path('{project}/pythonversion_bb.txt').write_text(sys.version)" && """
         f'''python -c "import pathlib, sys; pathlib.Path('{{project}}/pythonprefix_bb.txt').write_text({SYS_PREFIX})"'''
     )
-    frontend = "pyodide-build" if utils.get_platform() == "pyodide" else "build"
-    if utils.get_platform() != "pyodide":
+    single_python = frontend == "uv"
+    if frontend == "uv":
+        if find_uv() is None:
+            pytest.skip("uv is not installed")
+        before_build = f"uv pip install setuptools && {before_build}"
+        frontend = "uv;args: --no-build-isolation"
+    elif frontend == "build":
         before_build = f"python -m pip install setuptools && {before_build}"
         frontend = f"{frontend};args: --no-isolation"
 
@@ -64,10 +74,11 @@ def test(tmp_path: Path) -> None:
             "CIBW_BEFORE_BUILD": before_build,
             "CIBW_BUILD_FRONTEND": frontend,
         },
+        single_python=single_python,
     )
 
     # also check that we got the right wheels
-    expected_wheels = utils.expected_wheels("spam", "0.1.0")
+    expected_wheels = utils.expected_wheels("spam", "0.1.0", single_python=single_python)
     assert set(actual_wheels) == set(expected_wheels)
 
 
