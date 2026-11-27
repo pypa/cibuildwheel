@@ -3,6 +3,7 @@ from __future__ import annotations
 __lazy_modules__ = {"bashlex", "subprocess"}
 
 import dataclasses
+import re
 import subprocess
 
 import bashlex
@@ -18,6 +19,9 @@ if TYPE_CHECKING:
 
     # a function that takes a command and the environment, and returns the result
     EnvironmentExecutor = Callable[[list[str], dict[str, str]], str]
+
+# A plain name, or a single-character special parameter ($1, $@, $?)
+PARAMETER_NAME_REGEX = re.compile(r"[A-Za-z_][A-Za-z0-9_]*|[0-9@*#?!$-]")
 
 
 def local_environment_executor(command: Sequence[str], env: Mapping[str, str]) -> str:
@@ -124,4 +128,9 @@ def evaluate_nodes_as_simple_command(
 
 
 def evaluate_parameter_node(node: bashlex.ast.node, context: NodeExecutionContext) -> str:
+    # bashlex gives ${VAR:-default} as the name "VAR:-default"; reject it instead
+    # of returning "".
+    if not PARAMETER_NAME_REGEX.fullmatch(node.value):
+        msg = f"Unsupported parameter expansion: ${{{node.value}}}"
+        raise ValueError(msg)
     return context.environment.get(node.value, "")
