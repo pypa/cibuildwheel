@@ -16,9 +16,9 @@ build==1.6.1
     # via -r cibuildwheel/resources/constraints.in
 cattrs==26.2.1
     # via requests-cache
-certifi==2026.10.23
+certifi==2026.11.20
     # via requests
-charset-normalizer==3.5.2
+charset-normalizer==3.5.3
     # via requests
 delocate==0.13.0
     # via -r cibuildwheel/resources/constraints.in
@@ -26,7 +26,7 @@ delvewheel==1.13.2
     # via -r cibuildwheel/resources/constraints.in
 distlib==0.4.4
     # via virtualenv
-filelock==4.2.12
+filelock==4.3.0
     # via
     #   python-discovery
     #   virtualenv
@@ -59,7 +59,7 @@ pip==26.3
     # via -r cibuildwheel/resources/constraints.in
 pkgconf==3.0.7.post0
     # via -r cibuildwheel/resources/constraints.in
-platformdirs==4.14.7
+platformdirs==4.14.8
     # via
     #   requests-cache
     #   virtualenv
@@ -85,11 +85,11 @@ typing-extensions==4.16.0
     # via
     #   cattrs
     #   delocate
-url-normalize==3.1.0
+url-normalize==4.0.0
     # via requests-cache
 urllib3==2.8.0
     # via
     #   requests
     #   requests-cache
-virtualenv==21.15.9
+virtualenv==21.15.12
     # via -r cibuildwheel/resources/constraints.in
