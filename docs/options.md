@@ -649,6 +649,24 @@ Platform-specific environment variables are also available:<br/>
 
     In configuration files, you can use a [TOML][] table instead of a raw string as shown above.
 
+    In a TOML table, each value is interpreted as the contents of a Bash double-quoted string.
+    Spaces are preserved, and `$NAME` and `$(command)` are expanded.
+    For literal double quotes, dollar signs, and backslashes, use Bash escaping (`\"`, `\$`, and `\\`).
+
+    ```toml
+    [tool.cibuildwheel.environment]
+    # Include literal double quotes: "quoted text"
+    QUOTES = "\\\"quoted text\\\""
+
+    # Include a literal dollar sign, without expanding the variable
+    DOLLAR = "\\$NOT_EXPANDED"
+
+    # End the value with a literal backslash
+    TRAILING = "ends with a backslash \\\\"
+    ```
+
+    The backslashes are doubled in these examples because TOML double-quoted strings also use backslash escaping.
+
 [TOML]: https://toml.io/en/
 
 !!! tab examples "Environment variables"

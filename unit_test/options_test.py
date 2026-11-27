@@ -247,23 +247,14 @@ def test_passthrough_evil(
     assert parsed_environment.as_dictionary(prev_environment={}) == {"ENV_VAR": env_var_value}
 
 
-xfail_env_parse = pytest.mark.xfail(
-    raises=errors.ConfigurationError,
-    reason="until we can figure out the right way to quote these values",
-)
-
-
 @pytest.mark.parametrize(
     "env_var_value",
     [
         "normal value",
-        pytest.param('"value wrapped in quotes"', marks=[xfail_env_parse]),
-        pytest.param('an unclosed double-quote: "', marks=[xfail_env_parse]),
         "string\nwith\ncarriage\nreturns\n",
-        pytest.param("a trailing backslash \\", marks=[xfail_env_parse]),
     ],
 )
-def test_toml_environment_evil(tmp_path: Path, env_var_value: str) -> None:
+def test_toml_environment_special_characters(tmp_path: Path, env_var_value: str) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
 
@@ -282,6 +273,32 @@ def test_toml_environment_evil(tmp_path: Path, env_var_value: str) -> None:
 
 
 @pytest.mark.parametrize(
+    "env_var_value",
+    [
+        '"value wrapped in quotes"',
+        'an unclosed double-quote: "',
+        "a trailing backslash \\",
+    ],
+)
+def test_toml_environment_parse_error(tmp_path: Path, env_var_value: str) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    tmp_path.joinpath("pyproject.toml").write_text(
+        textwrap.dedent(
+            f"""\
+            [tool.cibuildwheel.environment]
+            EXAMPLE='''{env_var_value}'''
+            """
+        )
+    )
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+    with pytest.raises(errors.ConfigurationError, match="Malformed environment option"):
+        options.build_options(identifier=None)
+
+
+@pytest.mark.parametrize(
     ("toml_assignment", "result_value"),
     [
         ('TEST_VAR="simple_value"', "simple_value"),
@@ -294,9 +311,15 @@ def test_toml_environment_evil(tmp_path: Path, env_var_value: str) -> None:
         ('TEST_VAR="before:$PARAM:after"', "before:spam:after"),
         # env var extension with spaces
         ('TEST_VAR="before $PARAM after"', "before spam after"),
-        # literal $ - this test is just for reference, I'm not sure if this
-        # syntax will work if we change the TOML quoting behaviour
+        # literal $
         (r'TEST_VAR="before\\$after"', "before$after"),
+        (r'TEST_VAR="\\$PARAM"', "$PARAM"),
+        # literal quotes and backslashes need both TOML and Bash escaping
+        (r'TEST_VAR="\\\"value wrapped in quotes\\\""', '"value wrapped in quotes"'),
+        (r'TEST_VAR="an unclosed double-quote: \\\""', 'an unclosed double-quote: "'),
+        (r'TEST_VAR="a trailing backslash \\\\"', "a trailing backslash \\"),
+        # unescaped Bash quotes are interpreted, not preserved
+        ("TEST_VAR='a\"b\"c'", "abc"),
     ],
 )
 def test_toml_environment_quoting(tmp_path: Path, toml_assignment: str, result_value: str) -> None:
