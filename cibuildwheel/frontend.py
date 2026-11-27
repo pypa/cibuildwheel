@@ -81,17 +81,12 @@ def prepare_config_settings(
 ) -> ConfigSettings:
     prepared: ConfigSettings = {}
     for key, value in config_settings.items():
-        prepared_key = prepare_command(key, project=project, package=package)
-        values = [value] if isinstance(value, str) else value
-        for item in values:
-            prepared_item = prepare_command(item, project=project, package=package)
-            existing = prepared.get(prepared_key)
-            if existing is None:
-                prepared[prepared_key] = prepared_item
-            elif isinstance(existing, str):
-                prepared[prepared_key] = [existing, prepared_item]
-            else:
-                existing.append(prepared_item)
+        if isinstance(value, str):
+            prepared[key] = prepare_command(value, project=project, package=package)
+        else:
+            prepared[key] = [
+                prepare_command(item, project=project, package=package) for item in value
+            ]
     return prepared
 
 
