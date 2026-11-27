@@ -42,7 +42,7 @@ from packaging.specifiers import SpecifierSet
 from cibuildwheel import errors
 from cibuildwheel.architecture import Architecture
 from cibuildwheel.environment import EnvironmentParseError, ParsedEnvironment, parse_environment
-from cibuildwheel.frontend import BuildFrontendConfig, BuildFrontendName
+from cibuildwheel.frontend import BuildFrontendConfig, BuildFrontendName, parse_config_settings
 from cibuildwheel.logger import log
 from cibuildwheel.oci_container import OCIContainerEngineConfig
 from cibuildwheel.projectfiles import get_requires_python_str, resolve_dependency_groups
@@ -62,6 +62,8 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable, Generator, Iterable, Set
     from typing import Any, Final, Literal, Self
+
+    from cibuildwheel.frontend import ConfigSettings
 
 MANYLINUX_ARCHS: Final[tuple[str, ...]] = (
     "x86_64",
@@ -166,7 +168,7 @@ class BuildOptions:
     audit_command: list[str]
     build_verbosity: int
     build_frontend: BuildFrontendConfig
-    config_settings: str
+    config_settings: ConfigSettings
     container_engine: OCIContainerEngineConfig
     pyodide_version: str | None
 
@@ -284,10 +286,17 @@ class ShlexTableFormat(OptionFormat):
     replaced by keys in after.
     """
 
-    def __init__(self, sep: str = " ", pair_sep: str = "=", allow_merge: bool = True) -> None:
+    def __init__(
+        self,
+        sep: str = " ",
+        pair_sep: str = "=",
+        allow_merge: bool = True,
+        default_value: str | None = None,
+    ) -> None:
         self.sep = sep
         self.pair_sep = pair_sep
         self.allow_merge = allow_merge
+        self.default_value = default_value
 
     def format_table(self, table: SettingTable) -> str:
         assignments: list[tuple[str, str]] = []
@@ -327,8 +336,10 @@ class ShlexTableFormat(OptionFormat):
             key, sep, value = assignment_str.partition(self.pair_sep)
 
             if not sep:
-                msg = f"malformed option with value {assignment_str!r}"
-                raise OptionsReaderError(msg)
+                if self.default_value is None:
+                    msg = f"malformed option with value {assignment_str!r}"
+                    raise OptionsReaderError(msg)
+                value = self.default_value
 
             assignments.append((key, value))
 
@@ -914,9 +925,15 @@ class Options:
             repair_command = self.reader.get(
                 "repair-wheel-command", option_format=ListFormat(sep=" && ")
             )
-            config_settings = self.reader.get(
-                "config-settings", option_format=ShlexTableFormat(sep=" ", pair_sep="=")
+            config_settings_str = self.reader.get(
+                "config-settings",
+                option_format=ShlexTableFormat(sep=" ", pair_sep="=", default_value=""),
             )
+            try:
+                config_settings = parse_config_settings(config_settings_str)
+            except ValueError as e:
+                msg = f"Malformed config-settings option {config_settings_str!r}. {e}"
+                raise errors.ConfigurationError(msg) from e
 
             test_command = self.reader.get("test-command", option_format=ListFormat(sep=" && "))
             before_test = self.reader.get("before-test", option_format=ListFormat(sep=" && "))

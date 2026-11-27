@@ -547,9 +547,10 @@ optional `args` option.
 > Specify config-settings for the build backend.
 
 Specify config settings for the build backend. Each space-separated item is
-passed via `--config-setting` (or `-C`). Items without `=` are normalized to
-`KEY=` so valueless flags work across all frontends, and repeated keys or TOML
-arrays pass multiple values for that key.
+parsed into a key-value mapping (shell-quoted values with spaces are supported)
+and passed to the build frontend via `-C`. Items without `=` are normalized to
+an empty string value (`KEY=`) so valueless flags work across all frontends,
+and repeated keys or TOML arrays pass multiple values for that key.
 
 You can use the `{project}` or `{package}` placeholders in `config-settings`
 to refer to the project root or package being built, respectively.
