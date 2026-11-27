@@ -97,15 +97,23 @@ def cibuildwheel_get_build_identifiers(
     return cmd_output.strip().split("\n")
 
 
-def _update_pip_cache_dir(env: dict[str, str]) -> None:
-    # Fix for pip concurrency bug https://github.com/pypa/pip/issues/11340
-    # See https://github.com/pypa/cibuildwheel/issues/1254 for discussion.
+def _update_cache_dirs(env: dict[str, str]) -> None:
     if get_platform() == "linux":
         return
-    if "PIP_CACHE_DIR" in env:
-        return
     worker_id = os.environ.get("PYTEST_XDIST_WORKER")
-    if worker_id is None or worker_id == "gw0":
+    if worker_id is None:
+        return
+
+    # Isolate virtualenv's wheel cache on Windows to avoid concurrent replacements (#3063).
+    if get_platform() == "windows":
+        env.setdefault(
+            "VIRTUALENV_OVERRIDE_APP_DATA",
+            str(CIBW_CACHE_PATH / "test_cache" / f"virtualenv_app_data_{worker_id}"),
+        )
+
+    # Fix for pip concurrency bug https://github.com/pypa/pip/issues/11340
+    # See https://github.com/pypa/cibuildwheel/issues/1254 for discussion.
+    if "PIP_CACHE_DIR" in env or worker_id == "gw0":
         return
     pip_cache_dir = CIBW_CACHE_PATH / "test_cache" / f"pip_cache_dir_{worker_id}"
     env["PIP_CACHE_DIR"] = str(pip_cache_dir)
@@ -146,7 +154,7 @@ def cibuildwheel_run(
     if add_env is not None:
         env.update(add_env)
 
-    _update_pip_cache_dir(env)
+    _update_cache_dirs(env)
 
     if single_python:
         env["CIBW_BUILD"] = "cp{}{}-*".format(*SINGLE_PYTHON_VERSION)
