@@ -580,6 +580,8 @@ def test_override_unknown_option_raises(tmp_path: Path) -> None:
         textwrap.dedent(
             """            [[tool.cibuildwheel.overrides]]
             select = "cp37*"
+            # "test-requirments" is a deliberate typo - an unknown option name
+            # that the validation must reject with a did-you-mean hint
             test-requirments = "pytest"
             """
         ),
