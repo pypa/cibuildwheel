@@ -15,6 +15,8 @@ from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
 from cibuildwheel.util.packaging import DependencyConstraints
 
+from ..conftest import MOCK_PACKAGE_DIR
+
 TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Mapping
@@ -683,3 +685,18 @@ def test_defaults(platform: str, intercepted_build_args: ArgsInterceptor) -> Non
         pinned_images = _get_pinned_container_images()
         default_x86_64_image = pinned_images["x86_64"][defaults["manylinux-x86_64-image"]]
         assert build_options.manylinux_images["x86_64"] == default_x86_64_image
+
+
+@pytest.mark.usefixtures("platform", "intercepted_build_args")
+@pytest.mark.parametrize("config_file_name", [None, "cibuildwheel.toml"])
+def test_config_file_in_preamble(
+    capsys: pytest.CaptureFixture[str], config_file_name: str | None
+) -> None:
+    expected = "none"
+    if config_file_name is not None:
+        MOCK_PACKAGE_DIR.joinpath(config_file_name).write_text("[tool.cibuildwheel]\n")
+        expected = str(MOCK_PACKAGE_DIR.resolve() / config_file_name)
+
+    main()
+
+    assert f"Config file: {expected}" in capsys.readouterr().out

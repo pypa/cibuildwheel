@@ -10,7 +10,7 @@ inputs:
     required: false
     default: wheelhouse
   config-file:
-    description: 'File containing the config, defaults to {package}/pyproject.toml'
+    description: 'File containing the config, defaults to the first one found of {package}/cibuildwheel.toml, {package}/.cibuildwheel.toml and {package}/pyproject.toml'
     required: false
     default: ''
   only:

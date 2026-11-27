@@ -86,6 +86,12 @@ MUSLLINUX_ARCHS: Final[tuple[str, ...]] = (
     "riscv64",
 )
 
+CONFIG_FILE_NAMES: Final[tuple[str, ...]] = (
+    "cibuildwheel.toml",
+    ".cibuildwheel.toml",
+    "pyproject.toml",
+)
+
 
 @dataclasses.dataclass(kw_only=True)
 class CommandLineArguments:
@@ -797,10 +803,10 @@ class Options:
         if args.config_file:
             return Path(format_safe(args.config_file, package=args.package_dir))
 
-        # return pyproject.toml, if it's available
-        pyproject_toml_path = Path(args.package_dir) / "pyproject.toml"
-        if pyproject_toml_path.exists():
-            return pyproject_toml_path
+        for filename in CONFIG_FILE_NAMES:
+            path = Path(args.package_dir) / filename
+            if path.exists():
+                return path
 
         return None
 

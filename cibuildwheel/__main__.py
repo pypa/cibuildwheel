@@ -171,9 +171,10 @@ def main_inner(global_options: GlobalOptions) -> None:
         "--config-file",
         default="",
         help="""
-            TOML config file. Default: "", meaning {package}/pyproject.toml, if
-            it exists. To refer to a project inside your project, use {package};
-            this matters if you build from an SDist.
+            TOML config file. Default: "", meaning the first one found of
+            {package}/cibuildwheel.toml, {package}/.cibuildwheel.toml and
+            {package}/pyproject.toml. To refer to a project inside your
+            project, use {package}; this matters if you build from an SDist.
         """,
     )
 
@@ -425,6 +426,8 @@ def print_preamble(platform: str, options: Options, identifiers: Sequence[str]) 
     )
 
     print(f"cibuildwheel version {cibuildwheel.__version__}\n")
+
+    print(f"Config file: {options.config_file_path or 'none'}\n")
 
     print("Build options:")
     print(f"  platform: {platform}")
