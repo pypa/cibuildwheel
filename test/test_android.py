@@ -13,6 +13,8 @@ from zipfile import ZipFile
 
 import pytest
 
+from cibuildwheel.venv import find_uv
+
 from .test_projects import new_c_project, new_meson_project
 from .utils import SETUP_PY_CA_BUNDLE_CHECK, cibuildwheel_run, expected_wheels
 
@@ -140,6 +142,20 @@ def test_frontend_bad(frontend: str, tmp_path: Path, capfd: pytest.CaptureFixtur
         f"Android requires the build frontend to be 'build' or 'uv', not '{frontend}'"
         in capfd.readouterr().err
     )
+
+
+def test_uv_python_version_file(tmp_path: Path) -> None:
+    if find_uv() is None:
+        pytest.skip("uv is required for this test")
+
+    # uv build must use the build environment's Python, not the one named in
+    # the project's .python-version.
+    project = new_c_project()
+    project.files[".python-version"] = "3.12\n"
+    project.generate(tmp_path)
+
+    wheels = cibuildwheel_run(tmp_path, add_env={**cp313_env, "CIBW_BUILD_FRONTEND": "uv"})
+    assert wheels == [f"spam-0.1.0-cp313-cp313-android_24_{native_arch.android_abi}.whl"]
 
 
 @needs_emulator
