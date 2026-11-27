@@ -569,6 +569,29 @@ def test_build_frontend_platform_mismatch(
         options.build_options(identifier=None)
 
 
+def test_override_unknown_option_raises(tmp_path: Path) -> None:
+    # an unknown option name inside an override used to be silently ignored by
+    # the cascade; it must error like an unknown top-level key does
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            """            [[tool.cibuildwheel.overrides]]
+            select = "cp37*"
+            # "test-requirments" is a deliberate typo - an unknown option name
+            # that the validation must reject with a did-you-mean hint
+            test-requirments = "pytest"
+            """
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(errors.ConfigurationError, match="Perhaps you meant 'test-requires'"):
+        Options(platform="linux", command_line_arguments=args, env={})
+
+
 def test_override_inherit_environment(tmp_path: Path) -> None:
     args = CommandLineArguments.defaults()
     args.package_dir = tmp_path
@@ -956,3 +979,25 @@ def test_xbuild_files(tmp_path: Path, definition: str, expected: dict[str, list[
 
     options = Options(platform="ios", command_line_arguments=args, env={})
     assert options.build_options(None).xbuild_files == expected
+
+
+def test_override_platform_suffixed_key_raises(tmp_path: Path) -> None:
+    # the cascade reads override options by their base name only, so
+    # platform-suffixed keys can never take effect there; pin the rejection
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    pyproject_toml: Path = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent(
+            """\
+            [[tool.cibuildwheel.overrides]]
+            select = "cp37*"
+            test-command-linux = "echo hi"
+            """
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(errors.ConfigurationError, match="Perhaps you meant 'test-command'"):
+        Options(platform="linux", command_line_arguments=args, env={})
