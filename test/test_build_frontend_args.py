@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-import json
 import subprocess
-import zipfile
+import textwrap
 
 import pytest
 
@@ -63,10 +62,24 @@ def test_config_settings(tmp_path: Path, build_frontend_env: dict[str, str]) -> 
     if build_frontend_env["CIBW_BUILD_FRONTEND"] == "pyodide-build":
         pytest.skip("pyodide-build requires pyodide platform")
 
-    project = test_projects.new_custom_backend_project()
+    project = test_projects.new_custom_backend_project(
+        build_wheel_add=textwrap.dedent(
+            """
+            assert config_settings == {
+                "--with-c-extensions": "",
+                "tag": ["one", "two"],
+                "spaced": "hello world",
+                "dquote": 'say "hi"',
+                "squote": "it's ok",
+                "eq": "x=y=z",
+                "empty": "",
+                "--opt": "-val",
+            }, config_settings
+            """
+        )
+    )
     project_dir = tmp_path / "project"
     project.generate(project_dir)
-    output_dir = tmp_path / "wheelhouse"
 
     add_env = {
         **build_frontend_env,
@@ -85,22 +98,7 @@ def test_config_settings(tmp_path: Path, build_frontend_env: dict[str, str]) -> 
     }
     actual_wheels = utils.cibuildwheel_run(
         project_dir,
-        output_dir=output_dir,
         add_env=add_env,
         single_python=True,
     )
     assert actual_wheels
-
-    for wheel_name in actual_wheels:
-        with zipfile.ZipFile(output_dir / wheel_name) as zf:
-            captured = json.loads(zf.read("demo_pkg/config_settings.json").decode("utf-8"))
-        assert captured == {
-            "--with-c-extensions": "",
-            "tag": ["one", "two"],
-            "spaced": "hello world",
-            "dquote": 'say "hi"',
-            "squote": "it's ok",
-            "eq": "x=y=z",
-            "empty": "",
-            "--opt": "-val",
-        }
