@@ -283,7 +283,7 @@ def setup_python(
     dependency_constraint: Path | None,
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
-) -> tuple[Path, dict[str, str]]:
+) -> tuple[Path, str, dict[str, str]]:
     tmp.mkdir()
     implementation_id = python_configuration.identifier.split("-")[0]
     python_libs_base = None
@@ -415,7 +415,7 @@ def setup_python(
         setup_setuptools_cross_compile(tmp, python_configuration, python_libs_base, env)
         setup_rust_cross_compile(tmp, python_configuration, python_libs_base, env)
 
-    return base_python, env
+    return base_python, where_python, env
 
 
 def build(options: Options, tmp_path: Path) -> None:
@@ -459,7 +459,7 @@ def build(options: Options, tmp_path: Path) -> None:
             )
 
             # install Python
-            base_python, env = setup_python(
+            base_python, build_python, env = setup_python(
                 identifier_tmp_dir / "build",
                 config,
                 constraints_path,
@@ -542,7 +542,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         call(
                             uv_path,
                             "build",
-                            f"--python={base_python}",
+                            f"--python={build_python}",
                             build_options.package_dir,
                             "--wheel",
                             f"--out-dir={built_wheel_dir}",

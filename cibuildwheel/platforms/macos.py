@@ -262,7 +262,7 @@ def setup_python(
     dependency_constraint: Path | None,
     environment: ParsedEnvironment,
     build_frontend: BuildFrontendName,
-) -> tuple[Path, dict[str, str]]:
+) -> tuple[Path, str, dict[str, str]]:
     uv_path = find_uv()
     use_uv = build_frontend in {"build[uv]", "uv"}
 
@@ -456,7 +456,7 @@ def setup_python(
         case _:
             assert_never(build_frontend)
 
-    return base_python, env
+    return base_python, which_python, env
 
 
 def build(options: Options, tmp_path: Path) -> None:
@@ -505,7 +505,7 @@ def build(options: Options, tmp_path: Path) -> None:
                 version=config.version, tmp_dir=identifier_tmp_dir
             )
 
-            base_python, env = setup_python(
+            base_python, build_python, env = setup_python(
                 identifier_tmp_dir / "build",
                 config,
                 constraints_path,
@@ -585,7 +585,7 @@ def build(options: Options, tmp_path: Path) -> None:
                         call(
                             uv_path,
                             "build",
-                            f"--python={base_python}",
+                            f"--python={build_python}",
                             build_options.package_dir,
                             "--wheel",
                             f"--out-dir={built_wheel_dir}",
