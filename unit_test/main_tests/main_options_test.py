@@ -9,7 +9,7 @@ import pytest
 
 from cibuildwheel.__main__ import main
 from cibuildwheel.environment import ParsedEnvironment
-from cibuildwheel.frontend import _split_config_settings, parse_config_settings
+from cibuildwheel.frontend import _get_config_settings_flags
 from cibuildwheel.options import BuildOptions, _get_pinned_container_images
 from cibuildwheel.selector import BuildSelector, EnableGroup
 from cibuildwheel.util import resources
@@ -440,9 +440,12 @@ def test_config_settings(
     main()
     build_options = intercepted_build_args.args[0].build_options(identifier=None)
 
-    assert build_options.config_settings == config_settings
-
-    assert _split_config_settings(config_settings) == [
+    assert build_options.config_settings == {
+        "setting": ["value", "value2"],
+        "triplet": ["1", "2", "3"],
+        "other": "something else",
+    }
+    assert _get_config_settings_flags(build_options.config_settings) == [
         "-Csetting=value",
         "-Csetting=value2",
         "-Ctriplet=1",
@@ -450,11 +453,6 @@ def test_config_settings(
         "-Ctriplet=3",
         "-Cother=something else",
     ]
-    assert parse_config_settings(config_settings) == {
-        "setting": ["value", "value2"],
-        "triplet": ["1", "2", "3"],
-        "other": "something else",
-    }
 
 
 @pytest.mark.parametrize(

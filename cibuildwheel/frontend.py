@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from cibuildwheel.typing import PathOrStr
 
 BuildFrontendName = Literal["pip", "build", "build[uv]", "uv", "pyodide-build"]
+ConfigSettings = dict[str, str | list[str]]
 
 
 @dataclasses.dataclass(frozen=True)
@@ -66,28 +67,34 @@ def _get_verbosity_flags(level: int, frontend: BuildFrontendName) -> list[str]:
     return []
 
 
-def _split_config_settings(config_settings: str) -> list[str]:
-    config_settings_list = shlex.split(config_settings)
-    return [f"-C{setting}" for setting in config_settings_list]
+def _get_config_settings_flags(config_settings: ConfigSettings) -> list[str]:
+    flags: list[str] = []
+    for key, value in config_settings.items():
+        values = [value] if isinstance(value, str) else value
+        for item in values:
+            if key:
+                flags.append(f"-C{key}={item}")
+            else:
+                flags.extend(["-C", f"={item}"])
+    return flags
 
 
-def prepare_config_settings(config_settings: str, *, project: PathOrStr, package: PathOrStr) -> str:
-    # Substitute the {project}/{package} placeholders on each already-split
-    # token rather than on the raw string. A substituted path may contain
-    # spaces or backslashes (e.g. a Windows `{package}` path), and the result
-    # is later re-parsed with shlex.split (in _split_config_settings /
-    # parse_config_settings) — substituting on the whole string would let
-    # those characters be reinterpreted, splitting one setting into several or
-    # eating backslashes. shlex.join re-quotes each token so the round-trip is
-    # lossless.
-    settings = shlex.split(config_settings)
-    prepared = [prepare_command(setting, project=project, package=package) for setting in settings]
-    return shlex.join(prepared)
+def prepare_config_settings(
+    config_settings: ConfigSettings, *, project: PathOrStr, package: PathOrStr
+) -> ConfigSettings:
+    prepared: ConfigSettings = {}
+    for key, value in config_settings.items():
+        if isinstance(value, str):
+            prepared[key] = prepare_command(value, project=project, package=package)
+        else:
+            prepared[key] = [
+                prepare_command(item, project=project, package=package) for item in value
+            ]
+    return prepared
 
 
-# Based on build.__main__.main.
-def parse_config_settings(config_settings_str: str) -> dict[str, str | list[str]]:
-    config_settings: dict[str, str | list[str]] = {}
+def parse_config_settings(config_settings_str: str) -> ConfigSettings:
+    config_settings: ConfigSettings = {}
     for arg in shlex.split(config_settings_str):
         setting, _, value = arg.partition("=")
         existing_value = config_settings.get(setting)
@@ -102,10 +109,12 @@ def parse_config_settings(config_settings_str: str) -> dict[str, str | list[str]
 
 
 def get_build_frontend_extra_flags(
-    build_frontend: BuildFrontendConfig, verbosity_level: int, config_settings: str
+    build_frontend: BuildFrontendConfig,
+    verbosity_level: int,
+    config_settings: ConfigSettings,
 ) -> list[str]:
     return [
-        *_split_config_settings(config_settings),
+        *_get_config_settings_flags(config_settings),
         *build_frontend.args,
         *_get_verbosity_flags(verbosity_level, build_frontend.name),
     ]

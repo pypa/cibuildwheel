@@ -52,7 +52,6 @@ from cibuildwheel.architecture import Architecture, arch_synonym
 from cibuildwheel.audit import run_audit
 from cibuildwheel.frontend import (
     get_build_frontend_extra_flags,
-    parse_config_settings,
     prepare_config_settings,
 )
 from cibuildwheel.logger import log
@@ -303,12 +302,10 @@ def setup_env(
 
     requires_for_build = pb.get_requires_for_build(
         "wheel",
-        parse_config_settings(
-            prepare_config_settings(
-                build_options.config_settings,
-                project=Path.cwd(),
-                package=build_options.package_dir,
-            )
+        prepare_config_settings(
+            build_options.config_settings,
+            project=Path.cwd(),
+            package=build_options.package_dir,
         ),
     )
     if requires_for_build:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import textwrap
 
 import pytest
 
@@ -55,3 +56,49 @@ def test_build_frontend_args(
     else:
         assert "usage:" in captured.out
         assert "A simple, correct Python build frontend." in captured.out
+
+
+def test_config_settings(tmp_path: Path, build_frontend_env: dict[str, str]) -> None:
+    if build_frontend_env["CIBW_BUILD_FRONTEND"] == "pyodide-build":
+        pytest.skip("pyodide-build requires pyodide platform")
+
+    project = test_projects.new_custom_backend_project(
+        build_wheel_add=textwrap.dedent(
+            """
+            assert config_settings == {
+                "--with-c-extensions": "",
+                "tag": ["one", "two"],
+                "spaced": "hello world",
+                "dquote": 'say "hi"',
+                "squote": "it's ok",
+                "eq": "x=y=z",
+                "empty": "",
+                "--opt": "-val",
+            }, config_settings
+            """
+        )
+    )
+    project_dir = tmp_path / "project"
+    project.generate(project_dir)
+
+    add_env = {
+        **build_frontend_env,
+        "CIBW_CONFIG_SETTINGS": (
+            "--with-c-extensions "
+            "tag=one tag=two "
+            'spaced="hello world" '
+            """dquote='say "hi"' """
+            """squote="it's ok" """
+            "eq=x=y=z "
+            "empty= "
+            "--opt=-val"
+        ),
+        "CIBW_REPAIR_WHEEL_COMMAND": "",
+        "CIBW_SKIP": "*-musllinux_*",
+    }
+    actual_wheels = utils.cibuildwheel_run(
+        project_dir,
+        add_env=add_env,
+        single_python=True,
+    )
+    assert actual_wheels

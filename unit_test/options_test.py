@@ -2,18 +2,20 @@ from __future__ import annotations
 
 import os
 import platform as platform_module
+import shlex
 import textwrap
 import unittest.mock
 from pathlib import Path
 from typing import Literal
 
+import build.__main__ as build_main
 import pytest
 
 from cibuildwheel import errors
 from cibuildwheel.bashlex_eval import local_environment_executor
 from cibuildwheel.frontend import (
     BuildFrontendConfig,
-    _split_config_settings,
+    _get_config_settings_flags,
     get_build_frontend_extra_flags,
     parse_config_settings,
     prepare_config_settings,
@@ -40,6 +42,7 @@ TYPE_CHECKING = False
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
+    from cibuildwheel.frontend import ConfigSettings
     from cibuildwheel.typing import PlatformName
 
 PYPROJECT_1 = """
@@ -763,23 +766,23 @@ def test_deprecated_image(
 @pytest.mark.parametrize(
     ("frontend", "verbosity", "result"),
     [
-        ("pip", 3, ["-Ca", "-Cb", "-1", "-vvv"]),
-        ("pip", 2, ["-Ca", "-Cb", "-1", "-vv"]),
-        ("pip", -1, ["-Ca", "-Cb", "-1", "-q"]),
-        ("uv", -1, ["-Ca", "-Cb", "-1", "-q"]),
-        ("build", -1, ["-Ca", "-Cb", "-1", "-q"]),
-        ("build[uv]", -1, ["-Ca", "-Cb", "-1", "-q"]),
-        ("build", 0, ["-Ca", "-Cb", "-1"]),
-        ("build", 1, ["-Ca", "-Cb", "-1"]),
-        ("build", 2, ["-Ca", "-Cb", "-1", "-v"]),
-        ("build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
-        ("build[uv]", 3, ["-Ca", "-Cb", "-1", "-vv"]),
-        ("uv", 3, ["-Ca", "-Cb", "-1", "-vv"]),
-        ("pyodide-build", -1, ["-Ca", "-Cb", "-1"]),
-        ("pyodide-build", 0, ["-Ca", "-Cb", "-1"]),
-        ("pyodide-build", 1, ["-Ca", "-Cb", "-1", "-v"]),
-        ("pyodide-build", 2, ["-Ca", "-Cb", "-1", "-vv"]),
-        ("pyodide-build", 3, ["-Ca", "-Cb", "-1", "-vv"]),
+        ("pip", 3, ["-Ca=", "-Cb=", "-1", "-vvv"]),
+        ("pip", 2, ["-Ca=", "-Cb=", "-1", "-vv"]),
+        ("pip", -1, ["-Ca=", "-Cb=", "-1", "-q"]),
+        ("uv", -1, ["-Ca=", "-Cb=", "-1", "-q"]),
+        ("build", -1, ["-Ca=", "-Cb=", "-1", "-q"]),
+        ("build[uv]", -1, ["-Ca=", "-Cb=", "-1", "-q"]),
+        ("build", 0, ["-Ca=", "-Cb=", "-1"]),
+        ("build", 1, ["-Ca=", "-Cb=", "-1"]),
+        ("build", 2, ["-Ca=", "-Cb=", "-1", "-v"]),
+        ("build", 3, ["-Ca=", "-Cb=", "-1", "-vv"]),
+        ("build[uv]", 3, ["-Ca=", "-Cb=", "-1", "-vv"]),
+        ("uv", 3, ["-Ca=", "-Cb=", "-1", "-vv"]),
+        ("pyodide-build", -1, ["-Ca=", "-Cb=", "-1"]),
+        ("pyodide-build", 0, ["-Ca=", "-Cb=", "-1"]),
+        ("pyodide-build", 1, ["-Ca=", "-Cb=", "-1", "-v"]),
+        ("pyodide-build", 2, ["-Ca=", "-Cb=", "-1", "-vv"]),
+        ("pyodide-build", 3, ["-Ca=", "-Cb=", "-1", "-vv"]),
     ],
 )
 def test_get_build_frontend_extra_flags(
@@ -792,7 +795,7 @@ def test_get_build_frontend_extra_flags(
     monkeypatch.setattr(Logger, "warning", mock_warning)
     build_frontend = BuildFrontendConfig(frontend, ["-1"])
     args = get_build_frontend_extra_flags(
-        build_frontend=build_frontend, verbosity_level=verbosity, config_settings="a b"
+        build_frontend=build_frontend, verbosity_level=verbosity, config_settings={"a": "", "b": ""}
     )
 
     assert args == result
@@ -803,16 +806,20 @@ def test_get_build_frontend_extra_flags(
     ("config_settings", "expected"),
     [
         (
-            "setup-args=--cross-file={project}/meson_cross_files/windows-386.ini",
-            "setup-args=--cross-file=C:/project/meson_cross_files/windows-386.ini",
+            {"setup-args": "--cross-file={project}/meson_cross_files/windows-386.ini"},
+            {"setup-args": "--cross-file=C:/project/meson_cross_files/windows-386.ini"},
         ),
         (
-            "setup-args=--cross-file={package}/meson_cross_files/windows-386.ini",
-            "setup-args=--cross-file=C:/project/pkg/meson_cross_files/windows-386.ini",
+            {"setup-args": "--cross-file={package}/meson_cross_files/windows-386.ini"},
+            {"setup-args": "--cross-file=C:/project/pkg/meson_cross_files/windows-386.ini"},
+        ),
+        (
+            {"setup-args": ["--cross-file={package}/a.ini", "--libdir={project}/lib"]},
+            {"setup-args": ["--cross-file=C:/project/pkg/a.ini", "--libdir=C:/project/lib"]},
         ),
     ],
 )
-def test_prepare_config_settings(config_settings: str, expected: str) -> None:
+def test_prepare_config_settings(config_settings: ConfigSettings, expected: ConfigSettings) -> None:
     assert (
         prepare_config_settings(config_settings, project="C:/project", package="C:/project/pkg")
         == expected
@@ -827,19 +834,219 @@ def test_prepare_config_settings(config_settings: str, expected: str) -> None:
     ],
 )
 def test_prepare_config_settings_special_chars(project: str, package: str) -> None:
-    # Paths with spaces or backslashes must survive the round-trip through the
-    # downstream shlex.split intact (regression test for the {package}/{project}
-    # substitution being mangled by re-parsing).
-    config_settings = "setup-args=--cross-file={package}/cross.ini other-setting={project}"
+    config_settings = parse_config_settings(
+        "setup-args=--cross-file={package}/cross.ini other-setting={project}"
+    )
     prepared = prepare_config_settings(config_settings, project=project, package=package)
-    assert _split_config_settings(prepared) == [
-        f"-Csetup-args=--cross-file={package}/cross.ini",
-        f"-Cother-setting={project}",
-    ]
-    assert parse_config_settings(prepared) == {
+    assert prepared == {
         "setup-args": f"--cross-file={package}/cross.ini",
         "other-setting": project,
     }
+    assert _get_config_settings_flags(prepared) == [
+        f"-Csetup-args=--cross-file={package}/cross.ini",
+        f"-Cother-setting={project}",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("config_settings_str", "expected_parsed", "expected_flags"),
+    [
+        ("", {}, []),
+        (
+            "--with-c-extensions",
+            {"--with-c-extensions": ""},
+            ["-C--with-c-extensions="],
+        ),
+        (
+            "--with-c-extensions --with-c-extensions",
+            {"--with-c-extensions": ["", ""]},
+            ["-C--with-c-extensions=", "-C--with-c-extensions="],
+        ),
+        (
+            "--with-c-extensions tag=one tag=two",
+            {"--with-c-extensions": "", "tag": ["one", "two"]},
+            ["-C--with-c-extensions=", "-Ctag=one", "-Ctag=two"],
+        ),
+        (
+            "flag= bare-key= another-flag",
+            {"flag": "", "bare-key": "", "another-flag": ""},
+            ["-Cflag=", "-Cbare-key=", "-Canother-flag="],
+        ),
+        (
+            'setup-args=-Dfoo=bar setup-args="--vsenv" --pure',
+            {"setup-args": ["-Dfoo=bar", "--vsenv"], "--pure": ""},
+            ["-Csetup-args=-Dfoo=bar", "-Csetup-args=--vsenv", "-C--pure="],
+        ),
+        (
+            'spaced="hello world" dquote=\'say "hi"\' squote="it\'s ok" eq=x=y=z key==val',
+            {
+                "spaced": "hello world",
+                "dquote": 'say "hi"',
+                "squote": "it's ok",
+                "eq": "x=y=z",
+                "key": "=val",
+            },
+            [
+                "-Cspaced=hello world",
+                '-Cdquote=say "hi"',
+                "-Csquote=it's ok",
+                "-Ceq=x=y=z",
+                "-Ckey==val",
+            ],
+        ),
+        (
+            '"my key"="my val" -=val --=val -a=1 --opt=-val',
+            {"my key": "my val", "-": "val", "--": "val", "-a": "1", "--opt": "-val"},
+            ["-Cmy key=my val", "-C-=val", "-C--=val", "-C-a=1", "-C--opt=-val"],
+        ),
+        (
+            r"""tag=one other=val tag=two winpath='C:\Users\John Doe\cross.ini' json='{"k": "a=b"}'""",
+            {
+                "tag": ["one", "two"],
+                "other": "val",
+                "winpath": R"C:\Users\John Doe\cross.ini",
+                "json": '{"k": "a=b"}',
+            },
+            [
+                "-Ctag=one",
+                "-Ctag=two",
+                "-Cother=val",
+                R"-Cwinpath=C:\Users\John Doe\cross.ini",
+                '-Cjson={"k": "a=b"}',
+            ],
+        ),
+        (
+            "=onlyval",
+            {"": "onlyval"},
+            ["-C", "=onlyval"],
+        ),
+        (
+            '""',
+            {"": ""},
+            ["-C", "="],
+        ),
+    ],
+)
+def test_parse_and_format_config_settings(
+    config_settings_str: str,
+    expected_parsed: ConfigSettings,
+    expected_flags: list[str],
+) -> None:
+    parsed = parse_config_settings(config_settings_str)
+    assert parsed == expected_parsed
+    assert _get_config_settings_flags(parsed) == expected_flags
+
+
+def _parse_via_build_cli(flags: list[str]) -> ConfigSettings:
+    parser = build_main.main_parser()
+    args = parser.parse_args(flags)
+    result: ConfigSettings = {}
+    for arg in args.config_settings or []:
+        setting, _, value = arg.partition("=")
+        existing = result.get(setting)
+        if existing is None:
+            result[setting] = value
+        elif isinstance(existing, str):
+            result[setting] = [existing, value]
+        else:
+            existing.append(value)
+    return result
+
+
+@pytest.mark.parametrize(
+    "config_settings_str",
+    [
+        "",
+        "--with-c-extensions",
+        "--with-c-extensions --with-c-extensions",
+        "--with-c-extensions tag=one tag=two empty= eq=a=b",
+        'a=1 tag=one tag=two spaced="hello world" dquote=\'say "hi"\' squote="it\'s ok" eq=x=y=z empty= leading=-dash --opt=-val',
+        '"my key"="my val" \'k "q"\'=\'v "q"\' "k\'s"="v\'s"',
+        r"""tag=one other=val tag=two winpath='C:\Users\John Doe\cross.ini' json='{"k": "a=b"}'""",
+        "key==val -=val --=val -a=1",
+    ],
+)
+def test_config_settings_build_cli_equivalence(config_settings_str: str) -> None:
+    legacy_flags = [f"-C{token}" for token in shlex.split(config_settings_str)]
+    parsed = parse_config_settings(config_settings_str)
+    new_flags = _get_config_settings_flags(parsed)
+    assert _parse_via_build_cli(new_flags) == _parse_via_build_cli(legacy_flags) == parsed
+
+
+@pytest.mark.parametrize("frontend", ["pip", "build", "build[uv]", "uv", "pyodide-build"])
+def test_config_settings_frontend_roundtrip(
+    frontend: Literal["pip", "build", "build[uv]", "uv", "pyodide-build"],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mock_warning = unittest.mock.MagicMock()
+    monkeypatch.setattr(Logger, "warning", mock_warning)
+    parsed = parse_config_settings(
+        '--with-c-extensions tag=one tag=two spaced="hello world" eq=a=b path={package}'
+    )
+    prepared = prepare_config_settings(parsed, project="/proj", package="/pkg")
+    flags = get_build_frontend_extra_flags(
+        build_frontend=BuildFrontendConfig(frontend),
+        verbosity_level=0,
+        config_settings=prepared,
+    )
+    assert flags == [
+        "-C--with-c-extensions=",
+        "-Ctag=one",
+        "-Ctag=two",
+        "-Cspaced=hello world",
+        "-Ceq=a=b",
+        "-Cpath=/pkg",
+    ]
+    assert _parse_via_build_cli(flags) == {
+        "--with-c-extensions": "",
+        "tag": ["one", "two"],
+        "spaced": "hello world",
+        "eq": "a=b",
+        "path": "/pkg",
+    }
+    mock_warning.assert_not_called()
+
+
+def test_config_settings_options_parsing_and_inherit(tmp_path: Path) -> None:
+    pyproject_toml = tmp_path / "pyproject.toml"
+    pyproject_toml.write_text(
+        textwrap.dedent("""\
+            [tool.cibuildwheel]
+            config-settings = '--with-c-extensions tag=one spaced="hello world"'
+
+            [[tool.cibuildwheel.overrides]]
+            select = "cp312-*"
+            inherit.config-settings = "append"
+            config-settings = { extra = ["a", "b"] }
+        """)
+    )
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+
+    options = Options(platform="linux", command_line_arguments=args, env={})
+    assert options.build_options("cp313-manylinux_x86_64").config_settings == {
+        "--with-c-extensions": "",
+        "tag": "one",
+        "spaced": "hello world",
+    }
+    assert options.build_options("cp312-manylinux_x86_64").config_settings == {
+        "--with-c-extensions": "",
+        "tag": "one",
+        "spaced": "hello world",
+        "extra": ["a", "b"],
+    }
+
+
+def test_config_settings_malformed_raises_configuration_error(tmp_path: Path) -> None:
+    args = CommandLineArguments.defaults()
+    args.package_dir = tmp_path
+    options = Options(
+        platform="linux",
+        command_line_arguments=args,
+        env={"CIBW_CONFIG_SETTINGS": 'key="unterminated'},
+    )
+    with pytest.raises(errors.ConfigurationError, match="Malformed config-settings option"):
+        options.build_options("cp312-manylinux_x86_64")
 
 
 @pytest.mark.parametrize(
