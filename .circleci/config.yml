@@ -63,6 +63,37 @@ jobs:
       - cibw_prepare_environment
       - cibw_run_tests
 
+  windows:
+    machine:
+      image: windows-default
+    resource_class: windows.medium
+    environment:
+      # Temporarily restrict the tests that are run on CircleCI to prevent
+      # test timeouts.
+      PYTEST_ADDOPTS: -k "unit_test or main_tests or test_0_basic"
+    steps:
+      - checkout
+      - run:
+          name: Prepare the environment.
+          command: |
+            python --version
+            python -m venv venv
+            venv\Scripts\python -m pip install -U pip
+            venv\Scripts\python -m pip install -e . --group test
+            venv\Scripts\python -m pip freeze
+            venv\Scripts\python --version
+      - run:
+          name: Test
+          command: |
+            if ($env:CIRCLE_BRANCH -eq "main") {
+              Write-Host "INFO: Exporting CIBW_ENABLE=all for main branch test run."
+              $env:CIBW_ENABLE = "all"
+            } else {
+              Write-Host "INFO: CIBW_ENABLE not set for this branch test run."
+            }
+            venv\Scripts\python ./bin/run_tests.py
+          no_output_timeout: 30m
+
 workflows:
   version: 2
   all-tests:
@@ -70,3 +101,4 @@ workflows:
       - osx-python312
       - linux-python312
       - linux-aarch64
+      - windows
