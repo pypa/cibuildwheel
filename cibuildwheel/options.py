@@ -613,8 +613,13 @@ class OptionsReader:
         """
         Load a toml file, returns global and platform as separate dicts.
         """
-        with filename.open("rb") as f:
-            config = tomllib.load(f)
+        try:
+            with filename.open("rb") as f:
+                config = tomllib.load(f)
+        except OSError as e:
+            raise OptionsReaderError(f"Could not read config file {filename}: {e}") from e
+        except tomllib.TOMLDecodeError as e:
+            raise OptionsReaderError(f"Invalid TOML in {filename}: {e}") from e
 
         global_options = config.get("tool", {}).get("cibuildwheel", {})
         platform_options = global_options.get(self.platform, {})
