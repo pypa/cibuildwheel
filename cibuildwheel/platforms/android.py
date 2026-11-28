@@ -615,6 +615,7 @@ def build_wheel(state: BuildState) -> Path:
             call(
                 uv_path,
                 "build",
+                f"--python={state.build_path / 'venv' / 'bin' / 'python'}",
                 state.options.package_dir,
                 "--wheel",
                 "--no-build-isolation",
