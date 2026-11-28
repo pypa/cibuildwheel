@@ -45,6 +45,8 @@ jobs:
       with:
         python-version: "3.14"
 
+    - name: "Run update: action coonstraints"
+      run: uvx nox --force-color -s update_action_constraints
     - name: "Run update: dependencies"
       run: uvx nox --force-color -s update_constraints
     - name: "Run update: python configs"
