@@ -382,12 +382,18 @@ def test_toml_environment_quoting(
             (),
             True,
         ),
+        (
+            'container-engine = "none"',
+            None,
+            (),
+            False,
+        ),
     ],
 )
 def test_container_engine_option(
     tmp_path: Path,
     toml_assignment: str,
-    result_name: str,
+    result_name: str | None,
     result_create_args: tuple[str, ...],
     result_disable_host_mount: bool,
 ) -> None:
@@ -405,10 +411,13 @@ def test_container_engine_option(
 
     options = Options(platform="linux", command_line_arguments=args, env={})
     parsed_container_engine = options.build_options(None).container_engine
-
-    assert parsed_container_engine.name == result_name
-    assert parsed_container_engine.create_args == result_create_args
-    assert parsed_container_engine.disable_host_mount == result_disable_host_mount
+    if result_name is not None:
+        assert parsed_container_engine is not None
+        assert parsed_container_engine.name == result_name
+        assert parsed_container_engine.create_args == result_create_args
+        assert parsed_container_engine.disable_host_mount == result_disable_host_mount
+    else:
+        assert parsed_container_engine is None
 
 
 def test_environment_pass_references() -> None:
