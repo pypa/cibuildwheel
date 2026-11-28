@@ -218,10 +218,14 @@ class Override:
 
 MANYLINUX_OPTIONS = {f"manylinux-{build_platform}-image" for build_platform in MANYLINUX_ARCHS}
 MUSLLINUX_OPTIONS = {f"musllinux-{build_platform}-image" for build_platform in MUSLLINUX_ARCHS}
+NON_LINUX_DISALLOWED = MANYLINUX_OPTIONS | MUSLLINUX_OPTIONS
 DISALLOWED_OPTIONS = {
     "linux": {"dependency-versions"},
-    "macos": MANYLINUX_OPTIONS | MUSLLINUX_OPTIONS,
-    "windows": MANYLINUX_OPTIONS | MUSLLINUX_OPTIONS,
+    "macos": NON_LINUX_DISALLOWED,
+    "windows": NON_LINUX_DISALLOWED,
+    "android": NON_LINUX_DISALLOWED,
+    "ios": NON_LINUX_DISALLOWED,
+    "pyodide": NON_LINUX_DISALLOWED,
 }
 
 
