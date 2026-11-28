@@ -22,9 +22,12 @@ To build Linux, macOS, and Windows wheels using GitHub Actions, create a `.githu
     {% include "../examples/github-minimal.yml" %}
     ```
 
-    Use `env:` to pass [build options](options.md) and `with:` to set
-    `package-dir: .`, `output-dir: wheelhouse` and `config-file: ''`
-    locations (those values are the defaults). You can also pass a
+    Use `env:` to pass [build options](options.md). Under `with:`, use
+    `package` for the project directory (default `.`) or a source distribution
+    such as `dist/example-1.0.tar.gz`. The action also accepts `package-dir`
+    as an alias. If both inputs are set, `package` takes precedence.
+    The `output-dir` and `config-file` inputs default to `wheelhouse` and
+    the empty string, respectively. You can also pass a
     comma-separated list of extras to install additional packages.
     For example, `extras: "uv"` to install UV into the virtual environment.
     On self-hosted runners with an architecture not supported by
